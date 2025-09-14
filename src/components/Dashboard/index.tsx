@@ -14,11 +14,22 @@ import { ThemeToggle } from "../ThemeToggle";
 import { getActiveEdition } from "@/utils";
 import { useAppDispatch } from "@/app/store/hooks";
 import { setContest } from "@/app/store/reducers/contestReducer";
+import type { Schema } from '../../../amplify/data/resource'
+import { generateClient } from 'aws-amplify/data'
+
+const client = generateClient<Schema>()
 
 const DashboardPage: React.FC = () => {
 
     const router = useRouter()
     const dispatch = useAppDispatch();
+
+    const createTodo = async () => {
+        await client.models.Todo.create({
+            content: window.prompt("Todo content?"),
+            isDone: false
+        })
+    }
 
     const getPhaseColor = (contest: Contest) => {
         const activeEdition = getActiveEdition(contest);
@@ -82,6 +93,10 @@ const DashboardPage: React.FC = () => {
     return (
         <div className="min-h-screen bg-background p-4">
             <div className="max-w-md mx-auto">
+
+                <Button onClick={createTodo}>
+                    Bullshit button
+                </Button>
 
                 {/* Header */}
                 <div className="text-center mb-8">

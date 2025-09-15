@@ -1,20 +1,67 @@
 import { sortedEditions, getPhaseMessage } from "@/utils"
 import { Card, CardContent, CardHeader, CardTitle } from "../ui/card"
 import { Badge } from "../ui/badge"
-import { Contest, User } from "@/types/Contest"
+import { User } from "@/types/Contest"
 import { useAppDispatch, useAppSelector } from "@/app/store/hooks"
 import { setEdition } from "@/app/store/reducers/contestReducer"
 import { Alert, AlertDescription, AlertTitle } from "../ui/alert"
 import { Separator } from "../ui/separator"
+import { SelectionSet } from "aws-amplify/api"
+import { Schema } from "../../../amplify/data/resource"
+import { useQuery } from "@tanstack/react-query"
+import { useRouter } from "next/navigation"
+import { useAmplifyClient } from "@/app/amplifyConfig"
+import { toast } from "sonner"
+import { Spinner } from "../ui/spinner"
 
 interface EditionListProps {
     contest: Contest;
 }
 
+// eslint-disable-next-line @typescript-eslint/no-unused-vars
+const selectionSet = ['contestId', 'name', 'description', 'hostId', 'participants'] as const;
+type Contest = SelectionSet<Schema['Contest']['type'], typeof selectionSet>;
+type Edition = Schema['Edition']['type'];
+
 const EditionList: React.FC<EditionListProps> = ({ contest }) => {
     const dispatch = useAppDispatch();
+    const router = useRouter();
+    const client = useAmplifyClient();
 
     const currentUser = useAppSelector((state) => state.user.user);
+
+    const {
+        data: editions,
+        isLoading,
+        refetch
+    } = useQuery({
+        queryKey: ["editionListQuery"],
+        queryFn: async () => {
+            const response = await client.models.Edition.list({
+                filter: {
+                    contestId: {
+                        eq: contest.contestId as string,
+                    }
+                }
+            });
+            const responseData = response.data;
+            if (!responseData) {
+                // router.push('/');
+                toast.error('No editions found')
+            }
+            return responseData as unknown as Edition[];
+        },
+    });
+
+    if (isLoading) {
+        return (
+            <Spinner />
+        )
+    }
+
+    if (!isLoading && !editions) {
+        refetch();
+    }
 
     return (
         <Card className="mb-4 py-6">
@@ -22,7 +69,7 @@ const EditionList: React.FC<EditionListProps> = ({ contest }) => {
                 <CardTitle>Editions</CardTitle>
             </CardHeader>
             <CardContent className="space-y-3">
-                {contest.editions.length === 0 ? (
+                {editions && editions.length === 0 ? (
                     <Alert>
                         <AlertTitle>No editions yet</AlertTitle>
                         <AlertDescription>
@@ -32,27 +79,26 @@ const EditionList: React.FC<EditionListProps> = ({ contest }) => {
                         </AlertDescription>
                     </Alert>
                 ) : (
-                    sortedEditions(contest).map((edition, index) => (
-                        <div key={edition.id}>
+                    editions && editions.map((edition, index) => (
+                        <div key={edition.editionId}>
                             <div
                                 className={`p-3 rounded-lg border cursor-pointer transition-colors border-border hover:bg-muted/50`}
-                                onClick={() => dispatch(setEdition(edition))}
+                                onClick={() => dispatch(setEdition(edition.editionId as string))}
                             >
                                 <div className="flex items-center justify-between mb-2">
-                                    <h4 className="font-medium">{edition.title}</h4>
+                                    <h4 className="font-medium">{edition.name}</h4>
                                     <div className="flex items-center gap-2">
                                         <Badge variant={
-                                            edition.phase === 'UPCOMING' ? 'outline' :
-                                                edition.phase === 'SUBMISSION' ? 'default' :
-                                                    edition.phase === 'VOTING' ? 'secondary' : 'destructive'
+                                            edition.phase === 'SUBMISSION' ? 'default' :
+                                                edition.phase === 'VOTING' ? 'secondary' : 'destructive'
                                         } className="text-xs">
-                                            {edition.phase.charAt(0).toUpperCase() + edition.phase.slice(1)}
+                                            {edition.phase && edition.phase.charAt(0).toUpperCase() + edition.phase.slice(1)}
                                         </Badge>
                                     </div>
                                 </div>
                                 <div className="flex items-center justify-between text-sm text-muted-foreground">
-                                    <span>{getPhaseMessage(edition)}</span>
-                                    <span>{contest.participants.filter((p) => !edition.optedOutParticipants.includes(p.id)).length} participants</span>
+                                    <span>{edition.phase && getPhaseMessage(edition.phase)}</span>
+                                    <span> {`${contest.participants?.length} ${contest.participants?.length === 1 ? 'participant' : 'participants'}`}</span>
                                 </div>
                             </div>
                             {index < sortedEditions.length - 1 && <Separator className="my-3" />}

@@ -1,4 +1,3 @@
-import { Contest, Edition } from "@/types/Contest"
 import { Progress } from "@radix-ui/react-progress";
 import { Clock, Vote, Users, Share, Crown, Music, Trophy, Upload, Play } from "lucide-react";
 import { Card, CardHeader, CardTitle, CardContent } from "../ui/card";
@@ -6,14 +5,64 @@ import { EditionPhase } from "@/mockData/newMockData";
 import { formatDate, getPhaseMessage } from "@/utils";
 import { Badge } from "../ui/badge";
 import { Button } from "../ui/button";
+import { useQuery } from "@tanstack/react-query";
+import { useAmplifyClient } from "@/app/amplifyConfig";
+import { toast } from "sonner";
+import { Schema } from "../../../amplify/data/resource";
+import { Spinner } from "../ui/spinner";
 
 interface EditionDetailsProps {
-    contest: Contest;
-    edition: Edition;
+    edition: string;
     onSubmitSong: () => void;
 }
 
-const EditionDetails: React.FC<EditionDetailsProps> = ({ contest, edition, onSubmitSong }) => {
+type Edition = Schema['Edition']['type'];
+type Contest = Schema['Contest']['type'];
+
+const EditionDetails: React.FC<EditionDetailsProps> = ({ edition, onSubmitSong }) => {
+    const client = useAmplifyClient();
+
+    const {
+        data: editionData,
+        isLoading,
+    } = useQuery({
+        queryKey: ["editionInfoQuery"],
+        queryFn: async () => {
+            const response = await client.models.Edition.get({
+                editionId: edition,
+            });
+            const responseData = response.data;
+            if (!responseData) {
+                // router.push('/');
+                toast.error('Edition not found')
+            }
+            return responseData as unknown as Edition;
+        },
+    });
+
+    const {
+        data: contest,
+    } = useQuery({
+        queryKey: ["editionInfoQueryContest"],
+        queryFn: async () => {
+            const response = await client.models.Contest.get({
+                contestId: editionData?.contestId,
+            });
+            const responseData = response.data;
+            if (!responseData) {
+                // router.push('/');
+                toast.error('Contest not found')
+            }
+            return responseData as unknown as Contest;
+        },
+        enabled: !!editionData,
+    });
+
+    if (isLoading) {
+        return (
+            <Spinner />
+        )
+    }
 
     const getPhaseColor = (phase: string) => {
         switch (phase) {
@@ -36,8 +85,8 @@ const EditionDetails: React.FC<EditionDetailsProps> = ({ contest, edition, onSub
     };
 
     const getActionButton = () => {
-        if (edition) {
-            if (edition.phase === 'SUBMISSION') {
+        if (editionData) {
+            if (editionData.phase === 'SUBMISSION') {
                 return (
                     <Button onClick={onSubmitSong} className="w-full">
                         <Upload className="w-4 h-4 mr-2" />
@@ -46,7 +95,7 @@ const EditionDetails: React.FC<EditionDetailsProps> = ({ contest, edition, onSub
                 );
             }
 
-            if (edition.phase === 'VOTING') {
+            if (editionData.phase === 'VOTING') {
                 return (
                     <Button onClick={() => console.log('vote')} className="w-full">
                         <Vote className="w-4 h-4 mr-2" />
@@ -55,7 +104,7 @@ const EditionDetails: React.FC<EditionDetailsProps> = ({ contest, edition, onSub
                 );
             }
 
-            if (edition.phase === 'RESULTS' || edition.phase === 'COMPLETE') {
+            if (editionData.phase === 'RESULTS' || editionData.phase === 'COMPLETE') {
                 return (
                     <Button onClick={() => console.log('view results')} className="w-full">
                         <Trophy className="w-4 h-4 mr-2" />
@@ -70,64 +119,64 @@ const EditionDetails: React.FC<EditionDetailsProps> = ({ contest, edition, onSub
 
     return (
         <>
-            <Card className="mb-4 py-6" >
+            {editionData && <Card className="mb-4 py-6" >
                 <CardHeader>
                     <div className="flex items-center justify-between">
                         <CardTitle className="flex items-center gap-2">
-                            {edition.title}
+                            {editionData.name}
                         </CardTitle>
-                        <Badge variant={getPhaseColor(edition.phase)} className="text-xs bg-blue-500 text-white dark:bg-blue-600">
-                            {getPhaseIcon(edition.phase)}
-                            <span className="ml-1 capitalize">{edition.phase}</span>
-                        </Badge>
+                        {editionData.phase && <Badge variant={getPhaseColor(editionData.phase)} className="text-xs bg-blue-500 text-white dark:bg-blue-600">
+                            {getPhaseIcon(editionData.phase)}
+                            <span className="ml-1 capitalize">{editionData.phase}</span>
+                        </Badge>}
                     </div>
-                    <p className="text-muted-foreground">{'hello'}</p>
+                    <p className="text-muted-foreground">{editionData.description}</p>
                 </CardHeader>
                 <CardContent className="space-y-4">
                     <div className="grid grid-cols-1 gap-2 text-sm">
-                        <div className="flex items-center justify-between">
+                        {editionData.submissionsOpen && <div className="flex items-center justify-between">
                             <span className="flex items-center gap-2">
                                 <Play className="w-4 h-4" />
                                 Submissions open from
                             </span>
-                            <span>{formatDate(edition.startDate)}</span>
-                        </div>
-                        <div className="flex items-center justify-between">
+                            <span>{formatDate(editionData.submissionsOpen)}</span>
+                        </div>}
+                        {editionData.submissionDeadline && <div className="flex items-center justify-between">
                             <span className="flex items-center gap-2">
                                 <Clock className="w-4 h-4" />
                                 Submission Due
                             </span>
-                            <span>{formatDate(edition.submissionDeadline)}</span>
-                        </div>
-                        <div className="flex items-center justify-between">
+                            <span>{formatDate(editionData.submissionDeadline)}</span>
+                        </div>}
+                        {editionData.votingDeadline && <div className="flex items-center justify-between">
                             <span className="flex items-center gap-2">
                                 <Vote className="w-4 h-4" />
                                 Voting Due
                             </span>
-                            <span>{formatDate(edition.votingDeadline)}</span>
-                        </div>
+                            <span>{formatDate(editionData.votingDeadline)}</span>
+                        </div>}
                     </div>
 
                     <div className="space-y-2">
-                        <div className="flex items-center justify-between">
+                        {contest?.participants && <div className="flex items-center justify-between">
                             <span className="flex items-center gap-2">
                                 <Users className="w-4 h-4" />
                                 Participants
                             </span>
                             <span>{contest.participants.length}</span>
-                        </div>
+                        </div>}
 
-                        {edition.phase === 'SUBMISSION' && (
+                        {editionData.phase === 'SUBMISSION' && contest?.participants && (
                             <div className="space-y-1">
                                 <div className="flex justify-between">
                                     <span>Submissions</span>
-                                    <span>{edition.submissions.length}/{contest.participants.length}</span>
+                                    <span>{editionData.submissions.length}/{contest.participants.length}</span>
                                 </div>
                                 <Progress value={22} className="h-2" />
                             </div>
                         )}
 
-                        {edition.phase === 'VOTING' && (
+                        {editionData.phase === 'VOTING' && contest?.participants && (
                             <div className="space-y-1">
                                 <div className="flex justify-between">
                                     <span>Votes Cast</span>
@@ -153,7 +202,7 @@ const EditionDetails: React.FC<EditionDetailsProps> = ({ contest, edition, onSub
                         Invite Friends
                     </Button>
                 </CardContent>
-            </Card>
+            </Card>}
         </>
     )
 }

@@ -26,8 +26,8 @@ export const sortedEditions = (contest: Contest): Edition[] => {
     })
 }
 
-export const getPhaseMessage = (edition: Edition) => {
-    switch (edition.phase) {
+export const getPhaseMessage = (phase: string) => {
+    switch (phase) {
         case 'UPCOMING':
             return `Waiting for host to open submissions`;
         case 'SUBMISSION':

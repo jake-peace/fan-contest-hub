@@ -1,12 +1,11 @@
 'use client'
 
-import { Contest, Edition } from '@/types/Contest';
 import { createSlice, PayloadAction } from '@reduxjs/toolkit'
 import type { RootState } from '../store'
 
 interface ContestState {
-  contest?: Contest;
-  edition?: Edition;
+  contestId?: string;
+  editionId?: string;
 }
 
 const initialState: ContestState = {};
@@ -15,17 +14,17 @@ export const contestSlice = createSlice({
   name: 'contest',
   initialState,
   reducers: {
-    setContest: (state, action: PayloadAction<Contest>) => {
-      state.contest = action.payload;
+    setContest: (state, action: PayloadAction<string>) => {
+      state.contestId = action.payload;
     },
     clearContest: (state) => {
-      state.contest = initialState.contest;
+      state.contestId = initialState.contestId;
     },
-    setEdition: (state, action: PayloadAction<Edition>) => {
-      state.edition = action.payload
+    setEdition: (state, action: PayloadAction<string>) => {
+      state.editionId = action.payload
     },
     clearEdition: (state) => {
-      state.edition = initialState.edition;
+      state.editionId = initialState.editionId;
     }
   },
 })
@@ -33,6 +32,6 @@ export const contestSlice = createSlice({
 export const { setContest, clearContest, setEdition, clearEdition } = contestSlice.actions
 
 // Other code such as selectors can use the imported `RootState` type
-export const selectCount = (state: RootState) => state.contest.contest
+export const selectCount = (state: RootState) => state.contest.contestId
 
 export default contestSlice.reducer

@@ -10,6 +10,7 @@ import { useState } from "react";
 import EditionDetails from "@/components/EditionDetails";
 import SongSubmission from "@/components/SongSubmission";
 import { clearContest, clearEdition } from "../store/reducers/contestReducer";
+import { useQueryClient } from "@tanstack/react-query";
 
 const currentUserId = 'user_alpha';
 
@@ -18,15 +19,16 @@ type EditionView = 'OVERVIEW' | 'SUBMISSION' | 'VOTING' | 'RESULTS';
 const ContestPage: React.FC = () => {
     const router = useRouter();
     const dispatch = useAppDispatch();
-    const contest = useAppSelector((store) => store.contest.contest);
-    const edition = useAppSelector((store) => store.contest.edition);
+    const queryClient = useQueryClient();
+    // const contest = useAppSelector((store) => store.contest.contest);
+    const editionId = useAppSelector((store) => store.contest.editionId);
 
     const currentUser = users.filter((user) => user.id === currentUserId)[0];
     const [editionView, setEditionView] = useState<EditionView>('OVERVIEW');
 
-    if (!contest || !currentUser) {
-        router.push('/')
-    };
+    // if (!contest || !currentUser) {
+    //     router.push('/')
+    // };
 
     // Contest page:
     // - Top navigation
@@ -38,10 +40,10 @@ const ContestPage: React.FC = () => {
     //      - Results page
 
     const renderEditionContent = () => {
-        if (contest && edition) {
+        if (editionId) {
             switch (editionView) {
                 case 'OVERVIEW':
-                    return <EditionDetails contest={contest} edition={edition} onSubmitSong={() => setEditionView('SUBMISSION')} />;
+                    return <EditionDetails edition={editionId} onSubmitSong={() => setEditionView('SUBMISSION')} />;
                 case 'SUBMISSION':
                     return <SongSubmission onBack={() => setEditionView('OVERVIEW')} />;
                 case 'VOTING':
@@ -55,15 +57,17 @@ const ContestPage: React.FC = () => {
     };
 
     const getBackAction = () => {
-        if (edition) {
+        if (editionId) {
             if (editionView === 'OVERVIEW') {
+                console.log('INVALIDATING')
+                queryClient.removeQueries({ queryKey: ['editionInfoQuery'] })
                 dispatch(clearEdition());
             } else {
                 setEditionView('OVERVIEW');
             }
-        } else if (contest) {
+        } else {
             dispatch(clearContest());
-            router.back();
+            router.push('/');
         };
     };
 
@@ -81,7 +85,7 @@ const ContestPage: React.FC = () => {
                 </Button>
 
                 {/* Main content */}
-                {edition !== undefined ? renderEditionContent() :
+                {editionId !== undefined ? renderEditionContent() :
                     (<ContestInfoCard />)}
             </div>
         </div>

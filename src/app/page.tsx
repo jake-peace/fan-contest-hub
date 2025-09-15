@@ -1,5 +1,10 @@
+import AuthBarrier from "@/components/AuthBarrier";
 import DashboardPage from "@/components/Dashboard";
 
 export default function Page() {
-  return <DashboardPage />
+  return (
+    <AuthBarrier>
+      <DashboardPage />
+    </AuthBarrier>
+  )
 }

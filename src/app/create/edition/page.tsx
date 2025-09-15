@@ -2,7 +2,7 @@
 
 import { zodResolver } from "@hookform/resolvers/zod"
 import { Button } from '../../../components/ui/button';
-import { CalendarIcon, Music } from 'lucide-react';
+import { CalendarIcon } from 'lucide-react';
 import { Card, CardHeader, CardTitle, CardContent } from '@/components/ui/card';
 import { Input } from '@/components/ui/input';
 import { Textarea } from '@/components/ui/textarea';
@@ -12,64 +12,52 @@ import z from "zod/v3";
 import { toast } from "sonner";
 import DateTimeHandler from "@/components/DateTimeHandler";
 import { useRouter } from "next/navigation";
-import { createContest } from "@/utils/APIUtils";
 import { useAppSelector } from "@/app/store/hooks";
 import { useAmplifyClient } from "@/app/amplifyConfig";
 import AuthBarrier from "@/components/AuthBarrier";
 import { v4 } from "uuid";
 import { useQueryClient } from "@tanstack/react-query";
-
-interface CreateContestProps {
-    onCreateContest: (contest: {
-        title: string;
-        description: string;
-        deadline: Date;
-        maxParticipants: number;
-    }) => void;
-    onBack: () => void;
-}
+import { createEdition } from "@/utils/APIUtils";
 
 const FormSchema = z.object({
-    contestName: z.string().min(3, {
-        message: "Contest name must be at least 3 characters.",
+    name: z.string().min(3, {
+        message: "Edition name must be at least 3 characters.",
     }),
-    contestDescription: z.string().optional(),
-    contestDeadline: z.date().min(new Date(), {
+    description: z.string().optional(),
+    submissionsOpen: z.date(),
+    submissionDeadline: z.date().min(new Date(), {
         message: 'Submission deadline must be in the future.'
+    }),
+    votingDeadline: z.date().min(new Date(), {
+        message: 'Voting deadline must be in the future.'
     }),
 })
 
-const CreateContest: React.FC<CreateContestProps> = () => {
-
+const CreateEdition: React.FC = () => {
     const router = useRouter()
     const client = useAmplifyClient();
-    const currentUser = useAppSelector((state) => state.user.user.id);
+    const contestId = useAppSelector((state) => state.contest.contestId);
     const queryClient = useQueryClient();
 
     const form = useForm<z.infer<typeof FormSchema>>({
         resolver: zodResolver(FormSchema),
         defaultValues: {
-            contestName: '',
-            contestDescription: '',
-            contestDeadline: new Date(),
+            name: '',
+            description: '',
+            submissionsOpen: new Date(),
+            submissionDeadline: new Date(),
+            votingDeadline: new Date(),
         },
     })
 
     const handleSubmit = async (data: z.infer<typeof FormSchema>) => {
-        console.log(currentUser);
-        const newContestId = v4();
-        const { errors, createdContest } = await createContest(client, { contestId: newContestId, title: data.contestName, description: data.contestDescription, hostId: currentUser as string })
+        const newEditionId = v4();
+        const { errors, createdEdition } = await createEdition(client, { id: newEditionId, contestId: contestId as string, name: data.name, description: data.description as string, })
 
         if (!errors) {
-            toast.success(`${createdContest?.name} created successfully!`, {
-                action: {
-                    label: 'View contest',
-                    onClick: () => console.log('Action!'),
-                    // onClick: () => router.push(`/contest/${contestId}`)
-                }
-            })
-            queryClient.invalidateQueries({ queryKey: ['userContestList'] })
-            router.push('/');
+            toast.success(`${createdEdition?.name} created successfully!`)
+            queryClient.invalidateQueries({ queryKey: ['editionListQuery'] })
+            router.push('/contest');
         } else {
             toast.error(`Something went wrong: ${JSON.stringify(errors)}`)
         }
@@ -90,28 +78,27 @@ const CreateContest: React.FC<CreateContestProps> = () => {
                     <Card className='py-6'>
                         <CardHeader>
                             <CardTitle className="flex items-center gap-2">
-                                <Music className="w-5 h-5" />
-                                Create a new Fan Contest
+                                New Edition
                             </CardTitle>
                         </CardHeader>
                         <CardContent>
                             <Form {...form}>
                                 <form onSubmit={form.handleSubmit(handleSubmit)} className="space-y-4">
-                                    <FormField control={form.control} name='contestName' render={({ field }) => (
+                                    <FormField control={form.control} name='name' render={({ field }) => (
                                         <FormItem>
                                             <FormLabel>Title</FormLabel>
                                             <FormControl>
-                                                <Input placeholder="My Fan Contest" {...field} />
+                                                <Input placeholder="Fan Contest Edition #4" {...field} />
                                             </FormControl>
                                             <FormDescription>
-                                                The name of your Fan Contest
+                                                The name of the Edition
                                             </FormDescription>
                                             <FormMessage />
                                         </FormItem>
                                     )}>
                                     </FormField>
 
-                                    <FormField control={form.control} name='contestDescription' render={({ field }) => (
+                                    <FormField control={form.control} name='description' render={({ field }) => (
                                         <FormItem>
                                             <FormLabel>Description</FormLabel>
                                             <FormControl>
@@ -122,14 +109,34 @@ const CreateContest: React.FC<CreateContestProps> = () => {
                                                 />
                                             </FormControl>
                                             <FormDescription>
-                                                Describe your contest, give some rules etc...
+                                                Describe your edition, give some rules etc...
                                             </FormDescription>
                                             <FormMessage />
                                         </FormItem>
                                     )}>
                                     </FormField>
 
-                                    <FormField control={form.control} name='contestDeadline' render={({ field }) => (
+                                    <FormField control={form.control} name='submissionsOpen' render={({ field }) => (
+                                        <FormItem>
+                                            <FormLabel>
+                                                <CalendarIcon className="w-4 h-4" />
+                                                Submissions open from
+                                            </FormLabel>
+                                            <FormControl>
+                                                <DateTimeHandler
+                                                    value={field.value}
+                                                    onChange={field.onChange}
+                                                />
+                                            </FormControl>
+                                            <FormDescription>
+                                                Submissions will open at this date and time.
+                                            </FormDescription>
+                                            <FormMessage />
+                                        </FormItem>
+                                    )}>
+                                    </FormField>
+
+                                    <FormField control={form.control} name='submissionDeadline' render={({ field }) => (
                                         <FormItem>
                                             <FormLabel>
                                                 <CalendarIcon className="w-4 h-4" />
@@ -142,7 +149,26 @@ const CreateContest: React.FC<CreateContestProps> = () => {
                                                 />
                                             </FormControl>
                                             <FormDescription>
-                                                Deadline for submitting entries to your contest
+                                                {`(Optional) Deadline for submitting entries to the edition`}
+                                            </FormDescription>
+                                            <FormMessage />
+                                        </FormItem>
+                                    )}>
+                                    </FormField>
+                                    <FormField control={form.control} name='votingDeadline' render={({ field }) => (
+                                        <FormItem>
+                                            <FormLabel>
+                                                <CalendarIcon className="w-4 h-4" />
+                                                Voting Deadline
+                                            </FormLabel>
+                                            <FormControl>
+                                                <DateTimeHandler
+                                                    value={field.value}
+                                                    onChange={field.onChange}
+                                                />
+                                            </FormControl>
+                                            <FormDescription>
+                                                {`(Optional) Deadline for participants to vote`}
                                             </FormDescription>
                                             <FormMessage />
                                         </FormItem>
@@ -150,7 +176,7 @@ const CreateContest: React.FC<CreateContestProps> = () => {
                                     </FormField>
 
                                     <Button type="submit" className="w-full">
-                                        Create Contest
+                                        Create Edition
                                     </Button>
                                 </form>
                             </Form>
@@ -162,4 +188,4 @@ const CreateContest: React.FC<CreateContestProps> = () => {
     );
 }
 
-export default CreateContest;
+export default CreateEdition;

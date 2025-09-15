@@ -80,7 +80,7 @@ export interface Edition {
 export interface Contest {
     id: string;
     title: string;
-    description: string;
+    description?: string;
     participants: Participant[];
     joinCode: string;
     hostId: string;

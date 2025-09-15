@@ -5,8 +5,8 @@ import "./globals.css";
 import { Toaster } from "sonner";
 import { ThemeProvider } from "@/components/ThemeContext";
 import { ReduxProvider } from './store/providers';
-import { Amplify } from 'aws-amplify';
-import outputs from '../amplify_outputs.json';
+import AmplifyConfig from './amplifyConfig';
+import Providers from './queryProvider';
 
 const geistSans = Geist({
   variable: "--font-geist-sans",
@@ -28,18 +28,21 @@ export default function RootLayout({
 }: Readonly<{
   children: React.ReactNode;
 }>) {
-  Amplify.configure(outputs);
   return (
     <html lang="en">
       <body
         className={`${geistSans.variable} ${geistMono.variable} antialiased`}
       >
-        <ReduxProvider>
-          <ThemeProvider>
-            {children}
-            <Toaster />
-          </ThemeProvider>
-        </ReduxProvider>
+        <AmplifyConfig>
+          <ReduxProvider>
+            <Providers>
+              <ThemeProvider>
+                {children}
+                <Toaster />
+              </ThemeProvider>
+            </Providers>
+          </ReduxProvider>
+        </AmplifyConfig>
       </body>
     </html>
   );

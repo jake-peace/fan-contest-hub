@@ -16,17 +16,13 @@ const client = generateClient<Schema>({ authMode: 'userPool' });
 const AmplifyClientContext = createContext(client);
 
 export function useAmplifyClient() {
-    return useContext(AmplifyClientContext);
+	return useContext(AmplifyClientContext);
 }
 
 interface AmplifyConfigProps {
-    children: JSX.Element;
+	children: JSX.Element;
 }
 
 export default function AmplifyConfig({ children }: AmplifyConfigProps) {
-    return (
-        <AmplifyClientContext.Provider value={client}>
-            {children}
-        </AmplifyClientContext.Provider>
-    );
+	return <AmplifyClientContext.Provider value={client}>{children}</AmplifyClientContext.Provider>;
 }

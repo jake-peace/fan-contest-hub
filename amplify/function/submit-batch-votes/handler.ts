@@ -2,7 +2,6 @@ import { type Schema } from '../../data/resource';
 import { v4 } from 'uuid';
 import { generateClient } from "aws-amplify/data";
 import { Amplify } from 'aws-amplify';
-import amplifyOutputs from '../../../amplify_outputs.json'
 
 type Vote = Schema['Vote']['type'];
 

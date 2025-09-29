@@ -49,10 +49,10 @@ const SignUpComponent: React.FC = () => {
 	};
 
 	const onConfirmOTPCode = async () => {
-		const { isSignUpComplete, userId } = await confirmEmailOTP(form.getValues('email'), otpValue);
-		if (isSignUpComplete) {
-			dispatch(setUser(userId as string));
-			toast.success(`Signed up! User id: ${userId}`);
+		const resp = await confirmEmailOTP(form.getValues('email'), otpValue);
+		if (resp && resp.signInResult.isSignedIn) {
+			dispatch(setUser(resp.confirmResult.userId as string))
+			toast.success(`Signed up!`);
 			router.push('/');
 		} else {
 			toast.error(`Couldn't sign you in :(`);

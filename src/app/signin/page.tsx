@@ -2,6 +2,7 @@
 
 import SignInComponent from '@/components/SignIn';
 import SignUpComponent from '@/components/SignUp';
+import { Alert, AlertDescription } from '@/components/ui/alert';
 import { Card, CardHeader, CardTitle } from '@/components/ui/card';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
 import { LogIn, MicVocal, UserPlus } from 'lucide-react';
@@ -47,7 +48,13 @@ const SignInPage: React.FC = () => {
 						<SignUpComponent />
 					</TabsContent>
 				</Tabs>
+				<Alert>
+					<AlertDescription>
+					This website uses cookies to be able to log you in, store data about your contests etc. By signing up, logging in or continuing to use this website, you agree to cookies.
+					</AlertDescription>
+				</Alert>
 			</div>
+			
 		</div>
 	);
 };

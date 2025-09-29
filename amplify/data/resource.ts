@@ -1,5 +1,6 @@
 import { type ClientSchema, a, defineData } from '@aws-amplify/backend';
 import { submitBatchVotes } from '../function/submit-batch-votes/resource';
+import { spotifyApi } from '../function/spotifyApi/resource';
 
 /*== STEP 1 ===============================================================
 The section below creates a Todo database table with a "content" field. Try
@@ -68,8 +69,13 @@ const schema = a.schema({
     .returns(a.string())
     .authorization(allow => allow.authenticated())
     .handler(a.handler.function(submitBatchVotes)),
+  spotifyApi: a
+    .query()
+    .returns(a.string())
+    .authorization(allow => allow.authenticated())
+    .handler(a.handler.function(spotifyApi)),
 })
-.authorization(allow => allow.resource(submitBatchVotes));
+.authorization(allow => [allow.resource(submitBatchVotes), allow.resource(spotifyApi)]);
 
 export type Schema = ClientSchema<typeof schema>;
 

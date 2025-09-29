@@ -2,6 +2,7 @@ import { defineBackend, defineFunction } from '@aws-amplify/backend';
 import { auth } from './auth/resource';
 import { data } from './data/resource';
 import { submitBatchVotes } from './function/submit-batch-votes/resource';
+import { spotifyApi } from './function/spotifyApi/resource';
 
 /**
  * @see https://docs.amplify.aws/react/build-a-backend/ to add storage, functions, and more
@@ -10,6 +11,7 @@ const backend = defineBackend({
   auth,
   data,
   submitBatchVotes,
+  spotifyApi,
 });
 
 const { cfnResources } = backend.auth.resources;

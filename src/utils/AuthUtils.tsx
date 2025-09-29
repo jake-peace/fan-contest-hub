@@ -1,4 +1,4 @@
-import { confirmSignIn, confirmSignUp, getCurrentUser, signIn, signUp } from 'aws-amplify/auth';
+import { autoSignIn, confirmSignIn, confirmSignUp, getCurrentUser, signIn, signUp } from 'aws-amplify/auth';
 
 export const signUpUser = async (email: string, nick: string) => {
 	const { nextStep } = await signUp({
@@ -7,6 +7,9 @@ export const signUpUser = async (email: string, nick: string) => {
 			userAttributes: {
 				nickname: nick,
 			},
+			autoSignIn: {
+				authFlowType: 'USER_AUTH', // Recommended flow type
+			},
 		},
 	});
 
@@ -14,11 +17,18 @@ export const signUpUser = async (email: string, nick: string) => {
 };
 
 export const confirmEmailOTP = async (email: string, otp: string) => {
-	const { isSignUpComplete, userId } = await confirmSignUp({
+	const confirmResult = await confirmSignUp({
 		username: email,
 		confirmationCode: otp,
 	});
-	return { isSignUpComplete, userId };
+
+	if (confirmResult.nextStep.signUpStep === 'COMPLETE_AUTO_SIGN_IN') {
+		const signInResult = await autoSignIn();
+
+		if (signInResult.nextStep.signInStep === 'DONE') {
+			return { signInResult, confirmResult };
+		}
+	}
 };
 
 export const isLoggedIn = async () => {

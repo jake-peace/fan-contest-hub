@@ -7,7 +7,7 @@ import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
 import { CircleDashed, Clock, Hash, Plus, User, Users } from 'lucide-react';
 import { useRouter } from 'next/navigation';
-import { useState } from 'react';
+import { startTransition, useState } from 'react';
 import { ThemeToggle } from '../ThemeToggle';
 import { useAppDispatch, useAppSelector } from '@/app/store/hooks';
 import { setContest } from '@/app/store/reducers/contestReducer';
@@ -16,6 +16,7 @@ import { signOut } from 'aws-amplify/auth';
 import { toast } from 'sonner';
 import { Schema } from '../../../amplify/data/resource';
 import { Skeleton } from '../ui/skeleton';
+import { joinContestWithCode } from '@/app/actions/joinContestWithCode';
 
 type Contest = Schema['Contest']['type'];
 
@@ -37,7 +38,11 @@ const DashboardPage: React.FC = () => {
 	const dispatch = useAppDispatch();
 	const nickname = useAppSelector((state) => state.user.user.nickname);
 
-	const { data: contests, isLoading } = useQuery({
+	const {
+		data: contests,
+		isLoading,
+		refetch,
+	} = useQuery({
 		queryKey: ['userContestList'],
 		queryFn: () => fetchContests(),
 	});
@@ -61,6 +66,19 @@ const DashboardPage: React.FC = () => {
 	const onSelectContest = (contestId: string) => {
 		dispatch(setContest(contestId));
 		router.push(`/contest/${contestId}`);
+	};
+
+	const handleJoinWithCode = () => {
+		startTransition(async () => {
+			const result = await joinContestWithCode(joinCode);
+			if (result.success) {
+				refetch();
+				router.push(`/`);
+				toast.success(`You've joined ${result.contest}!`);
+			} else {
+				toast.error(`${result.error}`);
+			}
+		});
 	};
 
 	return (
@@ -103,7 +121,7 @@ const DashboardPage: React.FC = () => {
 									maxLength={6}
 								/>
 							</div>
-							<Button onClick={() => console.log('handle join with code')} variant="outline" className="w-full" disabled={!joinCode.trim()}>
+							<Button onClick={handleJoinWithCode} variant="outline" className="w-full" disabled={!joinCode.trim()}>
 								Join Contest
 							</Button>
 						</CardContent>

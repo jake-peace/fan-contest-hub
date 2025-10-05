@@ -36,7 +36,7 @@ export async function createContest(formData: FormData) {
 				joinCode: { eq: joinCode },
 			},
 		});
-		unique = !existingJoinCode;
+		unique = existingJoinCode.data.length === 0;
 	} while (!unique);
 
 	try {

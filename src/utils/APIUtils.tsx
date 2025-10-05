@@ -1,19 +1,5 @@
 /* eslint-disable @typescript-eslint/no-explicit-any */
 
-export const createContest = async (
-	client: any,
-	newContest: { contestId: string; title: string; description?: string; hostId: string }
-) => {
-	const { errors, data: createdContest } = await client.models.Contest.create({
-		contestId: newContest.contestId,
-		name: newContest.title,
-		description: newContest.description,
-		hostId: newContest.hostId,
-		participants: [newContest.hostId],
-	});
-	return { errors, createdContest };
-};
-
 export const createEdition = async (
 	client: any,
 	newEdition: {
@@ -21,9 +7,11 @@ export const createEdition = async (
 		contestId: string;
 		name: string;
 		description: string;
-		open?: number;
-		subDeadline?: number;
-		voteDeadline?: number;
+		open?: string;
+		subDeadline?: string;
+		voteDeadline?: string;
+		closeSubmissionType: string;
+		closeVotingType: string;
 	}
 ) => {
 	const { errors, data: createdEdition } = await client.models.Edition.create({
@@ -34,49 +22,22 @@ export const createEdition = async (
 		submissionDeadline: newEdition.subDeadline,
 		submissionsOpen: newEdition.open,
 		votingDeadline: newEdition.voteDeadline,
-		phase: 'SUBMISSION',
+		closeSubmissionType: newEdition.closeSubmissionType,
+		closeVotingType: newEdition.closeVotingType,
+		phase: 'UPCOMING',
 	});
 	return { errors, createdEdition };
 };
 
-export const submitSong = async (
-	client: any,
-	submission: {
-		submissionId: string;
-		userId: string;
-		songTitle: string;
-		artistName: string;
-		spotifyUri?: string;
-		editionId: string;
-		flag?: string;
-		countryName?: string;
+export const joinContest = async (client: any, userId: string, contestId: string) => {
+	const { data: contest } = await client.models.Contest.get({ contestId: contestId });
+	if (contest.participants.includes(userId)) {
+		throw new Error('Already in contest');
 	}
-) => {
-	const { errors, data: submissionData } = await client.models.Submission.create({
-		submissionId: submission.submissionId,
-		userId: submission.userId,
-		songTitle: submission.songTitle,
-		artistName: submission.artistName,
-		spotifyUri: submission.spotifyUri,
-		editionId: submission.editionId,
-		flag: submission.flag,
-		countryName: submission.countryName,
+	const newParticipants = [...(contest.participants ?? []), userId];
+	const { errors, data: updatedContest } = await client.models.Contest.update({
+		contestId: contestId,
+		participants: newParticipants,
 	});
-	return { errors, submissionData };
-};
-
-export const closeSubmissions = async (client: any, editionId: string) => {
-	const { errors, data: newEdition } = await client.models.Edition.update({
-		editionId: editionId,
-		phase: 'VOTING',
-	});
-	return { errors, newEdition };
-};
-
-export const closeVoting = async (client: any, editionId: string) => {
-	const { errors, data: newEdition } = await client.models.Edition.update({
-		editionId: editionId,
-		phase: 'RESULTS',
-	});
-	return { errors, newEdition };
+	return { errors, updatedContest };
 };

@@ -1,35 +1,92 @@
-import { Clock, Vote, Users, Share, Crown, Music, Trophy, Upload, Play, Music2, CheckCircle, LucideCroissant } from 'lucide-react';
+'use client';
+
+import { Clock, Vote, Users, Crown, Music, Trophy, Upload, Play, Music2, CheckCircle, TriangleAlert, Info } from 'lucide-react';
 import { Card, CardHeader, CardTitle, CardContent } from '../ui/card';
 import { EditionPhase } from '@/mockData/newMockData';
 import { formatDate, getPhaseMessage } from '@/utils';
 import { Badge } from '../ui/badge';
 import { Button } from '../ui/button';
-import { useQueryClient } from '@tanstack/react-query';
-import { useAmplifyClient } from '@/app/amplifyConfig';
+import { useQuery } from '@tanstack/react-query';
 import { Schema } from '../../../amplify/data/resource';
 import { Progress } from '../ui/progress';
-import { getCurrentUser } from 'aws-amplify/auth';
-import { closeSubmissions, closeVoting } from '@/utils/APIUtils';
+import { AuthUser } from 'aws-amplify/auth';
+import { compareAsc, parseISO } from 'date-fns';
+import { toast } from 'sonner';
+import { useRouter, useSearchParams } from 'next/navigation';
+import { useEffect } from 'react';
+import { Skeleton } from '../ui/skeleton';
+import SubmissionCard from '../SubmissionCard';
+import { Alert, AlertDescription, AlertTitle } from '../ui/alert';
+import EditionHostOptions from '../EditionHostOptions';
+import { fetchEditionVotes } from '../VotingComponent';
 
 interface EditionDetailsProps {
-	edition: Edition;
-	contest: Contest;
-	submissions: Submission[];
-	onSubmitSong: () => void;
-	onVote: () => void;
-	onResults: () => void;
+	editionId: string;
+	user: AuthUser;
 }
 
 type Edition = Schema['Edition']['type'];
 type Contest = Schema['Contest']['type'];
 type Submission = Schema['Submission']['type'];
+type Vote = Schema['Vote']['type'];
 
-const EditionDetails: React.FC<EditionDetailsProps> = ({ edition, submissions, contest, onSubmitSong, onVote, onResults }) => {
-	const client = useAmplifyClient();
-	const queryClient = useQueryClient();
+export interface ExpandedEdition extends Edition {
+	fulfilledContest: Contest;
+	fulfilledSubmissions: Submission[];
+}
+
+export const fetchEdition = async (id: string) => {
+	const response = await fetch(`/api/editions/${id}`);
+
+	if (!response.ok) {
+		throw new Error('Failed to fetch data from the server.');
+	}
+
+	const result = await response.json();
+	return result.edition as ExpandedEdition;
+};
+
+const EditionDetails: React.FC<EditionDetailsProps> = ({ editionId, user }) => {
+	const router = useRouter();
+	const searchParams = useSearchParams();
+
+	const {
+		data: edition,
+		isLoading,
+		refetch,
+		isRefetching,
+	} = useQuery({
+		queryKey: ['editionDetails', editionId],
+		queryFn: () => fetchEdition(editionId),
+	});
+
+	const { data: editionVotes } = useQuery({
+		queryKey: ['editionDetailsVotes', editionId],
+		queryFn: () => fetchEditionVotes(editionId),
+		enabled: edition && (edition.phase === 'VOTING' || edition.phase === 'RESULTS'),
+	});
+
+	useEffect(() => {
+		const song = searchParams.get('song');
+		if (song) {
+			toast.success(`Your song ${song} was submitted successfully. Good luck!`);
+			router.replace(`/edition/${editionId}`);
+		}
+	}, [searchParams]); // Reruns when query params change
 
 	const hasUserSubmitted = (): boolean => {
-		return submissions.find(async (s) => s.userId === (await getCurrentUser()).userId) !== undefined;
+		return edition?.fulfilledSubmissions.find((s) => s.userId === user.userId && s.rejected !== true) !== undefined;
+	};
+
+	const hasUserVoted = (): boolean => {
+		return editionVotes?.find((v) => v.fromUserId === user.userId) !== undefined;
+	};
+
+	const wasEntryRejected = (): boolean => {
+		return (
+			edition?.fulfilledSubmissions.find((s) => s.userId === user.userId && s.rejected === true) !== undefined &&
+			edition?.fulfilledSubmissions.find((s) => s.userId === user.userId && s.rejected !== true) === undefined
+		);
 	};
 
 	const getPhaseColor = (phase: string) => {
@@ -68,10 +125,10 @@ const EditionDetails: React.FC<EditionDetailsProps> = ({ edition, submissions, c
 				return hasUserSubmitted() ? (
 					<Button disabled={true} className="w-full bg-(--success)">
 						<CheckCircle className="w-4 h-4 mr-2" />
-						Already Submitted
+						Song Submitted
 					</Button>
 				) : (
-					<Button onClick={onSubmitSong} className="w-full">
+					<Button onClick={() => router.push(`/edition/${editionId}/submit`)} className="w-full">
 						<Upload className="w-4 h-4 mr-2" />
 						Submit Your Song
 					</Button>
@@ -79,14 +136,13 @@ const EditionDetails: React.FC<EditionDetailsProps> = ({ edition, submissions, c
 			}
 
 			if (edition.phase === 'VOTING') {
-				return (
-					<Button
-						onClick={() => {
-							onVote();
-							queryClient.removeQueries({ queryKey: ['resultsQuery'] });
-						}}
-						className="w-full"
-					>
+				return hasUserVoted() ? (
+					<Button disabled={true} className="w-full bg-(--success)">
+						<CheckCircle className="w-4 h-4 mr-2" />
+						Votes Submitted
+					</Button>
+				) : (
+					<Button onClick={() => router.push(`/edition/${editionId}/vote`)} className="w-full">
 						<Vote className="w-4 h-4 mr-2" />
 						Vote Now
 					</Button>
@@ -95,10 +151,12 @@ const EditionDetails: React.FC<EditionDetailsProps> = ({ edition, submissions, c
 
 			if (edition.phase === 'RESULTS' || edition.phase === 'COMPLETE') {
 				return (
-					<Button onClick={onResults} className="w-full">
-						<Trophy className="w-4 h-4 mr-2" />
-						View Results
-					</Button>
+					editionVotes && (
+						<Button className="w-full" onClick={() => router.push(`/edition/${editionId}/results`)}>
+							<Trophy className="w-4 h-4 mr-2" />
+							View Results
+						</Button>
+					)
 				);
 			}
 
@@ -106,10 +164,49 @@ const EditionDetails: React.FC<EditionDetailsProps> = ({ edition, submissions, c
 		}
 	};
 
-	return (
-		<>
-			{edition && (
+	if (isLoading) {
+		return (
+			<>
+				<Button variant="ghost" onClick={() => router.back()} className="mb-4">
+					← Back
+				</Button>
 				<Card className="mb-4 py-6">
+					<CardHeader>
+						<div className="flex items-center justify-between">
+							<CardTitle className="flex items-center gap-2">
+								<Skeleton className="w-50 h-5" />
+							</CardTitle>
+						</div>
+						<Skeleton className="w-50 h-5" />
+					</CardHeader>
+					<CardContent>
+						<Skeleton>
+							<div className="p-3 bg-muted rounded-lg">
+								<Skeleton className="w-50 h-5" />
+							</div>
+						</Skeleton>
+					</CardContent>
+				</Card>
+			</>
+		);
+	}
+
+	return (
+		edition && (
+			<>
+				<Button variant="ghost" onClick={() => router.back()} className="mb-2">
+					← Back
+				</Button>
+				{edition && edition.phase === 'UPCOMING' && compareAsc(parseISO(edition.submissionsOpen as string), new Date()) === -1 && (
+					<Alert className="mb-2">
+						<Info />
+						<AlertDescription>
+							It looks like submissions haven&apos;t opened themselves up. Sometimes this takes up to 15 minutes, after this, refresh the
+							page and try again.
+						</AlertDescription>
+					</Alert>
+				)}
+				<Card className="mb-4 py-6 gap-2">
 					<CardHeader>
 						<div className="flex items-center justify-between">
 							<CardTitle className="flex items-center gap-2">{edition.name}</CardTitle>
@@ -124,7 +221,16 @@ const EditionDetails: React.FC<EditionDetailsProps> = ({ edition, submissions, c
 					</CardHeader>
 					<CardContent className="space-y-4">
 						<div className="grid grid-cols-1 gap-2 text-sm">
-							{edition.submissionsOpen && (
+							{wasEntryRejected() && edition.phase === 'SUBMISSION' && (
+								<Alert className="bg-(--destructive)">
+									<AlertTitle className="flex items-center gap-2">
+										<TriangleAlert />
+										Resubmit your song
+									</AlertTitle>
+									<AlertDescription>Your song was rejected by the contest host.</AlertDescription>
+								</Alert>
+							)}
+							{edition.submissionsOpen && edition.phase === 'UPCOMING' && (
 								<div className="flex items-center justify-between">
 									<span className="flex items-center gap-2">
 										<Play className="w-4 h-4" />
@@ -133,7 +239,7 @@ const EditionDetails: React.FC<EditionDetailsProps> = ({ edition, submissions, c
 									<span>{formatDate(edition.submissionsOpen)}</span>
 								</div>
 							)}
-							{edition.submissionDeadline && (
+							{edition.submissionDeadline && edition.closeSubmissionType === 'specificDate' && (
 								<div className="flex items-center justify-between">
 									<span className="flex items-center gap-2">
 										<Clock className="w-4 h-4" />
@@ -142,7 +248,7 @@ const EditionDetails: React.FC<EditionDetailsProps> = ({ edition, submissions, c
 									<span>{formatDate(edition.submissionDeadline)}</span>
 								</div>
 							)}
-							{edition.votingDeadline && (
+							{edition.votingDeadline && edition.closeVotingType === 'specificDate' && (
 								<div className="flex items-center justify-between">
 									<span className="flex items-center gap-2">
 										<Vote className="w-4 h-4" />
@@ -154,17 +260,17 @@ const EditionDetails: React.FC<EditionDetailsProps> = ({ edition, submissions, c
 						</div>
 
 						<div className="space-y-2">
-							{contest?.participants && (
+							{edition.fulfilledContest?.participants && (
 								<div className="flex items-center justify-between">
 									<span className="flex items-center gap-2">
 										<Users className="w-4 h-4" />
 										Participants
 									</span>
-									<span>{contest.participants.length}</span>
+									<span>{edition.fulfilledContest.participants.length}</span>
 								</div>
 							)}
 
-							{edition.phase === 'SUBMISSION' && contest?.participants && (
+							{edition.phase === 'SUBMISSION' && edition.fulfilledContest.participants && (
 								<div className="space-y-1">
 									<div className="flex items-center justify-between">
 										<span className="flex items-center gap-2">
@@ -172,22 +278,31 @@ const EditionDetails: React.FC<EditionDetailsProps> = ({ edition, submissions, c
 											Submissions
 										</span>
 										<span>
-											{submissions.length}/{contest.participants.length}
+											{edition.fulfilledSubmissions.filter((s) => s.rejected !== true).length}/
+											{edition.fulfilledContest.participants.length}
 										</span>
 									</div>
-									<Progress value={(submissions.length / contest.participants.length) * 100} className="h-2" />
+									<Progress
+										value={
+											(edition.fulfilledSubmissions.filter((s) => s.rejected !== true).length /
+												edition.fulfilledContest.participants.length) *
+											100
+										}
+										className="h-2"
+									/>
 								</div>
 							)}
 
-							{edition.phase === 'VOTING' && contest?.participants && (
+							{edition.phase === 'VOTING' && edition.fulfilledContest.participants && editionVotes && (
 								<div className="space-y-1">
 									<div className="flex justify-between">
 										<span>Votes Cast</span>
 										<span>
-											{1}/{contest.participants.length}
+											{editionVotes.length / Math.min(10, edition.fulfilledSubmissions.length - 1)}/
+											{edition.fulfilledContest.participants.length}
 										</span>
 									</div>
-									<Progress value={(0 / contest.participants.length) * 100} className="h-2" />
+									<Progress value={(0 / edition.fulfilledContest.participants.length) * 100} className="h-2" />
 								</div>
 							)}
 						</div>
@@ -198,24 +313,63 @@ const EditionDetails: React.FC<EditionDetailsProps> = ({ edition, submissions, c
 
 						{edition && getActionButton()}
 
-						<Button variant="outline" onClick={() => console.log('invite friends')} className="w-full">
-							<Share className="w-4 h-4 mr-2" />
-							Invite Friends
-						</Button>
-
-						<Button variant="destructive" onClick={() => closeSubmissions(client, edition.editionId as string)} className="w-full">
-							<LucideCroissant className="w-4 h-4 mr-2" />
-							Close Submissions
-						</Button>
-
-						<Button variant="destructive" onClick={() => closeVoting(client, edition.editionId as string)} className="w-full">
-							<LucideCroissant className="w-4 h-4 mr-2" />
-							Close Voting
-						</Button>
+						{user.userId === edition.fulfilledContest.hostId && (
+							<EditionHostOptions phase={edition.phase} onRefetch={refetch} editionId={editionId} />
+						)}
 					</CardContent>
 				</Card>
-			)}
-		</>
+
+				{edition.phase === 'UPCOMING' ||
+					(edition.phase === 'SUBMISSION' && (
+						<Card className="mb-4 py-6 gap-2">
+							<CardHeader>
+								<CardTitle className="flex items-center gap-2">Submissions</CardTitle>
+							</CardHeader>
+							<CardContent>
+								<Skeleton>
+									<Card className="p-4 bg-muted">
+										<div>Waiting for submissions...</div>
+									</Card>
+								</Skeleton>
+							</CardContent>
+						</Card>
+					))}
+
+				{edition.phase === 'VOTING' && (
+					<Card className="mb-4 py-6 gap-2">
+						<CardHeader>
+							<CardTitle className="flex items-center gap-2">Submissions</CardTitle>
+						</CardHeader>
+						<CardContent className="space-y-1">
+							{/* List of submissions, in running order */}
+							{isRefetching ? (
+								<Skeleton>
+									<Card className="p-4 bg-muted" />
+								</Skeleton>
+							) : (
+								edition.fulfilledSubmissions
+									.filter((s) => s.rejected !== true)
+									.map((s) => (
+										<SubmissionCard
+											key={s.submissionId}
+											submission={s}
+											onReject={refetch}
+											isHost={user.userId === edition.fulfilledContest.hostId}
+										/>
+									))
+							)}
+						</CardContent>
+					</Card>
+				)}
+
+				{edition.phase === 'RESULTS' && !edition.resultsRevealed && (
+					<Alert>
+						<Info />
+						<AlertDescription>Results will be available here after the host has revealed them.</AlertDescription>
+					</Alert>
+				)}
+			</>
+		)
 	);
 };
 

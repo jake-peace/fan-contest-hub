@@ -1,233 +1,233 @@
 [
-  {
-    "id": "contest_1",
-    "title": "Global Music Battle",
-    "description": "A worldwide competition to find the best song submissions from different countries.",
-    "participants": [
-      {
-        "id": "user_alpha",
-        "hasSubmitted": true,
-        "hasVoted": true
-      },
-      {
-        "id": "user_beta",
-        "hasSubmitted": true,
-        "hasVoted": true
-      },
-      {
-        "id": "user_gamma",
-        "hasSubmitted": false,
-        "hasVoted": false
-      }
-    ],
-    "joinCode": "GMB2025",
-    "hostId": "host_user_1",
-    "editions": [
-      {
-        "id": "edition_1_2024",
-        "title": "2024 Summer Edition",
-        "optedOutParticipants": [
-          {
-            "id": "user_gamma",
-            "hasSubmitted": false,
-            "hasVoted": false
-          }
-        ],
-        "submissions": [
-          {
-            "id": "sub_1",
-            "participantId": "user_alpha",
-            "title": "Chasing the Sun",
-            "artist": "Nova Echo",
-            "country": "United States",
-            "flagEmoji": "🇺🇸",
-            "spotifyURI": "spotify:track:12345",
-            "points": 150
-          },
-          {
-            "id": "sub_2",
-            "participantId": "user_beta",
-            "title": "Midnight Serenade",
-            "artist": "Luna Bloom",
-            "country": "Canada",
-            "flagEmoji": "🇨🇦",
-            "spotifyURI": "spotify:track:67890",
-            "points": 125
-          }
-        ],
-        "submissionDeadline": 1721529540,
-        "votingDeadline": 1721961540
-      }
-    ]
-  },
-  {
-    "id": "contest_2",
-    "title": "Songwriter's Showcase",
-    "description": "A private contest for aspiring songwriters to share their original work.",
-    "participants": [
-      {
-        "id": "user_epsilon",
-        "hasSubmitted": true,
-        "hasVoted": true
-      },
-      {
-        "id": "user_zeta",
-        "hasSubmitted": true,
-        "hasVoted": false
-      },
-      {
-        "id": "user_eta",
-        "hasSubmitted": true,
-        "hasVoted": true
-      }
-    ],
-    "joinCode": "SS2024",
-    "hostId": "host_user_2",
-    "editions": [
-      {
-        "id": "edition_2_2024_Q4",
-        "title": "Q4 2024 Edition",
-        "optedOutParticipants": [],
-        "submissions": [
-          {
-            "id": "sub_3",
-            "participantId": "user_epsilon",
-            "title": "The City Lights",
-            "artist": "Emma Rose",
-            "country": "United Kingdom",
-            "flagEmoji": "🇬🇧",
-            "spotifyURI": null,
-            "points": 95
-          },
-          {
-            "id": "sub_4",
-            "participantId": "user_zeta",
-            "title": "Echoes in the Rain",
-            "artist": "Liam Scott",
-            "country": "Australia",
-            "flagEmoji": "🇦🇺",
-            "spotifyURI": "spotify:track:112233",
-            "points": 110
-          },
-          {
-            "id": "sub_5",
-            "participantId": "user_eta",
-            "title": "Whispers of the Wind",
-            "artist": "Anya Sharma",
-            "country": "India",
-            "flagEmoji": "🇮🇳",
-            "spotifyURI": null,
-            "points": 105
-          }
-        ],
-        "submissionDeadline": 1731715140,
-        "votingDeadline": 1732147140
-      }
-    ]
-  },
-  {
-    "id": "contest_3",
-    "title": "Global Film Festival",
-    "description": "An annual festival for independent filmmakers to showcase their short films.",
-    "participants": [
-      {
-        "id": "user_iota",
-        "hasSubmitted": true,
-        "hasVoted": true
-      },
-      {
-        "id": "user_kappa",
-        "hasSubmitted": true,
-        "hasVoted": true
-      },
-      {
-        "id": "user_lambda",
-        "hasSubmitted": true,
-        "hasVoted": false
-      },
-      {
-        "id": "user_mu",
-        "hasSubmitted": true,
-        "hasVoted": true
-      }
-    ],
-    "joinCode": "GFF2025",
-    "hostId": "host_user_3",
-    "editions": [
-      {
-        "id": "edition_3_2024_fall",
-        "title": "2024 Fall Showcase",
-        "optedOutParticipants": [
-          {
-            "id": "user_nu",
-            "hasSubmitted": false,
-            "hasVoted": false
-          }
-        ],
-        "submissions": [
-          {
-            "id": "sub_6",
-            "participantId": "user_iota",
-            "title": "Beyond the Horizon",
-            "artist": "Olivia Chen",
-            "country": "China",
-            "flagEmoji": "🇨🇳",
-            "spotifyURI": null,
-            "points": 210
-          },
-          {
-            "id": "sub_7",
-            "participantId": "user_kappa",
-            "title": "The Silent City",
-            "artist": "Felix Dubois",
-            "country": "France",
-            "flagEmoji": "🇫🇷",
-            "spotifyURI": null,
-            "points": 185
-          },
-          {
-            "id": "sub_8",
-            "participantId": "user_lambda",
-            "title": "A Memory of Tomorrow",
-            "artist": "Sofia Rodriguez",
-            "country": "Mexico",
-            "flagEmoji": "🇲🇽",
-            "spotifyURI": null,
-            "points": 200
-          }
-        ],
-        "submissionDeadline": 1728604740,
-        "votingDeadline": 1729468740
-      },
-      {
-        "id": "edition_3_2025_spring",
-        "title": "2025 Spring Showcase",
-        "optedOutParticipants": [],
-        "submissions": [
-          {
-            "id": "sub_9",
-            "participantId": "user_mu",
-            "title": "The Last Star",
-            "artist": "Leo Parker",
-            "country": "South Africa",
-            "flagEmoji": "🇿🇦",
-            "spotifyURI": null,
-            "points": 250
-          },
-          {
-            "id": "sub_10",
-            "participantId": "user_iota",
-            "title": "The Painted Sky",
-            "artist": "Olivia Chen",
-            "country": "China",
-            "flagEmoji": "🇨🇳",
-            "spotifyURI": null,
-            "points": 220
-          }
-        ],
-        "submissionDeadline": 1744847940,
-        "votingDeadline": 1745280000
-      }
-    ]
-  }
+	{
+		"id": "contest_1",
+		"title": "Global Music Battle",
+		"description": "A worldwide competition to find the best song submissions from different countries.",
+		"participants": [
+			{
+				"id": "user_alpha",
+				"hasSubmitted": true,
+				"hasVoted": true
+			},
+			{
+				"id": "user_beta",
+				"hasSubmitted": true,
+				"hasVoted": true
+			},
+			{
+				"id": "user_gamma",
+				"hasSubmitted": false,
+				"hasVoted": false
+			}
+		],
+		"joinCode": "GMB2025",
+		"hostId": "host_user_1",
+		"editions": [
+			{
+				"id": "edition_1_2024",
+				"title": "2024 Summer Edition",
+				"optedOutParticipants": [
+					{
+						"id": "user_gamma",
+						"hasSubmitted": false,
+						"hasVoted": false
+					}
+				],
+				"submissions": [
+					{
+						"id": "sub_1",
+						"participantId": "user_alpha",
+						"title": "Chasing the Sun",
+						"artist": "Nova Echo",
+						"country": "United States",
+						"flagEmoji": "🇺🇸",
+						"spotifyURI": "spotify:track:12345",
+						"points": 150
+					},
+					{
+						"id": "sub_2",
+						"participantId": "user_beta",
+						"title": "Midnight Serenade",
+						"artist": "Luna Bloom",
+						"country": "Canada",
+						"flagEmoji": "🇨🇦",
+						"spotifyURI": "spotify:track:67890",
+						"points": 125
+					}
+				],
+				"submissionDeadline": 1721529540,
+				"votingDeadline": 1721961540
+			}
+		]
+	},
+	{
+		"id": "contest_2",
+		"title": "Songwriter's Showcase",
+		"description": "A private contest for aspiring songwriters to share their original work.",
+		"participants": [
+			{
+				"id": "user_epsilon",
+				"hasSubmitted": true,
+				"hasVoted": true
+			},
+			{
+				"id": "user_zeta",
+				"hasSubmitted": true,
+				"hasVoted": false
+			},
+			{
+				"id": "user_eta",
+				"hasSubmitted": true,
+				"hasVoted": true
+			}
+		],
+		"joinCode": "SS2024",
+		"hostId": "host_user_2",
+		"editions": [
+			{
+				"id": "edition_2_2024_Q4",
+				"title": "Q4 2024 Edition",
+				"optedOutParticipants": [],
+				"submissions": [
+					{
+						"id": "sub_3",
+						"participantId": "user_epsilon",
+						"title": "The City Lights",
+						"artist": "Emma Rose",
+						"country": "United Kingdom",
+						"flagEmoji": "🇬🇧",
+						"spotifyURI": null,
+						"points": 95
+					},
+					{
+						"id": "sub_4",
+						"participantId": "user_zeta",
+						"title": "Echoes in the Rain",
+						"artist": "Liam Scott",
+						"country": "Australia",
+						"flagEmoji": "🇦🇺",
+						"spotifyURI": "spotify:track:112233",
+						"points": 110
+					},
+					{
+						"id": "sub_5",
+						"participantId": "user_eta",
+						"title": "Whispers of the Wind",
+						"artist": "Anya Sharma",
+						"country": "India",
+						"flagEmoji": "🇮🇳",
+						"spotifyURI": null,
+						"points": 105
+					}
+				],
+				"submissionDeadline": 1731715140,
+				"votingDeadline": 1732147140
+			}
+		]
+	},
+	{
+		"id": "contest_3",
+		"title": "Global Film Festival",
+		"description": "An annual festival for independent filmmakers to showcase their short films.",
+		"participants": [
+			{
+				"id": "user_iota",
+				"hasSubmitted": true,
+				"hasVoted": true
+			},
+			{
+				"id": "user_kappa",
+				"hasSubmitted": true,
+				"hasVoted": true
+			},
+			{
+				"id": "user_lambda",
+				"hasSubmitted": true,
+				"hasVoted": false
+			},
+			{
+				"id": "user_mu",
+				"hasSubmitted": true,
+				"hasVoted": true
+			}
+		],
+		"joinCode": "GFF2025",
+		"hostId": "host_user_3",
+		"editions": [
+			{
+				"id": "edition_3_2024_fall",
+				"title": "2024 Fall Showcase",
+				"optedOutParticipants": [
+					{
+						"id": "user_nu",
+						"hasSubmitted": false,
+						"hasVoted": false
+					}
+				],
+				"submissions": [
+					{
+						"id": "sub_6",
+						"participantId": "user_iota",
+						"title": "Beyond the Horizon",
+						"artist": "Olivia Chen",
+						"country": "China",
+						"flagEmoji": "🇨🇳",
+						"spotifyURI": null,
+						"points": 210
+					},
+					{
+						"id": "sub_7",
+						"participantId": "user_kappa",
+						"title": "The Silent City",
+						"artist": "Felix Dubois",
+						"country": "France",
+						"flagEmoji": "🇫🇷",
+						"spotifyURI": null,
+						"points": 185
+					},
+					{
+						"id": "sub_8",
+						"participantId": "user_lambda",
+						"title": "A Memory of Tomorrow",
+						"artist": "Sofia Rodriguez",
+						"country": "Mexico",
+						"flagEmoji": "🇲🇽",
+						"spotifyURI": null,
+						"points": 200
+					}
+				],
+				"submissionDeadline": 1728604740,
+				"votingDeadline": 1729468740
+			},
+			{
+				"id": "edition_3_2025_spring",
+				"title": "2025 Spring Showcase",
+				"optedOutParticipants": [],
+				"submissions": [
+					{
+						"id": "sub_9",
+						"participantId": "user_mu",
+						"title": "The Last Star",
+						"artist": "Leo Parker",
+						"country": "South Africa",
+						"flagEmoji": "🇿🇦",
+						"spotifyURI": null,
+						"points": 250
+					},
+					{
+						"id": "sub_10",
+						"participantId": "user_iota",
+						"title": "The Painted Sky",
+						"artist": "Olivia Chen",
+						"country": "China",
+						"flagEmoji": "🇨🇳",
+						"spotifyURI": null,
+						"points": 220
+					}
+				],
+				"submissionDeadline": 1744847940,
+				"votingDeadline": 1745280000
+			}
+		]
+	}
 ]

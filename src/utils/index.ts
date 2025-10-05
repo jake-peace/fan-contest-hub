@@ -1,5 +1,5 @@
 import { Contest, Edition } from '@/types/Contest';
-import { format, fromUnixTime } from 'date-fns';
+import { format } from 'date-fns';
 
 export const getActiveEdition = (contest: Contest): Edition | undefined => {
 	if (contest.editions.length > 0) {
@@ -16,8 +16,8 @@ export const getActiveEdition = (contest: Contest): Edition | undefined => {
 	}
 };
 
-export const formatDate = (unixDate: number): string => {
-	return format(fromUnixTime(unixDate), 'eee do MMM y, HH:mm');
+export const formatDate = (unixDate: string): string => {
+	return format(unixDate, 'eee do MMM y, HH:mm');
 };
 
 export const sortedEditions = (contest: Contest): Edition[] => {
@@ -31,15 +31,13 @@ export const sortedEditions = (contest: Contest): Edition[] => {
 export const getPhaseMessage = (phase: string) => {
 	switch (phase) {
 		case 'UPCOMING':
-			return `Waiting for host to open submissions`;
+			return `Waiting for submissions to open`;
 		case 'SUBMISSION':
 			return 'Waiting for song submissions';
 		case 'VOTING':
 			return 'Voting is now open!';
 		case 'RESULTS':
-			return 'All votes are in - results available';
-		case 'COMPLETE':
-			return 'Congrats to {insert winner here}!';
+			return 'All votes are in - results available!';
 		default:
 			return '';
 	}

@@ -2,72 +2,43 @@ import { sortedEditions, getPhaseMessage } from '@/utils';
 import { Card, CardContent, CardHeader, CardTitle } from '../ui/card';
 import { Badge } from '../ui/badge';
 import { User } from '@/types/Contest';
-import { useAppDispatch, useAppSelector } from '@/app/store/hooks';
-import { setEdition } from '@/app/store/reducers/contestReducer';
+import { useAppSelector } from '@/app/store/hooks';
 import { Alert, AlertDescription, AlertTitle } from '../ui/alert';
 import { Separator } from '../ui/separator';
-import { SelectionSet } from 'aws-amplify/api';
 import { Schema } from '../../../amplify/data/resource';
 import { useQuery } from '@tanstack/react-query';
-import { useAmplifyClient } from '@/app/amplifyConfig';
-import { toast } from 'sonner';
-import { Spinner } from '../ui/spinner';
+import { useRouter } from 'next/navigation';
+import { Skeleton } from '../ui/skeleton';
 
 interface EditionListProps {
 	contest: Contest;
 }
 
-// eslint-disable-next-line @typescript-eslint/no-unused-vars
-const selectionSet = ['contestId', 'name', 'description', 'hostId', 'participants'] as const;
-type Contest = SelectionSet<Schema['Contest']['type'], typeof selectionSet>;
+type Contest = Schema['Contest']['type'];
 type Edition = Schema['Edition']['type'];
 
+const fetchContestEditions = async (contestId: string) => {
+	// Call the secure Next.js Route Handler
+	const response = await fetch(`/api/contest/${contestId}/editions`);
+
+	if (!response.ok) {
+		// TanStack Query's error boundary will catch this
+		throw new Error('Failed to fetch data from the server.');
+	}
+
+	const result = await response.json();
+	return result.editions as Edition[]; // Return the clean data
+};
+
 const EditionList: React.FC<EditionListProps> = ({ contest }) => {
-	const dispatch = useAppDispatch();
-	const client = useAmplifyClient();
+	const router = useRouter();
 
 	const currentUser = useAppSelector((state) => state.user.user);
 
-	const {
-		data: editions,
-		isLoading,
-		refetch,
-	} = useQuery({
-		queryKey: ['editionListQuery'],
-		queryFn: async () => {
-			const response = await client.models.Edition.list({
-				filter: {
-					contestId: {
-						eq: contest.contestId as string,
-					},
-				},
-			});
-			const responseData = response.data;
-			if (!responseData) {
-				toast.error('No editions found');
-			}
-			console.log(responseData);
-			return responseData as unknown as Edition[];
-		},
+	const { data: editions, isLoading } = useQuery({
+		queryKey: ['contestEditionList', contest.contestId],
+		queryFn: () => fetchContestEditions(contest.contestId as string),
 	});
-
-	if (isLoading) {
-		return <Spinner />;
-	}
-
-	if (!isLoading && !editions) {
-		refetch();
-	}
-
-	// const sortedEditions = (editions: Edition[]): Edition[] => {
-	//     return [...editions].sort((a: Edition['phase'], b: Edition['phase']) => {
-	//         if ((a !== 'COMPLETE' && a !== 'UPCOMING') && (b === 'COMPLETE' || b === 'UPCOMING')) return -1;
-	//         if ((a === 'COMPLETE' || a === 'UPCOMING') && (b !== 'COMPLETE' && b !== 'UPCOMING')) return 1;
-	//         // if ((a.phase !== 'COMPLETE' && a.phase !== 'UPCOMING') && (b.phase === 'COMPLETE' || b.phase === 'UPCOMING')) return -1;
-	//         // if ((a.phase === 'COMPLETE' || a.phase === 'UPCOMING') && (b.phase !== 'COMPLETE' && b.phase !== 'UPCOMING')) return 1;
-	//         // if (a.votingDeadline && b.votingDeadline) return b.votingDeadline - a.votingDeadline;
-	//     })
-	// }
 
 	return (
 		<Card className="mb-4 py-6">
@@ -75,7 +46,16 @@ const EditionList: React.FC<EditionListProps> = ({ contest }) => {
 				<CardTitle>Editions</CardTitle>
 			</CardHeader>
 			<CardContent className="space-y-3">
-				{editions && editions.length === 0 ? (
+				{isLoading ? (
+					<>
+						<Skeleton>
+							<div className={`p-2 mb-2 rounded-lg border cursor-pointer transition-colors border-border hover:bg-muted/50 h-15`} />
+						</Skeleton>
+						<Skeleton>
+							<div className={`p-2 rounded-lg border cursor-pointer transition-colors border-border hover:bg-muted/50 h-15`} />
+						</Skeleton>
+					</>
+				) : editions && editions.length === 0 ? (
 					<Alert>
 						<AlertTitle>No editions yet</AlertTitle>
 						<AlertDescription>
@@ -86,11 +66,11 @@ const EditionList: React.FC<EditionListProps> = ({ contest }) => {
 					</Alert>
 				) : (
 					editions &&
-					editions.map((edition, index) => (
+					editions.map((edition: Edition, index: number) => (
 						<div key={edition.editionId}>
 							<div
-								className={`p-3 rounded-lg border cursor-pointer transition-colors border-border hover:bg-muted/50`}
-								onClick={() => dispatch(setEdition(edition.editionId as string))}
+								className={`p-2 rounded-lg border cursor-pointer transition-colors border-border hover:bg-muted/50`}
+								onClick={() => router.push(`/edition/${edition.editionId}`)}
 							>
 								<div className="flex items-center justify-between mb-2">
 									<h4 className="font-medium">{edition.name}</h4>

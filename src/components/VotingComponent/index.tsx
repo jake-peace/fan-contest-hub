@@ -1,19 +1,25 @@
-import { useState } from 'react';
-import { Vote, Check, Music, Undo2 } from 'lucide-react';
+'use client';
+
+import { startTransition, useEffect, useState } from 'react';
+import { Vote, Music, Undo2 } from 'lucide-react';
 import { Badge } from '../ui/badge';
-import { Alert, AlertDescription } from '../ui/alert';
+import { Alert, AlertDescription, AlertTitle } from '../ui/alert';
 import { Card, CardContent, CardHeader, CardTitle } from '../ui/card';
 import { Button } from '../ui/button';
-import { useQuery } from '@tanstack/react-query';
+import { useQuery, useQueryClient } from '@tanstack/react-query';
 import { useAmplifyClient } from '@/app/amplifyConfig';
 import { toast } from 'sonner';
 import { Schema } from '../../../amplify/data/resource';
-import { Spinner } from '../ui/spinner';
-import { getCurrentUser } from 'aws-amplify/auth';
+import { AuthUser, getCurrentUser } from 'aws-amplify/auth';
 import { DndContext, DragEndEvent } from '@dnd-kit/core';
 import { SortableContext, verticalListSortingStrategy, arrayMove } from '@dnd-kit/sortable';
 import { restrictToVerticalAxis } from '@dnd-kit/modifiers';
 import SortableSong from './SortableSong';
+import { fetchEdition } from '../EditionDetails';
+import { useRouter } from 'next/navigation';
+import { Skeleton } from '../ui/skeleton';
+import { submitVotes } from '@/app/actions/submitVotes';
+import Image from 'next/image';
 
 const rankingPoints = new Map<number, number>([
 	[1, 12],
@@ -29,54 +35,86 @@ const rankingPoints = new Map<number, number>([
 ]);
 
 interface VotingComponentProps {
-	edition: Edition;
-	onBack: () => void;
+	editionId: string;
+	user: AuthUser;
 }
 
-type Edition = Schema['Edition']['type'];
 type Submission = Schema['Submission']['type'];
 type Vote = Schema['Vote']['type'];
 
-const VotingComponent: React.FC<VotingComponentProps> = ({ edition, onBack }) => {
+export const fetchEditionVotes = async (id: string) => {
+	const response = await fetch(`/api/editions/${id}/votes`);
+
+	if (!response.ok) {
+		throw new Error('Failed to fetch data from the server.');
+	}
+
+	const result = await response.json();
+	return result.votes as Vote[];
+};
+
+const VotingComponent: React.FC<VotingComponentProps> = ({ editionId, user }) => {
 	const [rankings, setRankings] = useState<Submission[]>([]);
-	const [hasVoted, setHasVoted] = useState(false);
-	const [submissions, setSubmissions] = useState<Submission[]>([]);
+
+	const router = useRouter();
+
+	const { data: votes, isFetched: isFetchedVotes } = useQuery({
+		queryKey: ['editionDetailsVotingVotes', editionId],
+		queryFn: () => fetchEditionVotes(editionId),
+	});
+
+	const {
+		data: edition,
+		isLoading,
+		isFetched,
+	} = useQuery({
+		queryKey: ['editionDetailsVoting', editionId],
+		queryFn: () => fetchEdition(editionId),
+	});
+
+	useEffect(() => {
+		if (isFetched) {
+			setRankings(edition?.fulfilledSubmissions.filter((s) => s.rejected !== true) as Submission[]);
+		}
+	}, [isFetched]);
+
+	useEffect(() => {
+		if (isFetchedVotes) {
+			if (votes?.find((v) => v.fromUserId === user.userId) !== undefined) {
+				router.push(`/edition/${editionId}`);
+				toast.error('You have already voted in this edition.');
+			}
+		}
+	}, [isFetchedVotes]);
 
 	const client = useAmplifyClient();
+	const queryClient = useQueryClient();
 
 	const getPointsByRank = (rank: number): number | undefined => {
 		return rankingPoints.get(rank);
 	};
 
-	const { isLoading } = useQuery({
-		queryKey: ['votingComponentEditionQuery'],
-		queryFn: async () => {
-			const response = await client.models.Edition.get({
-				editionId: edition.editionId,
-			});
-			const responseData = response.data;
-			if (!responseData) {
-				toast.error('Edition not found');
-			} else {
-				const { data: submissionsResp } = await responseData.submissions();
-				setSubmissions(submissionsResp);
-				setRankings(submissionsResp.filter(async (song) => song.userId === (await getCurrentUser()).userId));
-			}
-			return responseData as unknown as Edition;
-		},
-	});
-
-	if (isLoading) {
-		return <Spinner />;
-	}
-
 	const handleSubmitVote = async () => {
+		startTransition(async () => {
+			const result = await submitVotes(
+				rankings.map((r) => r.submissionId),
+				editionId
+			);
+			if (result.success) {
+				// form.reset(); // Reset form on success
+				// toast.success(`Your song "${data.songTitle}" was submitted successfully. Good luck!`);
+				queryClient.removeQueries({ queryKey: ['editionDetailsVotes'] });
+				toast.success('Your votes have been submitted successfully!');
+				router.push(`/edition/${editionId}`);
+				// Handle success UI (e.g., toast, revalidation)
+			} else {
+				// Handle error UI
+			}
+		});
 		client.queries.submitBatchVotes({
 			ranking: rankings.map((song) => song.submissionId),
 			user: (await getCurrentUser()).userId,
 		});
-		setHasVoted(true);
-		onBack();
 	};
 
 	const getBadgeColor = (rank: number) => {
@@ -107,29 +145,11 @@ const VotingComponent: React.FC<VotingComponentProps> = ({ edition, onBack }) =>
 		}
 	};
 
-	if (hasVoted) {
-		return (
-			<div className="min-h-screen bg-background p-4">
-				<div className="max-w-md mx-auto">
-					<Card className="text-center">
-						<CardContent className="pt-6">
-							<div className="w-16 h-16 bg-green-100 rounded-full flex items-center justify-center mx-auto mb-4">
-								<Check className="w-8 h-8 text-green-600" />
-							</div>
-							<h2 className="mb-2">Vote Submitted!</h2>
-							<p className="text-muted-foreground mb-4">Thank you for voting! Results will be revealed once everyone has voted.</p>
-							<Button onClick={onBack} className="w-full">
-								Back to Contest
-							</Button>
-						</CardContent>
-					</Card>
-				</div>
-			</div>
-		);
-	}
-
 	return (
-		<div className="max-w-md mx-auto">
+		<>
+			<Button variant="ghost" onClick={() => router.back()} className="mb-4">
+				← Back
+			</Button>
 			<Card className="mb-4 py-6">
 				<CardHeader>
 					<CardTitle className="flex items-center gap-2">
@@ -142,7 +162,7 @@ const VotingComponent: React.FC<VotingComponentProps> = ({ edition, onBack }) =>
 						<Music className="w-4 h-4" />
 						<AlertDescription>Listen to songs and drag them to create your top 10 ranking. Higher ranks get more points!</AlertDescription>
 					</Alert>
-					<Button onClick={() => setRankings(submissions)} variant="secondary" className="mt-2">
+					<Button onClick={() => setRankings(edition?.fulfilledSubmissions as Submission[])} variant="secondary" className="mt-2">
 						<Undo2 className="w-4 h-4 mr-2" />
 						Reset Rankings
 					</Button>
@@ -154,36 +174,61 @@ const VotingComponent: React.FC<VotingComponentProps> = ({ edition, onBack }) =>
 					<CardTitle>Entries</CardTitle>
 				</CardHeader>
 				<CardContent className="space-y-2">
-					<DndContext onDragEnd={handleDragEnd} modifiers={[restrictToVerticalAxis]}>
-						<SortableContext items={rankings.map((item) => item.submissionId)} strategy={verticalListSortingStrategy}>
-							{rankings.map((song) => (
-								<SortableSong key={song.submissionId} id={song.submissionId}>
-									<div
-										key={song.submissionId}
-										className={`p-2 border rounded-lg transition-all hover:bg-muted/50 cursor-pointer border-border`}
-									>
-										<div className="flex items-center justify-between">
-											<div className="flex-1 min-w-0">
-												<h3 className="font-medium truncate">{song.songTitle}</h3>
-												<p className="text-sm text-muted-foreground truncate">by {song.artistName}</p>
-												<div className="flex items-center gap-2 mt-1">
-													<Badge variant="outline" className="text-xs flex items-center gap-1">
-														<span>{song.flag}</span>
-														{song.countryName}
+					{isFetched && rankings.length === 0 && (
+						<Alert>
+							<AlertTitle>No entries found</AlertTitle>
+							<AlertDescription>Something went wrong fetching the entries</AlertDescription>
+						</Alert>
+					)}
+					{isLoading ? (
+						<>
+							<Skeleton>
+								<div className="p-3 bg-muted rounded-lg">
+									<Skeleton className="w-50 h-5" />
+								</div>
+							</Skeleton>
+							<Skeleton>
+								<div className="p-3 bg-muted rounded-lg">
+									<Skeleton className="w-50 h-5" />
+								</div>
+							</Skeleton>
+						</>
+					) : (
+						<DndContext onDragEnd={handleDragEnd} modifiers={[restrictToVerticalAxis]}>
+							<SortableContext items={rankings.map((item) => item.submissionId)} strategy={verticalListSortingStrategy}>
+								{rankings.map((song) => (
+									<SortableSong key={song.submissionId} id={song.submissionId}>
+										<div
+											key={song.submissionId}
+											className={`p-2 border rounded-lg transition-all hover:bg-muted/50 cursor-pointer border-border`}
+										>
+											<div className="flex items-center justify-between gap-3">
+												<div className="min-w-10 max-w-10 h-10 rounded-sm overflow-hidden relative">
+													<Image
+														src={`https://flagcdn.com/w640/${song.flag?.toLowerCase()}.png`}
+														fill
+														alt={`${song.artistName}'s flag`}
+														style={{ objectFit: 'cover', objectPosition: 'center' }}
+														quality={80}
+														sizes="640px"
+													/>
+												</div>
+												<div className="flex-1 truncate">
+													<h3 className="font-medium truncate">{song.songTitle}</h3>
+													<p className="text-sm text-muted-foreground truncate">by {song.artistName}</p>
+												</div>
+												<div className="flex items-center gap-2">
+													<Badge variant="secondary" className={getBadgeColor(rankings.indexOf(song) + 1)}>
+														{getPointsByRank(rankings.indexOf(song) + 1)}
 													</Badge>
 												</div>
 											</div>
-											<div className="flex items-center gap-2">
-												<Badge variant="secondary" className={getBadgeColor(rankings.indexOf(song) + 1)}>
-													{getPointsByRank(rankings.indexOf(song) + 1)}
-												</Badge>
-											</div>
 										</div>
-									</div>
-								</SortableSong>
-							))}
-						</SortableContext>
-					</DndContext>
+									</SortableSong>
+								))}
+							</SortableContext>
+						</DndContext>
+					)}
 				</CardContent>
 			</Card>
 
@@ -191,7 +236,7 @@ const VotingComponent: React.FC<VotingComponentProps> = ({ edition, onBack }) =>
 				<Vote className="w-4 h-4 mr-2" />
 				Submit Rankings
 			</Button>
-		</div>
+		</>
 	);
 };
 

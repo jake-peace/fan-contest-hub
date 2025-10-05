@@ -1,5 +1,4 @@
 import { Contest } from '@/types/Contest';
-import { Schema } from '../../amplify/data/resource';
 
 interface ContestResponseData {
 	name: string;

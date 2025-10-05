@@ -3,10 +3,10 @@
 import { isLoggedIn } from '@/utils/AuthUtils';
 import { useRouter } from 'next/navigation';
 import { ReactNode, useEffect, useState } from 'react';
-import { Spinner } from '../ui/spinner';
 import { fetchUserAttributes, signOut } from 'aws-amplify/auth';
 import { useAppDispatch } from '@/app/store/hooks';
 import { setAttributes, setUser } from '@/app/store/reducers/userReducer';
+import Loading from '../Loading';
 
 interface AuthBarrierProps {
 	children: ReactNode;
@@ -30,7 +30,7 @@ const AuthBarrier: React.FC<AuthBarrierProps> = ({ children }) => {
 			} catch (e) {
 				setIsAuthenticated(false);
 				await signOut();
-				router.push('/signin'); // Redirect to sign in
+				router.push('/signin');
 			} finally {
 				setIsLoading(false);
 			}
@@ -39,14 +39,7 @@ const AuthBarrier: React.FC<AuthBarrierProps> = ({ children }) => {
 	}, [dispatch, router]);
 
 	if (isLoading) {
-		return (
-			<div className="min-h-screen bg-background p-4">
-				<div className="max-w-md mx-auto">
-					<Spinner />
-					<h1>Loading...</h1>
-				</div>
-			</div>
-		);
+		return <Loading />;
 	}
 
 	return isAuthenticated ? children : null;

@@ -11,21 +11,36 @@ import { useState } from 'react';
 import { ThemeToggle } from '../ThemeToggle';
 import { useAppDispatch, useAppSelector } from '@/app/store/hooks';
 import { setContest } from '@/app/store/reducers/contestReducer';
-import { useAmplifyClient } from '@/app/amplifyConfig';
 import { useQuery } from '@tanstack/react-query';
-import { Spinner } from '../ui/spinner';
-import { Alert } from '../ui/alert';
 import { signOut } from 'aws-amplify/auth';
 import { toast } from 'sonner';
 import { Schema } from '../../../amplify/data/resource';
+import { Skeleton } from '../ui/skeleton';
 
 type Contest = Schema['Contest']['type'];
+
+const fetchContests = async () => {
+	// Call the secure Next.js Route Handler
+	const response = await fetch(`/api/contest`);
+
+	if (!response.ok) {
+		// TanStack Query's error boundary will catch this
+		throw new Error('Failed to fetch data from the server.');
+	}
+
+	const result = await response.json();
+	return result.contests; // Return the clean data
+};
 
 const DashboardPage: React.FC = () => {
 	const router = useRouter();
 	const dispatch = useAppDispatch();
-	const client = useAmplifyClient();
 	const nickname = useAppSelector((state) => state.user.user.nickname);
+
+	const { data: contests, isLoading } = useQuery({
+		queryKey: ['userContestList'],
+		queryFn: () => fetchContests(),
+	});
 
 	const onLogout = async () => {
 		await signOut();
@@ -33,61 +48,20 @@ const DashboardPage: React.FC = () => {
 		router.push('/signin');
 	};
 
-	const getPhaseIcon = (contest: string) => {
-		// const activeEdition = getActiveEdition(contest);
-		// if (activeEdition) {
-		//     switch (activeEdition.phase) {
-		//         case 'SUBMISSION': return <Music className="w-3 h-3" />;
-		//         case 'VOTING': return <Users className="w-3 h-3" />;
-		//         case 'RESULTS': return <Trophy className="w-3 h-3" />;
-		//         default: return <CircleDashed className="w-3 h-3" />;
-		//     }
-		// } else {
-		//     return <CircleDashed className="w-3 h-3" />;
-		// }
+	const getPhaseIcon = () => {
 		return <CircleDashed className="w-3 h-3" />;
 	};
 
-	const getEditionName = (contest: string) => {
-		// const activeEdition = getActiveEdition(contest);
-		// if (activeEdition) {
-		//     return activeEdition.title;
-		// } else {
-		//     return 'No editions';
-		// }
+	const getEditionName = () => {
 		return 'No editions';
 	};
-
-	// const onJoinContest = (id: string) => {
-	//     console.log('join contest', id);
-	// }
 
 	const [joinCode, setJoinCode] = useState('');
 
 	const onSelectContest = (contestId: string) => {
 		dispatch(setContest(contestId));
-		router.push('/contest');
+		router.push(`/contest/${contestId}`);
 	};
-
-	const {
-		data: userContests,
-		isLoading,
-		isSuccess,
-	} = useQuery({
-		queryKey: ['userContestList'],
-		queryFn: async () => {
-			const response = await client.models.Contest.list();
-			const responseData = response.data;
-			if (!responseData) return null;
-			return responseData;
-		},
-	});
-
-	// Dashboard page should have:
-	// - Header
-	// - Create contest button
-	// - Join contest card
-	// - List of contests
 
 	return (
 		<div className="min-h-screen bg-background p-4">
@@ -102,17 +76,6 @@ const DashboardPage: React.FC = () => {
 					</Button>
 					<ThemeToggle />
 				</div>
-
-				{/* Header */}
-				{/* <div className="text-center mb-8">
-                    <div className="w-16 h-16 bg-primary rounded-full flex items-center justify-center mx-auto mb-4">
-                        <Music className="w-8 h-8 text-primary-foreground" />
-                    </div>
-                    <h1 className="mb-2">Song Contest</h1>
-                    <p className="text-muted-foreground">
-                        Create contests, submit songs, and vote for the winner!
-                    </p>
-                </div> */}
 
 				<div className="space-y-4 mb-6">
 					{/* Create contest button */}
@@ -147,13 +110,11 @@ const DashboardPage: React.FC = () => {
 					</Card>
 				</div>
 
-				{isLoading ? (
-					<Spinner />
-				) : isSuccess && userContests ? (
-					<div>
-						<h2 className="mb-4">Active Contests</h2>
-						<div className="space-y-3">
-							{userContests.map((contest: Contest) => (
+				<div>
+					<h2 className="mb-4">Active Contests</h2>
+					<div className="space-y-3">
+						{!isLoading ? (
+							contests.map((contest: Contest) => (
 								<Card
 									key={contest.contestId}
 									className="cursor-pointer hover:bg-muted/50 transition-colors"
@@ -163,7 +124,7 @@ const DashboardPage: React.FC = () => {
 										<div className="flex items-center justify-between mb-2">
 											<h3 className="font-medium truncate">{contest.name}</h3>
 											<Badge variant="outline" className="text-xs">
-												{getPhaseIcon(contest.contestId as string)}
+												{getPhaseIcon()}
 											</Badge>
 										</div>
 										<div className="flex items-center gap-4 text-sm text-muted-foreground">
@@ -171,19 +132,22 @@ const DashboardPage: React.FC = () => {
 												<Users className="w-3 h-3" />
 												{contest.description}
 											</span>
-											<h3 className="font-medium truncate">{getEditionName(contest.contestId as string)}</h3>
+											<h3 className="font-medium truncate">{getEditionName()}</h3>
 											<span className="flex items-center gap-1">
 												<Clock className="w-3 h-3" />
 											</span>
 										</div>
 									</CardContent>
 								</Card>
-							))}
-						</div>
+							))
+						) : (
+							<>
+								<Skeleton className="w-full h-20 rounded-lg mb-2" />
+								<Skeleton className="w-full h-20 rounded-lg" />
+							</>
+						)}
 					</div>
-				) : (
-					<Alert>no contests found</Alert>
-				)}
+				</div>
 			</div>
 		</div>
 	);

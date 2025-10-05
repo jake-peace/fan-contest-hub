@@ -1,7 +1,6 @@
-import { defineFunction } from "@aws-amplify/backend";
-import { data } from '../../data/resource'; 
+import { defineFunction } from '@aws-amplify/backend';
 
 export const submitBatchVotes = defineFunction({
-    name: 'submit-batch-votes',
-    entry: './handler.ts'
+	name: 'submit-batch-votes',
+	entry: './handler.ts',
 });

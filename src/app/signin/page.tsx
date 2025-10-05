@@ -50,11 +50,11 @@ const SignInPage: React.FC = () => {
 				</Tabs>
 				<Alert>
 					<AlertDescription>
-					This website uses cookies to be able to log you in, store data about your contests etc. By signing up, logging in or continuing to use this website, you agree to cookies.
+						This website uses cookies to be able to log you in, store data about your contests etc. By signing up, logging in or continuing
+						to use this website, you agree to cookies.
 					</AlertDescription>
 				</Alert>
 			</div>
-			
 		</div>
 	);
 };

@@ -1,6 +1,5 @@
 import { Plus, Settings, Trash } from 'lucide-react';
 import { Button } from '../ui/button';
-import { useAppSelector } from '@/app/store/hooks';
 import { useAmplifyClient } from '@/app/amplifyConfig';
 import { toast } from 'sonner';
 import { useRouter } from 'next/navigation';
@@ -17,8 +16,7 @@ import {
 	AlertDialogTrigger,
 } from '../ui/alert-dialog';
 
-const ContestOptions: React.FC = () => {
-	const contestId = useAppSelector((state) => state.contest.contestId);
+const ContestOptions: React.FC<{ contestId: string }> = ({ contestId }) => {
 	const client = useAmplifyClient();
 	const router = useRouter();
 	const queryClient = useQueryClient();
@@ -36,7 +34,7 @@ const ContestOptions: React.FC = () => {
 
 	return (
 		<div className="flex items-center gap-2 mt-2">
-			<Button onClick={() => router.push('/create/edition')}>
+			<Button onClick={() => router.push(`/create/${contestId}/edition`)}>
 				<Plus className="h-4 w-4" />
 				Create Edition
 			</Button>
@@ -52,7 +50,7 @@ const ContestOptions: React.FC = () => {
 					<AlertDialogHeader>
 						<AlertDialogTitle>Are you absolutely sure?</AlertDialogTitle>
 						<AlertDialogDescription>
-							This action cannot be undone. This will permanently delete your account and remove your data from our servers.
+							This action cannot be undone. This will permanently delete the contest, the editions, and all submissions.
 						</AlertDialogDescription>
 					</AlertDialogHeader>
 					<AlertDialogFooter>

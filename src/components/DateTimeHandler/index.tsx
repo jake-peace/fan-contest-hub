@@ -92,7 +92,7 @@ const DateTimeHandler: React.FC<DateTimeHandlerProps> = ({ value, onChange, disa
 					onChange={handleTimeChange}
 					type="time"
 					id="time-picker"
-					step="60"
+					step="900"
 					className="bg-input-background appearance-none [&::-webkit-calendar-picker-indicator]:hidden [&::-webkit-calendar-picker-indicator]:appearance-none"
 				/>
 			</div>

@@ -6,10 +6,10 @@ import { Button } from '../ui/button';
 import { HelpCircle, Mic2, User } from 'lucide-react';
 import { ThemeToggle } from '../ThemeToggle';
 import { usePathname, useRouter } from 'next/navigation';
-import { useState } from 'react';
 import { Skeleton } from '../ui/skeleton';
 import { Spinner } from '../ui/spinner';
 import { Card } from '../ui/card';
+import { signOut } from 'aws-amplify/auth';
 
 const Header: React.FC = () => {
 	const { data: profile, isLoading: profileLoading } = useQuery({
@@ -19,7 +19,6 @@ const Header: React.FC = () => {
 
 	const router = useRouter();
 	const pathname = usePathname();
-	const [profileOpen, setProfileOpen] = useState(false);
 
 	return (
 		<>
@@ -34,7 +33,7 @@ const Header: React.FC = () => {
 							<Card className="mr-auto justify-center p-1 px-2 rounded-md">
 								<div className="self-center flex gap-2">
 									<Mic2 />
-									Fan Contest Hub
+									Fan Contest
 								</div>
 							</Card>
 							<Button variant="outline">
@@ -51,7 +50,7 @@ const Header: React.FC = () => {
 							</Button>
 						</Skeleton>
 					) : (
-						<Button variant="outline" onClick={() => setProfileOpen(!profileOpen)}>
+						<Button variant="outline" onClick={async () => await signOut()}>
 							<User />
 							{profile.displayName}
 						</Button>

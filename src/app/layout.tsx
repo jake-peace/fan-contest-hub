@@ -7,6 +7,8 @@ import { ThemeProvider } from '@/components/ThemeContext';
 import { ReduxProvider } from './store/providers';
 import Providers from './queryProvider';
 import ConfigureAmplifyClientSide from '@/components/ConfigureAmplify';
+import Header from '@/components/Header';
+import { StyleWrapper } from '@/components/StyleWrapper';
 
 const geistSans = Geist({
 	variable: '--font-geist-sans',
@@ -35,12 +37,14 @@ export default function RootLayout({
 				<ReduxProvider>
 					<Providers>
 						<ThemeProvider>
-							{children}
+							<StyleWrapper>
+								<Header />
+								{children}
+							</StyleWrapper>
 							<Toaster />
 						</ThemeProvider>
 					</Providers>
 				</ReduxProvider>
-				{/* </AmplifyConfig> */}
 			</body>
 		</html>
 	);

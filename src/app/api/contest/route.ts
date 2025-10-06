@@ -2,6 +2,11 @@ import { AuthGetCurrentUserServer, cookiesClient } from '@/utils/amplify-utils';
 import { NextResponse } from 'next/server';
 
 export async function GET() {
+	const getHostProfile = async (userId: string) => {
+		const { data: profile } = await cookiesClient.models.Profile.get({ userId: userId });
+		return profile;
+	};
+
 	try {
 		const authUser = await AuthGetCurrentUserServer();
 		// 1. Fetch data securely using the cookieBasedClient on the server
@@ -12,9 +17,19 @@ export async function GET() {
 				},
 			},
 		});
+
+		const promises = data.map(async (c) => {
+			const editions = (await c.editions()).data;
+			const hostName = (await getHostProfile(c.hostId as string))?.displayName;
+			const newObject = { ...c, fulfilledEditions: editions, hostName: hostName };
+			return newObject;
+		});
+
+		const returnData = await Promise.all(promises);
+
 		// 2. The client never sees the auth token or the GraphQL endpoint.
 		// The response is a plain JSON object.
-		return NextResponse.json({ contests: data });
+		return NextResponse.json({ contests: returnData });
 		// eslint-disable-next-line @typescript-eslint/no-explicit-any
 	} catch (error: any) {
 		// 3. Handle authentication failures (e.g., redirect or return 401)

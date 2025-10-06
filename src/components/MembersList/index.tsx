@@ -5,7 +5,6 @@ import { Schema } from '../../../amplify/data/resource';
 import { Disc3, ListOrdered, Medal, Trophy } from 'lucide-react';
 import { Button } from '../ui/button';
 import { useQuery } from '@tanstack/react-query';
-import { useRouter } from 'next/navigation';
 import { Avatar, AvatarImage } from '../ui/avatar';
 import { Skeleton } from '../ui/skeleton';
 import { toast } from 'sonner';
@@ -28,8 +27,6 @@ const fetchParticipants = async (id: string) => {
 };
 
 const MembersList: React.FC<MembersListProps> = ({ contestId }) => {
-	const router = useRouter();
-
 	const { data: members, isLoading } = useQuery({
 		queryKey: ['contestParticipants', contestId],
 		queryFn: () => fetchParticipants(contestId),
@@ -37,9 +34,6 @@ const MembersList: React.FC<MembersListProps> = ({ contestId }) => {
 
 	return (
 		<>
-			<Button variant="ghost" onClick={() => router.back()} className="mb-4">
-				← Back
-			</Button>
 			<Card className="py-4 gap-2">
 				<CardHeader>
 					<div className="flex items-center justify-between">

@@ -7,11 +7,5 @@ export default async function VotePage({ params }: { params: Promise<{ editionId
 	const editionId = resolvedParams.editionId;
 	const authUser = await AuthGetCurrentUserServer();
 
-	return (
-		<div className="min-h-screen bg-background p-4">
-			<div className={'max-w-md mx-auto'}>
-				<VotingComponent editionId={editionId} user={authUser as AuthUser} />
-			</div>
-		</div>
-	);
+	return <VotingComponent editionId={editionId} user={authUser as AuthUser} />;
 }

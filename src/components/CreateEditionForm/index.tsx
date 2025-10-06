@@ -21,6 +21,7 @@ import { Collapsible, CollapsibleContent } from '@/components/ui/collapsible';
 import { Separator } from '@/components/ui/separator';
 import { AuthUser } from 'aws-amplify/auth';
 import { createEdition } from '@/app/actions/createEdition';
+import Header from '../Header';
 
 const FormSchema = z.object({
 	name: z.string().min(3, {
@@ -89,9 +90,7 @@ const CreateEdition: React.FC<CreateEditionProps> = ({ contestId }) => {
 
 	return (
 		<>
-			<Button variant="ghost" onClick={() => router.back()} className="mb-4">
-				← Back
-			</Button>
+			<Header />
 
 			<Card className="py-6">
 				<CardHeader>

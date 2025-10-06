@@ -7,11 +7,5 @@ export default async function CreateEditionPage({ params }: { params: Promise<{ 
 	const contestId = resolvedParams.contestId;
 	const authUser = await AuthGetCurrentUserServer();
 
-	return (
-		<div className="min-h-screen bg-background p-4">
-			<div className={'max-w-md mx-auto'}>
-				<CreateEdition user={authUser as AuthUser} contestId={contestId} />
-			</div>
-		</div>
-	);
+	return <CreateEdition user={authUser as AuthUser} contestId={contestId} />;
 }

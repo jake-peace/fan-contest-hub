@@ -139,9 +139,6 @@ const SongSubmission: React.FC<SongSubmissionProps> = ({ editionId, user }) => {
 
 	return (
 		<>
-			<Button variant="ghost" onClick={() => router.back()} className="mb-4">
-				← Back
-			</Button>
 			<Card className="py-6 gap-2">
 				<CardHeader>
 					<CardTitle className="flex items-center gap-2">

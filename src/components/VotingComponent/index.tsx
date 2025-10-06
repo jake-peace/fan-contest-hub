@@ -147,9 +147,6 @@ const VotingComponent: React.FC<VotingComponentProps> = ({ editionId, user }) =>
 
 	return (
 		<>
-			<Button variant="ghost" onClick={() => router.back()} className="mb-4">
-				← Back
-			</Button>
 			<Card className="mb-4 py-6">
 				<CardHeader>
 					<CardTitle className="flex items-center gap-2">

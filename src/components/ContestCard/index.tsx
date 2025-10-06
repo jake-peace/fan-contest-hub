@@ -89,9 +89,6 @@ const ContestInfoCard: React.FC<{ contestId: string; user: AuthUser }> = ({ cont
 	if (isLoading) {
 		return (
 			<>
-				<Button variant="ghost" onClick={() => router.back()} className="mb-4">
-					← Back
-				</Button>
 				<Card className="mb-4 py-6">
 					<CardHeader>
 						<div className="flex items-center justify-between">
@@ -116,9 +113,6 @@ const ContestInfoCard: React.FC<{ contestId: string; user: AuthUser }> = ({ cont
 	return (
 		contest && (
 			<>
-				<Button variant="ghost" onClick={() => router.back()} className="mb-4">
-					← Back
-				</Button>
 				<Card className="mb-4 py-6">
 					<CardHeader>
 						<div className="flex items-center justify-between">

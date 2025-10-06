@@ -28,6 +28,7 @@ export const handler: EventBridgeHandler<'Scheduled Event', null, void> = async 
 		const now = new Date().toISOString();
 
 		const parsedNow = parseISO(now);
+		console.log('Lambda time is now', parsedNow.toString())
 
 		// NOTE: This is a conceptual query. You'll need to implement a filter
 		// based on your actual data model (e.g., query by status and filter by timestamp).
@@ -63,7 +64,7 @@ export const handler: EventBridgeHandler<'Scheduled Event', null, void> = async 
 
 		// 2. Iterate and update each record's variable (status)
 		const updatePromises = recordsToUpdate.map((record) => {
-			console.log(`Updating record ID: ${record.editionId} from ${record.phase} to ${nextPhase.get(record.phase)}`);
+			console.log(`Updating record ID: ${record.editionId} from ${record.phase} to ${nextPhase.get(record.phase)} because the time was ${record.submissionsOpen}`);
 			return client.models.Edition.update({
 				editionId: record.editionId,
 				phase: nextPhase.get(record.phase), // Change your variable here

@@ -1,6 +1,6 @@
 'use client';
 
-import { Clock, Vote, Users, Crown, Music, Trophy, Upload, Play, Music2, CheckCircle, TriangleAlert, Info } from 'lucide-react';
+import { Clock, Vote, Users, Music, Trophy, Upload, Play, Music2, CheckCircle, TriangleAlert, Info } from 'lucide-react';
 import { Card, CardHeader, CardTitle, CardContent } from '../ui/card';
 import { EditionPhase } from '@/mockData/newMockData';
 import { formatDate, getPhaseMessage } from '@/utils';
@@ -19,6 +19,7 @@ import SubmissionCard from '../SubmissionCard';
 import { Alert, AlertDescription, AlertTitle } from '../ui/alert';
 import EditionHostOptions from '../EditionHostOptions';
 import { fetchEditionVotes } from '../VotingComponent';
+import { getPhaseColor } from '../EditionList';
 
 interface EditionDetailsProps {
 	editionId: string;
@@ -89,19 +90,6 @@ const EditionDetails: React.FC<EditionDetailsProps> = ({ editionId, user }) => {
 		);
 	};
 
-	const getPhaseColor = (phase: string) => {
-		switch (phase) {
-			case 'submission':
-				return 'default';
-			case 'voting':
-				return 'secondary';
-			case 'results':
-				return 'destructive';
-			default:
-				return 'default';
-		}
-	};
-
 	const getPhaseIcon = (phase: EditionPhase) => {
 		switch (phase) {
 			case 'UPCOMING':
@@ -109,11 +97,9 @@ const EditionDetails: React.FC<EditionDetailsProps> = ({ editionId, user }) => {
 			case 'SUBMISSION':
 				return <Music className="w-3 h-3" />;
 			case 'VOTING':
-				return <Users className="w-3 h-3" />;
+				return <Vote className="w-3 h-3" />;
 			case 'RESULTS':
 				return <Trophy className="w-3 h-3" />;
-			case 'COMPLETE':
-				return <Crown className="w-3 h-3" />;
 			default:
 				return <Music className="w-3 h-3" />;
 		}
@@ -167,9 +153,6 @@ const EditionDetails: React.FC<EditionDetailsProps> = ({ editionId, user }) => {
 	if (isLoading) {
 		return (
 			<>
-				<Button variant="ghost" onClick={() => router.back()} className="mb-4">
-					← Back
-				</Button>
 				<Card className="mb-4 py-6">
 					<CardHeader>
 						<div className="flex items-center justify-between">
@@ -194,9 +177,6 @@ const EditionDetails: React.FC<EditionDetailsProps> = ({ editionId, user }) => {
 	return (
 		edition && (
 			<>
-				<Button variant="ghost" onClick={() => router.back()} className="mb-2">
-					← Back
-				</Button>
 				{edition && edition.phase === 'UPCOMING' && compareAsc(parseISO(edition.submissionsOpen as string), new Date()) === -1 && (
 					<Alert className="mb-2">
 						<Info />
@@ -211,7 +191,7 @@ const EditionDetails: React.FC<EditionDetailsProps> = ({ editionId, user }) => {
 						<div className="flex items-center justify-between">
 							<CardTitle className="flex items-center gap-2">{edition.name}</CardTitle>
 							{edition.phase && (
-								<Badge variant={getPhaseColor(edition.phase)} className="text-xs bg-blue-500 text-white dark:bg-blue-600">
+								<Badge className={`text-xs bg-(--${getPhaseColor(edition.phase)}`}>
 									{getPhaseIcon(edition.phase)}
 									<span className="ml-1 capitalize">{edition.phase}</span>
 								</Badge>
@@ -326,7 +306,7 @@ const EditionDetails: React.FC<EditionDetailsProps> = ({ editionId, user }) => {
 								<CardTitle className="flex items-center gap-2">Submissions</CardTitle>
 							</CardHeader>
 							<CardContent>
-								<Skeleton>
+								<Skeleton className="rounded-xl">
 									<Card className="p-4 bg-muted">
 										<div>Waiting for submissions...</div>
 									</Card>

@@ -1,14 +1,13 @@
-import { sortedEditions, getPhaseMessage } from '@/utils';
 import { Card, CardContent, CardHeader, CardTitle } from '../ui/card';
 import { Badge } from '../ui/badge';
 import { User } from '@/types/Contest';
 import { useAppSelector } from '@/app/store/hooks';
 import { Alert, AlertDescription, AlertTitle } from '../ui/alert';
-import { Separator } from '../ui/separator';
 import { Schema } from '../../../amplify/data/resource';
 import { useQuery } from '@tanstack/react-query';
 import { useRouter } from 'next/navigation';
 import { Skeleton } from '../ui/skeleton';
+import { compareAsc, formatDistanceToNow, parseISO } from 'date-fns';
 
 interface EditionListProps {
 	contest: Contest;
@@ -30,6 +29,22 @@ const fetchContestEditions = async (contestId: string) => {
 	return result.editions as Edition[]; // Return the clean data
 };
 
+export const getPhaseColor = (phase: string) => {
+	console.log(phase);
+	switch (phase) {
+		case 'UPCOMING':
+			return `customc`;
+		case 'SUBMISSION':
+			return 'customb';
+		case 'VOTING':
+			return 'customa';
+		case 'RESULTS':
+			return 'customb';
+		default:
+			return 'custome';
+	}
+};
+
 const EditionList: React.FC<EditionListProps> = ({ contest }) => {
 	const router = useRouter();
 
@@ -39,6 +54,27 @@ const EditionList: React.FC<EditionListProps> = ({ contest }) => {
 		queryKey: ['contestEditionList', contest.contestId],
 		queryFn: () => fetchContestEditions(contest.contestId as string),
 	});
+
+	const getPhaseStatus = (edition: Edition) => {
+		switch (edition.phase) {
+			case 'UPCOMING':
+				return `Submissions open in ${formatDistanceToNow(edition.submissionsOpen as string)}`;
+			case 'SUBMISSION':
+				if (edition.closeSubmissionType === 'specificDate') {
+					return `${formatDistanceToNow(edition.submissionDeadline as string)} left to submit`;
+				} else {
+					return 'Waiting for submissions';
+				}
+			case 'VOTING':
+				if (edition.closeVotingType === 'specificDate') {
+					return `${formatDistanceToNow(edition.votingDeadline as string)} left to vote`;
+				} else {
+					return 'Voting is open!';
+				}
+			default:
+				return 'Results available!';
+		}
+	};
 
 	return (
 		<Card className="mb-4 py-6">
@@ -66,31 +102,30 @@ const EditionList: React.FC<EditionListProps> = ({ contest }) => {
 					</Alert>
 				) : (
 					editions &&
-					editions.map((edition: Edition, index: number) => (
-						<div key={edition.editionId}>
-							<div
-								className={`p-2 rounded-lg border cursor-pointer transition-colors border-border hover:bg-muted/50`}
-								onClick={() => router.push(`/edition/${edition.editionId}`)}
-							>
-								<div className="flex items-center justify-between mb-2">
-									<h4 className="font-medium">{edition.name}</h4>
-									<div className="flex items-center gap-2">
-										<Badge
-											variant={edition.phase === 'SUBMISSION' ? 'default' : edition.phase === 'VOTING' ? 'secondary' : 'destructive'}
-											className="text-xs"
-										>
-											{edition.phase && edition.phase.charAt(0).toUpperCase() + edition.phase.slice(1)}
-										</Badge>
+					editions
+						.sort((a, b) => compareAsc(parseISO(a.submissionsOpen as string), parseISO(b.submissionsOpen as string)))
+						.map((edition: Edition) => (
+							<div key={edition.editionId}>
+								<div
+									className={`p-2 rounded-lg border cursor-pointer transition-colors border-border hover:bg-muted/50`}
+									onClick={() => router.push(`/edition/${edition.editionId}`)}
+								>
+									<div className="flex items-center justify-between mb-2">
+										<h4 className="font-medium">{edition.name}</h4>
+										<div className="flex items-center gap-2">
+											{edition.phase && (
+												<Badge variant="default" className={`text-xs bg-(--${getPhaseColor(edition.phase)})`}>
+													{edition.phase}
+												</Badge>
+											)}
+										</div>
+									</div>
+									<div className="flex items-center justify-between text-sm text-muted-foreground">
+										<span>{edition.phase && getPhaseStatus(edition)}</span>
 									</div>
 								</div>
-								<div className="flex items-center justify-between text-sm text-muted-foreground">
-									<span>{edition.phase && getPhaseMessage(edition.phase)}</span>
-									<span> {`${contest.participants?.length} ${contest.participants?.length === 1 ? 'participant' : 'participants'}`}</span>
-								</div>
 							</div>
-							{index < sortedEditions.length - 1 && <Separator className="my-3" />}
-						</div>
-					))
+						))
 				)}
 			</CardContent>
 		</Card>

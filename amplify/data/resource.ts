@@ -48,6 +48,7 @@ const schema = a
 				closeVotingType: a.ref('CloseType'),
 				phase: a.ref('Phase').required(),
 				resultsRevealed: a.boolean(),
+				spotifyPlaylistLink: a.string(),
 			})
 			.identifier(['editionId'])
 			.authorization((allow) => [allow.ownersDefinedIn('participants')]),

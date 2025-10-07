@@ -29,7 +29,7 @@ export async function submitSong(formData: FormData) {
 			throw new Error(`Already submitted for this edition`);
 		}
 
-		await cookiesClient.models.Submission.create({
+		const { data } = await cookiesClient.models.Submission.create({
 			submissionId: submissionId,
 			userId: authUser?.userId,
 			songTitle: songTitle,
@@ -39,6 +39,24 @@ export async function submitSong(formData: FormData) {
 			flag: flag,
 			countryName: countryName,
 		});
+
+		if (!data) {
+			throw new Error('Failed to submit song.');
+		}
+
+		const edition = (await data.edition()).data;
+		const editionSubmissions = (await edition?.submissions())?.data;
+
+		if (!editionSubmissions) {
+			throw new Error('Failed to get other submissions');
+		}
+
+		if (edition?.participants?.length === editionSubmissions.length && edition.closeSubmissionType === 'allEntries') {
+			await cookiesClient.models.Edition.update({
+				editionId: editionId,
+				phase: 'VOTING',
+			});
+		}
 
 		return { success: true };
 	} catch (error) {

@@ -1,7 +1,7 @@
 'use client';
 
-import { Music, Share, Users } from 'lucide-react';
-import { Card, CardHeader, CardTitle } from '../ui/card';
+import { Link, Music, RectangleEllipsis, Share, Users } from 'lucide-react';
+import { Card, CardContent, CardHeader, CardTitle } from '../ui/card';
 import { Badge } from '../ui/badge';
 import ContestOptions from '../ContestOptions';
 import { useQuery } from '@tanstack/react-query';
@@ -13,6 +13,7 @@ import { useEffect, useState } from 'react';
 import { toast } from 'sonner';
 import { Skeleton } from '../ui/skeleton';
 import { AuthUser } from 'aws-amplify/auth';
+import { Collapsible, CollapsibleContent } from '../ui/collapsible';
 
 type Contest = Schema['Contest']['type'];
 
@@ -30,6 +31,7 @@ export const fetchContest = async (id: string) => {
 const ContestInfoCard: React.FC<{ contestId: string; user: AuthUser }> = ({ contestId, user }) => {
 	const router = useRouter();
 	const [isSupported, setIsSupported] = useState(false);
+	const [showJoinCode, setShowJoinCode] = useState(false);
 
 	const { data: contest, isLoading } = useQuery({
 		queryKey: ['contestDetails', contestId],
@@ -44,11 +46,14 @@ const ContestInfoCard: React.FC<{ contestId: string; user: AuthUser }> = ({ cont
 	}, []);
 
 	const handleShare = async () => {
+		if (!isSupported) {
+			fallbackCopyToClipboard(true);
+		}
 		try {
 			await navigator.share({
 				title: `Join ${contest?.name}!`,
-				text: `{userDisplayName} has invited you to join their Fan Contest!`,
-				url: `http://localhost:3000/join/${contest?.contestId as string}`,
+				text: `You've been invited to join a Fan Contest!`,
+				url: `http://localhost:3000/join/${contest?.joinCode as string}`,
 			});
 			// eslint-disable-next-line @typescript-eslint/no-explicit-any
 		} catch (error: any) {
@@ -61,10 +66,10 @@ const ContestInfoCard: React.FC<{ contestId: string; user: AuthUser }> = ({ cont
 		}
 	};
 
-	const fallbackCopyToClipboard = () => {
+	const fallbackCopyToClipboard = (link: boolean) => {
 		try {
 			const textarea = document.createElement('textarea');
-			textarea.value = `http://localhost:3000/join/${contest?.contestId}`;
+			textarea.value = link ? `http://localhost:3000/join/${contest?.joinCode}` : (contest?.joinCode as string);
 			// Positioning off-screen to prevent visual disruption
 			textarea.style.position = 'fixed';
 			textarea.style.left = '-9999px';
@@ -134,19 +139,12 @@ const ContestInfoCard: React.FC<{ contestId: string; user: AuthUser }> = ({ cont
 					See Members
 				</Button>
 
-				{isSupported ? (
-					<Button variant="outline" onClick={handleShare} className="w-full mb-4">
-						<Share className="w-4 h-4 mr-2" />
-						Invite Friends
-					</Button>
-				) : (
-					<Button variant="outline" onClick={fallbackCopyToClipboard} className="w-full mb-4">
-						<Share className="w-4 h-4 mr-2" />
-						Invite Friends
-					</Button>
-				)}
+				<Button variant="outline" onClick={() => setShowJoinCode(true)} className="w-full mb-4">
+					<Share className="w-4 h-4 mr-2" />
+					Invite Friends
+				</Button>
 
-				{/* <Collapsible open={showJoinCode}>
+				<Collapsible open={showJoinCode}>
 					<CollapsibleContent>
 						<Card className="mb-4 py-4 gap-2">
 							<CardHeader>
@@ -154,12 +152,22 @@ const ContestInfoCard: React.FC<{ contestId: string; user: AuthUser }> = ({ cont
 									<h2 className="font-bold drop-shadow-lg text-center">Join Code</h2>
 								</CardTitle>
 							</CardHeader>
-							<CardContent className="w-full text-center">
-								<h2 className="text-4xl">24BV8G</h2>
+							<CardContent className="w-full text-center space-y-2">
+								<h2 className="text-4xl">{contest.joinCode}</h2>
+								<div className="flex gap-2 justify-center w-full">
+									<Button variant="outline" onClick={handleShare}>
+										<Link />
+										Share Link
+									</Button>
+									<Button variant="outline" onClick={() => fallbackCopyToClipboard(false)}>
+										<RectangleEllipsis />
+										Copy Join Code
+									</Button>
+								</div>
 							</CardContent>
 						</Card>
 					</CollapsibleContent>
-				</Collapsible> */}
+				</Collapsible>
 
 				<EditionList contest={contest} />
 			</>

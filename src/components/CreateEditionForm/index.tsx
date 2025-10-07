@@ -21,7 +21,6 @@ import { Collapsible, CollapsibleContent } from '@/components/ui/collapsible';
 import { Separator } from '@/components/ui/separator';
 import { AuthUser } from 'aws-amplify/auth';
 import { createEdition } from '@/app/actions/createEdition';
-import Header from '../Header';
 
 const FormSchema = z.object({
 	name: z.string().min(3, {
@@ -90,8 +89,6 @@ const CreateEdition: React.FC<CreateEditionProps> = ({ contestId }) => {
 
 	return (
 		<>
-			<Header />
-
 			<Card className="py-6">
 				<CardHeader>
 					<CardTitle className="flex items-center gap-2">New Edition</CardTitle>
@@ -222,12 +219,12 @@ const CreateEdition: React.FC<CreateEditionProps> = ({ contestId }) => {
 													</FormControl>
 													<FormLabel className="font-normal">A specific date</FormLabel>
 												</FormItem>
-												<FormItem className="flex items-center gap-3">
+												{/* <FormItem className="flex items-center gap-3">
 													<FormControl>
 														<RadioGroupItem value="allEntries" />
 													</FormControl>
 													<FormLabel className="font-normal">All votes are in</FormLabel>
-												</FormItem>
+												</FormItem> */}
 												<FormItem className="flex items-center gap-3">
 													<FormControl>
 														<RadioGroupItem value="manually" />

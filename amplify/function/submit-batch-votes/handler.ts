@@ -39,14 +39,12 @@ export const handler: Schema['submitBatchVotes']['functionHandler'] = async (eve
 
 	try {
 		const newId = v4();
-		const response = await client.models.Vote.create({
+		await client.models.Vote.create({
 			voteId: newId,
 			submissionId: ranking[0] as string,
 			points: getPointsByRank(1) as number,
 			fromUserId: user as string,
 		});
-
-		console.log(JSON.stringify(response));
 
 		return `Success`;
 	} catch (error) {

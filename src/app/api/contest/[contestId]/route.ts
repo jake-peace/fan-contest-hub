@@ -10,8 +10,6 @@ export async function GET(request: Request, segmentData: { params: Params }) {
 	try {
 		const { data } = await cookiesClient.models.Contest.get({ contestId: contestId });
 
-		console.log(data);
-
 		return NextResponse.json({ contest: data });
 		// eslint-disable-next-line @typescript-eslint/no-explicit-any
 	} catch (error: any) {

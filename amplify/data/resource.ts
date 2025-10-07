@@ -27,10 +27,10 @@ const schema = a
 				joinCode: a.string(),
 				hostId: a.string(),
 				editions: a.hasMany('Edition', 'contestId'),
-				participants: a.string().array(),
+				participants: a.string().array().authorization((allow) => allow.authenticated().to(['update'])),
 			})
 			.identifier(['contestId'])
-			.authorization((allow) => [allow.ownersDefinedIn('participants'), allow.authenticated().to(['list'])]),
+			.authorization((allow) => [allow.ownersDefinedIn('participants'), allow.authenticated().to(['list', 'get'])]),
 		Phase: a.enum(['UPCOMING', 'SUBMISSION', 'VOTING', 'RESULTS', 'COMPLETE']),
 		CloseType: a.enum(['specificDate', 'allEntries', 'manually']),
 		Edition: a

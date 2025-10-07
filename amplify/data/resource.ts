@@ -30,7 +30,7 @@ const schema = a
 				participants: a.string().array(),
 			})
 			.identifier(['contestId'])
-			.authorization((allow) => [allow.owner()]),
+			.authorization((allow) => [allow.ownerDefinedIn('participants'), allow.authenticated().to(['list'])]),
 		Phase: a.enum(['UPCOMING', 'SUBMISSION', 'VOTING', 'RESULTS', 'COMPLETE']),
 		CloseType: a.enum(['specificDate', 'allEntries', 'manually']),
 		Edition: a

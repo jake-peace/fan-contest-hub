@@ -38,6 +38,7 @@ const Header: React.FC = () => {
 	const handleSignOut = async () => {
 		await signOut();
 		router.push('/signin');
+		setSignOutDialog(false);
 	};
 
 	return (

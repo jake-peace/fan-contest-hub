@@ -10,18 +10,35 @@ import { Skeleton } from '../ui/skeleton';
 import { Spinner } from '../ui/spinner';
 import { Card } from '../ui/card';
 import { signOut } from 'aws-amplify/auth';
+import {
+	AlertDialog,
+	AlertDialogAction,
+	AlertDialogCancel,
+	AlertDialogContent,
+	AlertDialogDescription,
+	AlertDialogFooter,
+	AlertDialogHeader,
+	AlertDialogTitle,
+} from '../ui/alert-dialog';
+import { useState } from 'react';
 
 const Header: React.FC = () => {
 	const router = useRouter();
 	const pathname = usePathname();
 
 	const excludedPathnames = ['/results', '/signin', '/join'];
+	const [signOutDialog, setSignOutDialog] = useState(false);
 
 	const { data: profile, isLoading: profileLoading } = useQuery({
 		queryKey: ['userProfileHeader'],
 		queryFn: () => fetchProfile(),
 		enabled: pathname !== '/signin',
 	});
+
+	const handleSignOut = async () => {
+		await signOut();
+		router.push('/signin');
+	};
 
 	return (
 		<>
@@ -53,7 +70,7 @@ const Header: React.FC = () => {
 							</Button>
 						</Skeleton>
 					) : (
-						<Button variant="outline" onClick={async () => await signOut()}>
+						<Button variant="outline" onClick={() => setSignOutDialog(true)}>
 							<User />
 							{profile.displayName}
 						</Button>
@@ -63,6 +80,18 @@ const Header: React.FC = () => {
 					</Button> */}
 				</div>
 			)}
+			<AlertDialog open={signOutDialog}>
+				<AlertDialogContent className="">
+					<AlertDialogHeader>
+						<AlertDialogTitle>Sign out?</AlertDialogTitle>
+						<AlertDialogDescription>Are you sure you want to sign out?</AlertDialogDescription>
+					</AlertDialogHeader>
+					<AlertDialogFooter>
+						<AlertDialogCancel onClick={() => setSignOutDialog(false)}>Cancel</AlertDialogCancel>
+						<AlertDialogAction onClick={handleSignOut}>Sign Out</AlertDialogAction>
+					</AlertDialogFooter>
+				</AlertDialogContent>
+			</AlertDialog>
 			{/* <Collapsible open={profileOpen}>
 				<CollapsibleContent className="mb-2">
 					<Card>

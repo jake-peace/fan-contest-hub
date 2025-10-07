@@ -12,13 +12,14 @@ import { Card } from '../ui/card';
 import { signOut } from 'aws-amplify/auth';
 
 const Header: React.FC = () => {
+	const router = useRouter();
+	const pathname = usePathname();
+
 	const { data: profile, isLoading: profileLoading } = useQuery({
 		queryKey: ['userProfileHeader'],
 		queryFn: () => fetchProfile(),
+		enabled: pathname !== '/signin',
 	});
-
-	const router = useRouter();
-	const pathname = usePathname();
 
 	return (
 		<>

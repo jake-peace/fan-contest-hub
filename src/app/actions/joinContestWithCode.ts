@@ -24,7 +24,7 @@ export async function joinContestWithCode(joinCode: string) {
 			throw new Error('Contest already joined');
 		}
 
-		const newParticipants = [...(contest[0].participants ?? []), authUser.userId];
+		const newParticipants = [...(contest[0].participants as string[]), authUser.userId];
 
 		const { errors } = await cookiesClient.models.Contest.update({
 			contestId: contest[0].contestId,

@@ -2,7 +2,7 @@
 
 import { Card, CardContent, CardHeader, CardTitle } from '../ui/card';
 import { Schema } from '../../../amplify/data/resource';
-import { Disc3, ListOrdered, Medal, Trophy } from 'lucide-react';
+import { Disc3, ListOrdered } from 'lucide-react';
 import { Button } from '../ui/button';
 import { useQuery } from '@tanstack/react-query';
 import { Avatar, AvatarImage } from '../ui/avatar';
@@ -70,7 +70,7 @@ const MembersList: React.FC<MembersListProps> = ({ contestId }) => {
 										Entries
 									</Button>
 								</div>
-								<div className="flex w-full items-center justify-between">
+								{/* <div className="flex w-full items-center justify-between">
 									<div className="bg-(--gold) flex text-black px-4 py-2 rounded-lg gap-2">
 										<Trophy />
 										<div className="font-bold">2</div>
@@ -83,7 +83,7 @@ const MembersList: React.FC<MembersListProps> = ({ contestId }) => {
 										<Medal />
 										<div className="font-bold">2</div>
 									</div>
-								</div>
+								</div> */}
 							</Card>
 						))
 					)}

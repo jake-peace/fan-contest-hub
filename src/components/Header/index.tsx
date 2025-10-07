@@ -15,6 +15,8 @@ const Header: React.FC = () => {
 	const router = useRouter();
 	const pathname = usePathname();
 
+	const excludedPathnames = ['/results', '/signin', '/join'];
+
 	const { data: profile, isLoading: profileLoading } = useQuery({
 		queryKey: ['userProfileHeader'],
 		queryFn: () => fetchProfile(),
@@ -23,7 +25,7 @@ const Header: React.FC = () => {
 
 	return (
 		<>
-			{!pathname.includes('/results') && !pathname.includes('/signin') && (
+			{excludedPathnames.find((p) => pathname.includes(p)) === undefined && (
 				<div className="flex mb-2 gap-2">
 					{pathname !== '/' ? (
 						<Button variant="ghost" onClick={() => router.back()} className="mr-auto">

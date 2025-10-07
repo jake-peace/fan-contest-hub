@@ -5,11 +5,27 @@ import SignUpComponent from '@/components/SignUp';
 import { Alert, AlertDescription } from '@/components/ui/alert';
 import { Card, CardHeader, CardTitle } from '@/components/ui/card';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
+import { getCurrentUser } from 'aws-amplify/auth';
 import { LogIn, MicVocal, UserPlus } from 'lucide-react';
-import { useState } from 'react';
+import { useRouter } from 'next/navigation';
+import { useEffect, useState } from 'react';
+import { toast } from 'sonner';
 
 const SignInPage: React.FC = () => {
 	const [activeTab, setActiveTab] = useState<'signin' | 'signup'>('signin');
+	const router = useRouter();
+
+	useEffect(() => {
+		const checkIfSignedIn = async () => {
+			const user = await getCurrentUser();
+			if (user !== undefined) {
+				toast.message(`You're already signed in!`);
+				router.push('/');
+			}
+		};
+		checkIfSignedIn();
+	});
+
 	return (
 		<>
 			<Card className="mb-4 py-6">

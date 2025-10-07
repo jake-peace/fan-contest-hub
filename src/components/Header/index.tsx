@@ -56,7 +56,7 @@ const Header: React.FC = () => {
 									Fan Contest
 								</div>
 							</Card>
-							<Button variant="outline">
+							<Button variant="outline" onClick={() => router.push('/help')}>
 								<HelpCircle />
 							</Button>
 						</>

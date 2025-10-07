@@ -55,11 +55,11 @@ export async function closeSubmissions(editionId: string) {
 			},
 		});
 
-		if (!submissions || !edition) {
+		if (!submissions || !edition || !contest) {
 			throw new Error('No submissions in contest or edition not found');
 		}
 
-		if (submissions.length > (edition.participants?.length || 0)) {
+		if (submissions.length > (contest.data?.participants?.length || 0)) {
 			throw new Error('More submissions than participants. Seek help.');
 		}
 

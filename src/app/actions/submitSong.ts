@@ -45,13 +45,14 @@ export async function submitSong(formData: FormData) {
 		}
 
 		const edition = (await data.edition()).data;
+		const contest = (await edition?.contest())?.data;
 		const editionSubmissions = (await edition?.submissions())?.data;
 
 		if (!editionSubmissions) {
 			throw new Error('Failed to get other submissions');
 		}
 
-		if (edition?.participants?.length === editionSubmissions.length && edition.closeSubmissionType === 'allEntries') {
+		if (contest?.participants?.length === editionSubmissions.length && edition?.closeSubmissionType === 'allEntries') {
 			await cookiesClient.models.Edition.update({
 				editionId: editionId,
 				phase: 'VOTING',

@@ -20,6 +20,7 @@ import { Alert, AlertDescription, AlertTitle } from '../ui/alert';
 import EditionHostOptions from '../EditionHostOptions';
 import { fetchEditionVotes } from '../VotingComponent';
 import { getPhaseColor } from '../EditionList';
+import Image from 'next/image';
 
 interface EditionDetailsProps {
 	editionId: string;
@@ -292,6 +293,13 @@ const EditionDetails: React.FC<EditionDetailsProps> = ({ editionId, user }) => {
 						</div>
 
 						{edition && getActionButton()}
+
+						{edition.spotifyPlaylistLink && (edition.phase === 'VOTING' || edition.phase === 'RESULTS') && (
+							<Button className="bg-[#1ed760] text-black w-full relative hover:bg-muted">
+								<Image src={`/spotifyLogoBlack.svg`} width={20} height={20} alt={`spotifyLogoBlack`} quality={80} sizes="640px" />
+								Listen on Spotify
+							</Button>
+						)}
 
 						{user.userId === edition.fulfilledContest.hostId && (
 							<EditionHostOptions phase={edition.phase} onRefetch={refetch} editionId={editionId} />

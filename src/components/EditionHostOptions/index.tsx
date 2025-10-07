@@ -14,6 +14,12 @@ import {
 	AlertDialogTitle,
 } from '../ui/alert-dialog';
 import { closeVoting } from '@/app/actions/closeVoting';
+import { Dialog, DialogClose, DialogContent, DialogDescription, DialogFooter, DialogHeader, DialogTitle } from '../ui/dialog';
+import { Input } from '../ui/input';
+import { Label } from '../ui/label';
+import { useQueryClient } from '@tanstack/react-query';
+import { setPlaylistLink } from '@/app/actions/setPlaylistLink';
+import Image from 'next/image';
 
 interface EditionHostOptionsProps {
 	editionId: string;
@@ -23,6 +29,10 @@ interface EditionHostOptionsProps {
 
 const EditionHostOptions: React.FC<EditionHostOptionsProps> = ({ editionId, phase, onRefetch }) => {
 	const [dialogOpen, setDialogOpen] = useState(false);
+	const [spotifyDialogOpen, setSpotifyDialogOpen] = useState(false);
+	const [playlistLink, setPlaylistInputLink] = useState('');
+
+	const queryClient = useQueryClient();
 
 	const handleAction = (description: string) => {
 		switch (description) {
@@ -72,6 +82,42 @@ const EditionHostOptions: React.FC<EditionHostOptionsProps> = ({ editionId, phas
 		);
 	};
 
+	const handleSetSpotifyPlaylist = () => {
+		startTransition(async () => {
+			const result = await setPlaylistLink(editionId, playlistLink);
+			if (result.success) {
+				queryClient.invalidateQueries({ queryKey: ['editionDetails', editionId] });
+				toast.success(`Playlist link saved`);
+				setSpotifyDialogOpen(false);
+			} else {
+				toast.error('Something went wrong saving the playlist link');
+			}
+		});
+	};
+
+	const SpotifyPlaylistDialog = () => {
+		return (
+			<Dialog open={spotifyDialogOpen}>
+				<DialogContent>
+					<DialogHeader>
+						<DialogTitle>Spotify Playlist</DialogTitle>
+						<DialogDescription>{`Enter the link for the playlist below.`}</DialogDescription>
+					</DialogHeader>
+					<div className="grid gap-3">
+						<Label htmlFor="name-1">Link</Label>
+						<Input value={playlistLink} onChange={(e) => setPlaylistInputLink(e.target.value)} />
+					</div>
+					<DialogFooter>
+						<DialogClose asChild onClick={() => setSpotifyDialogOpen(false)}>
+							<Button variant="outline">Cancel</Button>
+						</DialogClose>
+						<Button onClick={handleSetSpotifyPlaylist}>Save changes</Button>
+					</DialogFooter>
+				</DialogContent>
+			</Dialog>
+		);
+	};
+
 	switch (phase) {
 		case 'SUBMISSION':
 			return (
@@ -86,6 +132,10 @@ const EditionHostOptions: React.FC<EditionHostOptionsProps> = ({ editionId, phas
 		case 'VOTING':
 			return (
 				<>
+					<Button className="bg-[#1ed760] text-black w-full relative hover:bg-muted" onClick={() => setSpotifyDialogOpen(true)}>
+						Add Spotify Playlist
+					</Button>
+					{SpotifyPlaylistDialog()}
 					<Button variant="destructive" className="w-full" onClick={() => setDialogOpen(true)}>
 						<CircleX className="w-4 h-4 mr-2" />
 						Close Voting
@@ -101,6 +151,20 @@ const EditionHostOptions: React.FC<EditionHostOptionsProps> = ({ editionId, phas
 						Open Submissions
 					</Button>
 					{ConfirmActionDialog('open submissions')}
+				</>
+			);
+		case 'RESULTS':
+			return (
+				<>
+					<Button
+						variant="default"
+						className="bg-[#1ed760] text-black w-full relative hover:bg-muted"
+						onClick={() => setSpotifyDialogOpen(true)}
+					>
+						<Image src={`/spotifyLogoBlack.svg`} width={20} height={20} alt={`spotifyLogo`} quality={80} sizes="640px" />
+						Add Spotify Playlist
+					</Button>
+					{SpotifyPlaylistDialog()}
 				</>
 			);
 		default:

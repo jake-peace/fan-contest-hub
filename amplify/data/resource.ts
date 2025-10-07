@@ -51,7 +51,7 @@ const schema = a
 				spotifyPlaylistLink: a.string(),
 			})
 			.identifier(['editionId'])
-			.authorization((allow) => [allow.ownersDefinedIn('participants')]),
+			.authorization((allow) => allow.authenticated()),
 		Submission: a
 			.model({
 				userId: a.id(),
@@ -68,7 +68,7 @@ const schema = a
 				rejected: a.boolean(),
 			})
 			.identifier(['submissionId'])
-			.authorization((allow) => [allow.ownersDefinedIn('participants')]),
+			.authorization((allow) => [allow.authenticated()]),
 		Vote: a
 			.model({
 				voteId: a.id().required(),

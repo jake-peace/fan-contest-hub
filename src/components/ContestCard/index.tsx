@@ -53,7 +53,7 @@ const ContestInfoCard: React.FC<{ contestId: string; user: AuthUser }> = ({ cont
 			await navigator.share({
 				title: `Join ${contest?.name}!`,
 				text: `You've been invited to join a Fan Contest!`,
-				url: `http://localhost:3000/join/${contest?.joinCode as string}`,
+				url: `http://fancontest.org/join/${contest?.joinCode as string}`,
 			});
 			// eslint-disable-next-line @typescript-eslint/no-explicit-any
 		} catch (error: any) {
@@ -69,7 +69,7 @@ const ContestInfoCard: React.FC<{ contestId: string; user: AuthUser }> = ({ cont
 	const fallbackCopyToClipboard = (link: boolean) => {
 		try {
 			const textarea = document.createElement('textarea');
-			textarea.value = link ? `http://localhost:3000/join/${contest?.joinCode}` : (contest?.joinCode as string);
+			textarea.value = link ? `http://fancontest.org/join/${contest?.joinCode}` : (contest?.joinCode as string);
 			// Positioning off-screen to prevent visual disruption
 			textarea.style.position = 'fixed';
 			textarea.style.left = '-9999px';

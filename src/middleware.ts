@@ -38,5 +38,6 @@ export const config = {
 		 * - login
 		 */
 		'/((?!api|_next/static|_next/image|favicon.ico|signin).*)',
+		'/',
 	],
 };

@@ -307,8 +307,8 @@ const EditionDetails: React.FC<EditionDetailsProps> = ({ editionId, user }) => {
 						{edition && getActionButton()}
 
 						{edition.spotifyPlaylistLink && (edition.phase === 'VOTING' || edition.phase === 'RESULTS') && (
-							<Button className="bg-[#1ed760] text-black w-full relative hover:bg-muted">
-								<Image src={`/spotifyLogoBlack.svg`} width={20} height={20} alt={`spotifyLogoBlack`} quality={80} sizes="640px" />
+							<Button className="w-full relative hover:bg-muted" variant="outline">
+								<Image src={`/spotifyLogo.svg`} width={20} height={20} alt={`spotifyLogoBlack`} quality={80} sizes="640px" />
 								Listen on Spotify
 							</Button>
 						)}

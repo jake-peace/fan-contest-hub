@@ -132,7 +132,8 @@ const EditionHostOptions: React.FC<EditionHostOptionsProps> = ({ editionId, phas
 		case 'VOTING':
 			return (
 				<>
-					<Button className="bg-[#1ed760] text-black w-full relative hover:bg-muted" onClick={() => setSpotifyDialogOpen(true)}>
+					<Button className="w-full relative hover:bg-muted" variant="outline" onClick={() => setSpotifyDialogOpen(true)}>
+						<Image src={`/spotifyLogo.svg`} width={20} height={20} alt={`spotifyLogo`} quality={80} sizes="640px" />
 						Add Spotify Playlist
 					</Button>
 					{SpotifyPlaylistDialog()}
@@ -156,12 +157,8 @@ const EditionHostOptions: React.FC<EditionHostOptionsProps> = ({ editionId, phas
 		case 'RESULTS':
 			return (
 				<>
-					<Button
-						variant="default"
-						className="bg-[#1ed760] text-black w-full relative hover:bg-muted"
-						onClick={() => setSpotifyDialogOpen(true)}
-					>
-						<Image src={`/spotifyLogoBlack.svg`} width={20} height={20} alt={`spotifyLogo`} quality={80} sizes="640px" />
+					<Button variant="outline" className="w-full relative hover:bg-muted" onClick={() => setSpotifyDialogOpen(true)}>
+						<Image src={`/spotifyLogo.svg`} width={20} height={20} alt={`spotifyLogo`} quality={80} sizes="640px" />
 						Add Spotify Playlist
 					</Button>
 					{SpotifyPlaylistDialog()}

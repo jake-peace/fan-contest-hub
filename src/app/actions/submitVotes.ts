@@ -37,6 +37,8 @@ export async function submitVotes(rankings: string[], editionId: string) {
 			}
 		});
 
+		console.log(rankings);
+
 		const votePromises = rankings.map((song, index) => {
 			const newId = v4();
 			return cookiesClient.models.Vote.create({
@@ -48,6 +50,8 @@ export async function submitVotes(rankings: string[], editionId: string) {
 		});
 
 		const results = await Promise.all(votePromises);
+
+		console.log(results);
 
 		if (results.length === 0) {
 			throw new Error('No votes were submitted.');

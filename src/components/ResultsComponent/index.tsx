@@ -254,6 +254,9 @@ const ResultsComponent: React.FC<ResultsComponentProps> = ({ editionId, user }) 
 			// Sort songs from lowest to highest jury score
 			const sortedSongsByJuryScore = [...submissions].sort((a, b) => a.score - b.score);
 
+			console.log(sortedSongsByJuryScore);
+			console.log(televotes);
+
 			await delay(1000);
 
 			// Loop through each song to reveal its televote points
@@ -345,9 +348,6 @@ const ResultsComponent: React.FC<ResultsComponentProps> = ({ editionId, user }) 
 					if (voterVotesExist) {
 						setCurrentVoter(nextVoterId);
 					} else {
-						console.log('could not find votes for', nextVoterId);
-						console.log('voting index is', votingIndex);
-						console.log('submissions: ', edition?.fulfilledSubmissions);
 						setErrorMessage(`Failed to find any votes for ${profiles?.find((p) => p.userId === nextVoterId)?.displayName}`);
 						delay(2000);
 						setCurrentVoter(null);
@@ -468,7 +468,7 @@ const ResultsComponent: React.FC<ResultsComponentProps> = ({ editionId, user }) 
 			</div>
 
 			<div className="flex gap-2 mb-2">
-				{votingIndex >= 0 && resultsStage !== 'COMPLETE' ? (
+				{votingIndex >= 0 && resultsStage === 'JURY' ? (
 					<Button
 						onClick={() => setPaused(!paused)}
 						className="px-4 py-2 bg-blue-500 text-white rounded-md hover:bg-blue-600 disabled:opacity-50"

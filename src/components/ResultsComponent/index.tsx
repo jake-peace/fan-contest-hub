@@ -116,13 +116,19 @@ const ResultsComponent: React.FC<ResultsComponentProps> = ({ editionId, user }) 
 		if (isVotesFetched && votes && isFetched) {
 			const usersWithSongs = edition?.fulfilledSubmissions.map((s) => s.userId as string);
 			const usersWithoutSongs = edition?.fulfilledContest.participants?.filter((p) => !usersWithSongs?.includes(p));
+			let tempTelevotes: { submissionId: string; points: number }[] = [];
 			edition?.fulfilledSubmissions.forEach((s) => {
 				const songTelevotes = votes.filter((v) => usersWithoutSongs?.includes(v.fromUserId));
-				setTelevotes([
-					...televotes,
+				tempTelevotes = [
+					...tempTelevotes,
 					{ submissionId: s.submissionId, points: songTelevotes.map((s) => s.points).reduce((sum, current) => sum + current, 0) },
-				]);
+				];
+				// setTelevotes([
+				// 	...televotes,
+				// 	{ submissionId: s.submissionId, points: songTelevotes.map((s) => s.points).reduce((sum, current) => sum + current, 0) },
+				// ]);
 			});
+			setTelevotes(tempTelevotes);
 			setJuryVotes(votes.filter((v) => usersWithSongs?.includes(v.fromUserId)));
 		}
 	}, [isVotesFetched]);

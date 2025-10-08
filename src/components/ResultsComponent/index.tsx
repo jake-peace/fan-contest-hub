@@ -118,7 +118,8 @@ const ResultsComponent: React.FC<ResultsComponentProps> = ({ editionId, user }) 
 			const usersWithoutSongs = edition?.fulfilledContest.participants?.filter((p) => !usersWithSongs?.includes(p));
 			let tempTelevotes: { submissionId: string; points: number }[] = [];
 			edition?.fulfilledSubmissions.forEach((s) => {
-				const songTelevotes = votes.filter((v) => usersWithoutSongs?.includes(v.fromUserId));
+				// const songTelevotes = votes.filter((v) => usersWithoutSongs?.includes(v.fromUserId));
+				const songTelevotes = votes.filter((v) => v.submissionId === s.submissionId && usersWithoutSongs?.includes(v.fromUserId));
 				tempTelevotes = [
 					...tempTelevotes,
 					{ submissionId: s.submissionId, points: songTelevotes.map((s) => s.points).reduce((sum, current) => sum + current, 0) },
@@ -248,7 +249,7 @@ const ResultsComponent: React.FC<ResultsComponentProps> = ({ editionId, user }) 
 		// ✨ New async function for the televote sequence
 		const runTelevoteSequence = async () => {
 			if (televotes.length === 0 || !televotes) {
-				setHighPointMessage('No televotes found.');
+				setHighPointMessage('No televotes found for this edition!');
 				setResultsStage('COMPLETE');
 				return;
 			}

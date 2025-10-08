@@ -28,16 +28,16 @@ interface ResultsComponentProps {
 	user: AuthUser;
 }
 
-function generateMockTele(submissionIds: string[]) {
-	const mockTele: { submissionId: string; points: number }[] = [];
-	submissionIds.forEach((s) => {
-		mockTele.push({
-			submissionId: s,
-			points: Math.floor(Math.random() * (120 - 0 + 1) + 0),
-		});
-	});
-	return mockTele;
-}
+// function generateMockTele(submissionIds: string[]) {
+// 	const mockTele: { submissionId: string; points: number }[] = [];
+// 	submissionIds.forEach((s) => {
+// 		mockTele.push({
+// 			submissionId: s,
+// 			points: Math.floor(Math.random() * (120 - 0 + 1) + 0),
+// 		});
+// 	});
+// 	return mockTele;
+// }
 interface Song {
 	submissionId: string;
 	songTitle: string;
@@ -79,15 +79,11 @@ const ResultsComponent: React.FC<ResultsComponentProps> = ({ editionId, user }) 
 	const [leader, setCurrentLeader] = useState<SubmissionWithScore>();
 	const [viewBreakdown, setViewBreakdown] = useState(false);
 	const [paused, setPaused] = useState(false);
-	const [mockTele, setMockTele] = useState<{ submissionId: string; points: number }[]>([]);
+	const [televotes, setTelevotes] = useState<{ submissionId: string; points: number }[]>([]);
+	const [juryVotes, setJuryVotes] = useState<Vote[]>([]);
 
 	const router = useRouter();
 	const queryClient = useQueryClient();
-
-	const { data: votes } = useQuery({
-		queryKey: ['resultsEditionVotes', editionId],
-		queryFn: () => fetchEditionVotes(editionId),
-	});
 
 	const {
 		data: edition,
@@ -98,6 +94,12 @@ const ResultsComponent: React.FC<ResultsComponentProps> = ({ editionId, user }) 
 		queryFn: () => fetchEdition(editionId),
 	});
 
+	const { data: votes, isFetched: isVotesFetched } = useQuery({
+		queryKey: ['resultsEditionVotes', editionId],
+		queryFn: () => fetchEditionVotes(editionId),
+		enabled: isFetched,
+	});
+
 	const { data: profiles, isLoading: isProfilesLoading } = useQuery({
 		queryKey: ['resultsProfiles', editionId],
 		queryFn: () => fetchProfiles(editionId),
@@ -106,10 +108,23 @@ const ResultsComponent: React.FC<ResultsComponentProps> = ({ editionId, user }) 
 	useEffect(() => {
 		if (isFetched && edition) {
 			setSubmissions(edition.fulfilledSubmissions.map((s) => ({ ...s, score: 0 })));
-			const mock = generateMockTele(edition.fulfilledSubmissions.map((s) => s.submissionId));
-			setMockTele(mock);
 		}
-	}, [isFetched]);
+	}, [isFetched, isVotesFetched]);
+
+	useEffect(() => {
+		if (isVotesFetched && votes && isFetched) {
+			const usersWithSongs = edition?.fulfilledSubmissions.map((s) => s.userId as string);
+			const usersWithoutSongs = edition?.fulfilledContest.participants?.filter((p) => !usersWithSongs?.includes(p));
+			edition?.fulfilledSubmissions.forEach((s) => {
+				const songTelevotes = votes.filter((v) => usersWithoutSongs?.includes(v.fromUserId));
+				setTelevotes([
+					...televotes,
+					{ submissionId: s.submissionId, points: songTelevotes.map((s) => s.points).reduce((sum, current) => sum + current, 0) },
+				]);
+			});
+			setJuryVotes(votes.filter((v) => usersWithSongs?.includes(v.fromUserId)));
+		}
+	}, [isVotesFetched]);
 
 	const allPoints = [12, 10, 8, 7, 6, 5, 4, 3, 2, 1];
 
@@ -118,8 +133,8 @@ const ResultsComponent: React.FC<ResultsComponentProps> = ({ editionId, user }) 
 	const SONG_CARD_HEIGHT = 35;
 
 	const handleSkipJury = () => {
-		if (votes) {
-			votes.forEach((v) => {
+		if (juryVotes) {
+			juryVotes.forEach((v) => {
 				const updatedSongs = [...submissions];
 				const songToUpdate = submissions.find((s) => s.submissionId === v.submissionId);
 				if (songToUpdate) {
@@ -168,10 +183,12 @@ const ResultsComponent: React.FC<ResultsComponentProps> = ({ editionId, user }) 
 			setLowPointList([]);
 			setHighPointMessage(undefined);
 
-			const voterVotes = votes?.filter((vote) => vote.fromUserId === currentVoter);
+			const voterVotes = juryVotes?.filter((vote) => vote.fromUserId === currentVoter);
 			const sortedVotes = [...(voterVotes as Vote[])].sort((a, b) => a.points - b.points);
 			const lowPointVotes = sortedVotes.filter((vote) => vote.points < 8);
 			const highPointVotes = sortedVotes.filter((vote) => vote.points >= 8).sort((a, b) => a.points - b.points);
+
+			console.log(highPointVotes);
 
 			// --- Step 1: Voter card and 1-7 list appear immediately ---
 			await delay(1000);
@@ -223,6 +240,11 @@ const ResultsComponent: React.FC<ResultsComponentProps> = ({ editionId, user }) 
 
 		// ✨ New async function for the televote sequence
 		const runTelevoteSequence = async () => {
+			if (televotes.length === 0 || !televotes) {
+				setHighPointMessage('No televotes found.');
+				setResultsStage('COMPLETE');
+				return;
+			}
 			setReceivedTelevotes([]);
 			setLowPointList([]);
 			setHighPointMessage('Starting televote sequence...');
@@ -236,7 +258,7 @@ const ResultsComponent: React.FC<ResultsComponentProps> = ({ editionId, user }) 
 			// Loop through each song to reveal its televote points
 			for (let i = 0; i < sortedSongsByJuryScore.length; i++) {
 				const song = sortedSongsByJuryScore[i];
-				const televoteData = mockTele.find((vote) => vote.submissionId === song.submissionId);
+				const televoteData = televotes.find((vote) => vote.submissionId === song.submissionId);
 				const finalReveal = i === sortedSongsByJuryScore.length - 1;
 
 				if (finalReveal && televoteData) {
@@ -269,11 +291,11 @@ const ResultsComponent: React.FC<ResultsComponentProps> = ({ editionId, user }) 
 
 				if (televoteData && !finalReveal) {
 					setHighPointMessage(`${song.songTitle} receives...`);
-					await delay(20);
+					await delay(2000);
 					setHighPointMessage(`${televoteData.points} points!`);
-					await delay(5);
+					await delay(500);
 					setPointsJustReceived({ [song.submissionId]: televoteData.points });
-					await delay(5);
+					await delay(500);
 					const updatedSongs = [...submissions];
 					const songToUpdate = updatedSongs.find((s) => s.submissionId === song.submissionId);
 					if (songToUpdate) {
@@ -281,7 +303,7 @@ const ResultsComponent: React.FC<ResultsComponentProps> = ({ editionId, user }) 
 					}
 					setSubmissions(updatedSongs.sort((a, b) => b.score - a.score));
 					// todo: grey out a song if it's received televote points
-					await delay(20);
+					await delay(2000);
 					setReceivedTelevotes((prev) => [...prev, song.submissionId]);
 					setPointsJustReceived({}); // Clear points for the next song
 				}
@@ -306,15 +328,19 @@ const ResultsComponent: React.FC<ResultsComponentProps> = ({ editionId, user }) 
 	useEffect(() => {
 		if (!paused) {
 			if (votingIndex === -1) {
-				const nextVoterId = (votingIndex + 1).toString();
-				const voterVotesExist = votes?.some((vote) => vote.fromUserId === nextVoterId);
+				const nextVoterId = edition?.fulfilledSubmissions.sort((a, b) => (a.runningOrder as number) - (b.runningOrder as number))[
+					votingIndex
+				].userId;
+				const voterVotesExist = juryVotes?.some((vote) => vote.fromUserId === (nextVoterId as string));
 				if (voterVotesExist) {
-					setCurrentVoter(nextVoterId);
+					setCurrentVoter(nextVoterId as string);
+				} else {
+					console.log('No votes found for', nextVoterId);
 				}
 			} else if (currentVoter === null && votingIndex > -1) {
 				const startNextRoundTimer = setTimeout(() => {
 					const nextVoterId = edition?.fulfilledSubmissions[votingIndex].userId as string;
-					const voterVotesExist = votes?.some((vote) => vote.fromUserId === nextVoterId);
+					const voterVotesExist = juryVotes?.some((vote) => vote.fromUserId === nextVoterId);
 					if (voterVotesExist) {
 						setCurrentVoter(nextVoterId);
 					}
@@ -421,7 +447,7 @@ const ResultsComponent: React.FC<ResultsComponentProps> = ({ editionId, user }) 
 	};
 
 	if (viewBreakdown) {
-		return <JuryPivotTable juryVotes={votes as Vote[]} televotes={mockTele} submissions={submissions} />;
+		return <JuryPivotTable juryVotes={juryVotes} televotes={televotes} submissions={submissions} />;
 	}
 
 	return (
@@ -496,7 +522,7 @@ const ResultsComponent: React.FC<ResultsComponentProps> = ({ editionId, user }) 
 													sizes="640px"
 												/>
 											</div>
-											<h2 className="text-2xl text-primary font-bold">{profiles?.find((p) => p.userId === currentVoter)?.displayName}</h2>
+											<h2 className="text-2xl font-bold">{profiles?.find((p) => p.userId === currentVoter)?.displayName}</h2>
 										</div>
 									</motion.div>
 								) : (
@@ -557,7 +583,7 @@ const ResultsComponent: React.FC<ResultsComponentProps> = ({ editionId, user }) 
 															// Initialize static border style
 															borderStyle: 'solid',
 														}}
-														className={`text-sm m-0.25 text-primary p-2 rounded-sm min-w text-center flex items-center justify-center`}
+														className={`text-sm m-0.25 p-2 rounded-sm min-w text-center flex items-center justify-center`}
 													>
 														{p}
 													</motion.div>
@@ -588,7 +614,7 @@ const ResultsComponent: React.FC<ResultsComponentProps> = ({ editionId, user }) 
 														transition={{ delay: 0.1 }}
 														className="flex justify-between items-center my-1 text-sm font-medium"
 													>
-														<span className="font-bold text-lg text-primary">{highPointMessage}</span>
+														<span className="font-bold text-lg">{highPointMessage}</span>
 													</motion.li>
 												</motion.ul>
 											</CardContent>
@@ -628,7 +654,7 @@ const ResultsComponent: React.FC<ResultsComponentProps> = ({ editionId, user }) 
 																<div className="text-sm text-muted-foreground truncate pr-1">{song.artistName}</div>
 															</div>
 															<span
-																className="font-bold text-lg text-primary text-lg text-white rounded-md text-center flex items-center justify-center bg-[#2196f3]"
+																className="font-bold text-lg text-lg text-white rounded-md text-center flex items-center justify-center bg-[#2196f3]"
 																style={{ minWidth: 30, height: 30 }}
 															>
 																{vote.points}
@@ -663,7 +689,7 @@ const ResultsComponent: React.FC<ResultsComponentProps> = ({ editionId, user }) 
 					<FinalOverlayCard
 						leaderSong={leader as Song}
 						stillToScoreSong={finalSongToReveal as Song}
-						finalPoints={mockTele.find((v) => v.submissionId === finalSongToReveal?.submissionId)?.points as number}
+						finalPoints={televotes.find((v) => v.submissionId === finalSongToReveal?.submissionId)?.points as number}
 						onAnimationEnd={() => setShowFinalOverlay(false)}
 					/>
 				)}

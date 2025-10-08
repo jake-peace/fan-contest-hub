@@ -123,16 +123,28 @@ const EditionDetails: React.FC<EditionDetailsProps> = ({ editionId, user }) => {
 			}
 
 			if (edition.phase === 'VOTING') {
-				return hasUserVoted() ? (
-					<Button disabled={true} className="w-full bg-(--success)">
-						<CheckCircle className="w-4 h-4 mr-2" />
-						Votes Submitted
-					</Button>
-				) : (
-					<Button onClick={() => router.push(`/edition/${editionId}/vote`)} className="w-full">
-						<Vote className="w-4 h-4 mr-2" />
-						Vote Now
-					</Button>
+				return (
+					<>
+						{edition.fulfilledSubmissions.some((s) => s.userId === user.userId) === undefined && (
+							<Alert>
+								<AlertTitle>
+									<Info />
+									As you haven&apos;t submitted a song, your votes will be added to the televote instead of the jury.
+								</AlertTitle>
+							</Alert>
+						)}
+						{hasUserVoted() ? (
+							<Button disabled={true} className="w-full bg-(--success)">
+								<CheckCircle className="w-4 h-4 mr-2" />
+								Votes Submitted
+							</Button>
+						) : (
+							<Button onClick={() => router.push(`/edition/${editionId}/vote`)} className="w-full">
+								<Vote className="w-4 h-4 mr-2" />
+								Vote Now
+							</Button>
+						)}
+					</>
 				);
 			}
 

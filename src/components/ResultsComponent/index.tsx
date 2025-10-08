@@ -334,15 +334,19 @@ const ResultsComponent: React.FC<ResultsComponentProps> = ({ editionId, user }) 
 				const voterVotesExist = juryVotes?.some((vote) => vote.fromUserId === (nextVoterId as string));
 				if (voterVotesExist) {
 					setCurrentVoter(nextVoterId as string);
-				} else {
-					console.log('No votes found for', nextVoterId);
 				}
 			} else if (currentVoter === null && votingIndex > -1) {
 				const startNextRoundTimer = setTimeout(() => {
-					const nextVoterId = edition?.fulfilledSubmissions[votingIndex].userId as string;
+					const nextVoterId = edition?.fulfilledSubmissions.sort((a, b) => (a.runningOrder as number) - (b.runningOrder as number))[
+						votingIndex
+					].userId as string;
 					const voterVotesExist = juryVotes?.some((vote) => vote.fromUserId === nextVoterId);
 					if (voterVotesExist) {
 						setCurrentVoter(nextVoterId);
+					} else {
+						console.log('could not find votes for', nextVoterId);
+						console.log('voting index is', votingIndex);
+						console.log('submissions: ', edition?.fulfilledSubmissions);
 					}
 				}, 100);
 				return () => clearTimeout(startNextRoundTimer);

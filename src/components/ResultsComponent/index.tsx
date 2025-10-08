@@ -81,6 +81,7 @@ const ResultsComponent: React.FC<ResultsComponentProps> = ({ editionId, user }) 
 	const [paused, setPaused] = useState(false);
 	const [televotes, setTelevotes] = useState<{ submissionId: string; points: number }[]>([]);
 	const [juryVotes, setJuryVotes] = useState<Vote[]>([]);
+	const [errorMessage, setErrorMessage] = useState<string | null>(null);
 
 	const router = useRouter();
 	const queryClient = useQueryClient();
@@ -347,6 +348,10 @@ const ResultsComponent: React.FC<ResultsComponentProps> = ({ editionId, user }) 
 						console.log('could not find votes for', nextVoterId);
 						console.log('voting index is', votingIndex);
 						console.log('submissions: ', edition?.fulfilledSubmissions);
+						setErrorMessage(`Failed to find any votes for ${profiles?.find((p) => p.userId === nextVoterId)?.displayName}`);
+						delay(2000);
+						setCurrentVoter(null);
+						setVotingIndex((prev) => prev + 1);
 					}
 				}, 100);
 				return () => clearTimeout(startNextRoundTimer);
@@ -497,6 +502,12 @@ const ResultsComponent: React.FC<ResultsComponentProps> = ({ editionId, user }) 
 				<Alert>
 					<Info />
 					<AlertTitle>Reveal will only pause after the current juror&apos;s votes are revealed.</AlertTitle>
+				</Alert>
+			)}
+			{errorMessage && (
+				<Alert>
+					<Info />
+					<AlertTitle>{errorMessage}</AlertTitle>
 				</Alert>
 			)}
 			{/* Main content area: Voter Card + Scoreboard Columns */}

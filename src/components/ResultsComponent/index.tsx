@@ -18,6 +18,7 @@ import Loading from '../Loading';
 import { useRouter } from 'next/navigation';
 import { hostRevealed } from '@/app/actions/hostRevealed';
 import Image from 'next/image';
+import { toast } from 'sonner';
 
 type Vote = Schema['Vote']['type'];
 type Submission = Schema['Submission']['type'];
@@ -109,6 +110,10 @@ const ResultsComponent: React.FC<ResultsComponentProps> = ({ editionId, user }) 
 	useEffect(() => {
 		if (isFetched && edition) {
 			setSubmissions(edition.fulfilledSubmissions.map((s) => ({ ...s, score: 0 })));
+			if (edition.fulfilledSubmissions.length === 0) {
+				toast.error(`Failed to find votes`);
+				router.push(`/edition/${editionId}`);
+			}
 		}
 	}, [isFetched, isVotesFetched]);
 
@@ -339,9 +344,7 @@ const ResultsComponent: React.FC<ResultsComponentProps> = ({ editionId, user }) 
 	useEffect(() => {
 		if (!paused) {
 			if (votingIndex === -1) {
-				const nextVoterId = edition?.fulfilledSubmissions.sort((a, b) => (a.runningOrder as number) - (b.runningOrder as number))[
-					votingIndex
-				].userId;
+				const nextVoterId = submissions.sort((a, b) => (a.runningOrder as number) - (b.runningOrder as number))[votingIndex].userId;
 				const voterVotesExist = juryVotes?.some((vote) => vote.fromUserId === (nextVoterId as string));
 				if (voterVotesExist) {
 					setCurrentVoter(nextVoterId as string);

@@ -344,7 +344,9 @@ const ResultsComponent: React.FC<ResultsComponentProps> = ({ editionId, user }) 
 	useEffect(() => {
 		if (!paused) {
 			if (votingIndex === -1) {
-				const nextVoterId = submissions.sort((a, b) => (a.runningOrder as number) - (b.runningOrder as number))[votingIndex].userId;
+				console.log(submissions);
+				const nextVoterId =
+					submissions.length > 0 && submissions.sort((a, b) => (a.runningOrder as number) - (b.runningOrder as number))[votingIndex].userId;
 				const voterVotesExist = juryVotes?.some((vote) => vote.fromUserId === (nextVoterId as string));
 				if (voterVotesExist) {
 					setCurrentVoter(nextVoterId as string);

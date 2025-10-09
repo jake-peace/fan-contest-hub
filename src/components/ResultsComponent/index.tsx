@@ -360,7 +360,7 @@ const ResultsComponent: React.FC<ResultsComponentProps> = ({ editionId, user }) 
 					if (voterVotesExist) {
 						setCurrentVoter(nextVoterId);
 					} else {
-						setErrorMessage(`Failed to find any votes for ${profiles?.find((p) => p.userId === nextVoterId)?.displayName}`);
+						setErrorMessage(`Failed to find any votes from ${profiles?.find((p) => p.userId === nextVoterId)?.displayName}`);
 						delay(2000);
 						setCurrentVoter(null);
 						setVotingIndex((prev) => prev + 1);

@@ -77,7 +77,7 @@ const MembersList: React.FC<MembersListProps> = ({ contestId }) => {
 						members &&
 						members.map((m) => (
 							<Card className="p-4 mb-2" key={m.userId}>
-								<div className="flex items-center justify-between max-w-100">
+								<div className="flex items-center justify-between max-w-100 overflow-hidden">
 									<div className="flex items-center gap-2">
 										<Avatar>
 											<AvatarImage
@@ -86,7 +86,7 @@ const MembersList: React.FC<MembersListProps> = ({ contestId }) => {
 												}
 											/>
 										</Avatar>
-										<h3 className="text-lg truncate ellipsis">{m.displayName}</h3>
+										<h3 className="text-lg text-ellipsis">{m.displayName}</h3>
 									</div>
 									<Button size="icon" variant="outline" onClick={() => toast.message('Coming soon')}>
 										<Disc3 />

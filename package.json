@@ -111,8 +111,11 @@
   },
   "release": {
     "branches": [
-      "main",
-      "staging"
+      {
+        "name": "main",
+        "prerelease": true,
+        "channel": "prerelease"
+      }
     ],
     "plugins": [
       "@semantic-release/commit-analyzer",

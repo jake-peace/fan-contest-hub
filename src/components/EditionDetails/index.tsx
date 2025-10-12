@@ -80,6 +80,10 @@ const EditionDetails: React.FC<EditionDetailsProps> = ({ editionId, user }) => {
 		return edition?.fulfilledSubmissions.find((s) => s.userId === user.userId && s.rejected !== true) !== undefined;
 	};
 
+	const userSubmission = (): Submission => {
+		return edition?.fulfilledSubmissions.find((s) => s.userId === user.userId && s.rejected !== true) as Submission;
+	};
+
 	const hasUserVoted = (): boolean => {
 		return editionVotes?.find((v) => v.fromUserId === user.userId) !== undefined;
 	};
@@ -323,21 +327,34 @@ const EditionDetails: React.FC<EditionDetailsProps> = ({ editionId, user }) => {
 					</CardContent>
 				</Card>
 
-				{edition.phase === 'UPCOMING' ||
-					(edition.phase === 'SUBMISSION' && (
-						<Card className="mb-4 py-6 gap-2">
-							<CardHeader>
-								<CardTitle className="flex items-center gap-2">Submissions</CardTitle>
-							</CardHeader>
-							<CardContent>
-								<Skeleton className="rounded-xl">
-									<Card className="p-4 bg-muted">
-										<div>Waiting for submissions...</div>
-									</Card>
-								</Skeleton>
-							</CardContent>
-						</Card>
-					))}
+				{edition.phase === 'SUBMISSION' && hasUserSubmitted() ? (
+					<Card className="mb-4 py-6 gap-2">
+						<CardHeader>
+							<CardTitle className="flex items-center gap-2">Your Submission</CardTitle>
+						</CardHeader>
+						<CardContent>
+							<SubmissionCard
+								submission={userSubmission()}
+								isHost={false}
+								onReject={refetch}
+								contestId={edition.fulfilledContest.contestId as string}
+							/>
+						</CardContent>
+					</Card>
+				) : (
+					<Card className="mb-4 py-6 gap-2">
+						<CardHeader>
+							<CardTitle className="flex items-center gap-2">Your Submission</CardTitle>
+						</CardHeader>
+						<CardContent>
+							<Skeleton className="rounded-xl">
+								<Card className="p-4 bg-muted">
+									<div>You haven&apos;t submitted yet</div>
+								</Card>
+							</Skeleton>
+						</CardContent>
+					</Card>
+				)}
 
 				{edition.phase === 'VOTING' ||
 					(edition.phase === 'SUBMISSION' && edition.fulfilledContest.hostId === user.userId && (
@@ -360,6 +377,7 @@ const EditionDetails: React.FC<EditionDetailsProps> = ({ editionId, user }) => {
 												submission={s}
 												onReject={refetch}
 												isHost={user.userId === edition.fulfilledContest.hostId}
+												contestId={edition.fulfilledContest.contestId as string}
 											/>
 										))
 								)}

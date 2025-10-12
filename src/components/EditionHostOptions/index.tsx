@@ -20,6 +20,7 @@ import { Label } from '../ui/label';
 import { useQueryClient } from '@tanstack/react-query';
 import { setPlaylistLink } from '@/app/actions/setPlaylistLink';
 import Image from 'next/image';
+import { openSubmissions } from '@/app/actions/openSubmissions';
 
 interface EditionHostOptionsProps {
 	editionId: string;
@@ -36,6 +37,18 @@ const EditionHostOptions: React.FC<EditionHostOptionsProps> = ({ editionId, phas
 
 	const handleAction = (description: string) => {
 		switch (description) {
+			case 'open submissions':
+				startTransition(async () => {
+					const result = await openSubmissions(editionId);
+					if (result.success) {
+						toast.success('Submissions opened!');
+						onRefetch();
+						setDialogOpen(false);
+					} else {
+						// Handle error UI
+					}
+				});
+				break;
 			case 'close submissions':
 				startTransition(async () => {
 					const result = await closeSubmissions(editionId);

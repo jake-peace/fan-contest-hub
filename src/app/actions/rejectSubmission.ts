@@ -9,7 +9,9 @@ export async function rejectSubmission(submissionId: string, contestId: string) 
 		const { data: contest } = await cookiesClient.models.Contest.get({ contestId: contestId });
 
 		if (contest?.hostId !== authUser?.userId) {
-			throw new Error('You must be the contest host to reject a submission.');
+			throw new Error(
+				`You must be the contest host to reject a submission. You are ${authUser?.userId} and the host is ${contest?.hostId}`
+			);
 		}
 
 		const { errors } = await cookiesClient.models.Submission.update({

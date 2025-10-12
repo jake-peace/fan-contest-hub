@@ -5,7 +5,7 @@ import { Button } from '@/components/ui/button';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
-import { Clock, Disc3, Hash, ListOrdered, Music, Plus, Users, Vote } from 'lucide-react';
+import { Clock, Disc3, Hash, Info, ListOrdered, Music, Plus, Users, Vote } from 'lucide-react';
 import { useRouter } from 'next/navigation';
 import { startTransition, useState } from 'react';
 import { useAppDispatch } from '@/app/store/hooks';
@@ -15,6 +15,7 @@ import { toast } from 'sonner';
 import { Schema } from '../../../amplify/data/resource';
 import { Skeleton } from '../ui/skeleton';
 import { joinContestWithCode } from '@/app/actions/joinContestWithCode';
+import { Alert, AlertDescription, AlertTitle } from '../ui/alert';
 
 type Contest = Schema['Contest']['type'];
 type Edition = Schema['Edition']['type'];
@@ -145,6 +146,22 @@ const DashboardPage: React.FC = () => {
 				<ThemeToggle />
 			</div> */}
 			<div className="space-y-4 mb-6">
+				<Alert>
+					<AlertTitle className="flex gap-1 items-center">
+						<Info />
+						Version 0.4.2 - 12/10/2025
+					</AlertTitle>
+					<AlertDescription>
+						<ul>
+							<li>{`- Added a view of a user's submitted song`}</li>
+							<li>{`- Added ability to withdraw submission`}</li>
+							<li>{`- Improved list of submissions on Edition page`}</li>
+							<li>{`- Contest host can manually open submissions`}</li>
+							<li>{`- Added flags of UK constituent countries, EU and UN`}</li>
+							<li>{`- Removed one flag`}</li>
+						</ul>
+					</AlertDescription>
+				</Alert>
 				{/* Create contest button */}
 				<Button onClick={() => router.push('/create/contest')} className="w-full h-12">
 					<Plus className="w-5 h-5 mr-2" />

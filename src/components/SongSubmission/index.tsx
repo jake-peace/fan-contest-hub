@@ -8,7 +8,7 @@ import { Input } from '../ui/input';
 import { Badge } from '../ui/badge';
 import { Popover, PopoverContent, PopoverTrigger } from '../ui/popover';
 import { Command, CommandEmpty, CommandGroup, CommandInput, CommandItem, CommandList } from '../ui/command';
-import { startTransition, useEffect, useMemo, useState } from 'react';
+import { startTransition, useEffect, useState } from 'react';
 import { useForm } from 'react-hook-form';
 import z from 'zod/v3';
 import { zodResolver } from '@hookform/resolvers/zod';
@@ -23,6 +23,7 @@ import countries from 'i18n-iso-countries';
 import { submitSong } from '@/app/actions/submitSong';
 import { fetchEdition } from '../EditionDetails';
 import Image from 'next/image';
+import countryList from '../../utils/countryList.json';
 
 interface SongSubmissionProps {
 	editionId: string;
@@ -32,15 +33,18 @@ interface SongSubmissionProps {
 // eslint-disable-next-line @typescript-eslint/no-require-imports
 countries.registerLocale(require('i18n-iso-countries/langs/en.json'));
 
-interface Country {
-	code: string;
-	name: string;
+type CountryCode = string; // e.g., "us"
+type CountryName = string; // e.g., "United States"
+export interface CountryList {
+	[key: CountryCode]: CountryName;
 }
 
 const SongSubmission: React.FC<SongSubmissionProps> = ({ editionId, user }) => {
 	const [activeTab, setActiveTab] = useState<'spotify' | 'manual'>('spotify');
 	const queryClient = useQueryClient();
 	const router = useRouter();
+
+	const countries: CountryList = countryList as CountryList;
 
 	const { data: edition, isLoading } = useQuery({
 		queryKey: ['editionDetailsForSubmit', editionId],
@@ -78,15 +82,6 @@ const SongSubmission: React.FC<SongSubmissionProps> = ({ editionId, user }) => {
 	const form = useForm<z.infer<typeof FormSchema>>({
 		resolver: zodResolver(FormSchema),
 	});
-
-	const countryList: Country[] = useMemo(() => {
-		const codeMap: { [key: string]: string } = countries.getAlpha2Codes();
-
-		return Object.entries(codeMap).map(([code]) => ({
-			code,
-			name: countries.getName(code, 'en') as string, // Get the proper localized name
-		}));
-	}, []);
 
 	const { errors } = form.formState;
 
@@ -276,7 +271,7 @@ const SongSubmission: React.FC<SongSubmissionProps> = ({ editionId, user }) => {
 																				sizes="640px"
 																			/>
 																		</div>
-																		<span>{(countryList.find((c) => c.code == field.value) as Country).name}</span>
+																		<span>{countries[field.value]}</span>
 																	</span>
 																) : (
 																	<span className="flex items-center gap-2">
@@ -293,31 +288,29 @@ const SongSubmission: React.FC<SongSubmissionProps> = ({ editionId, user }) => {
 																<CommandList>
 																	<CommandEmpty>No country found.</CommandEmpty>
 																	<CommandGroup>
-																		{countryList.map((country) => (
+																		{Object.entries(countries).map(([code, name]) => (
 																			<CommandItem
-																				key={country.code}
-																				value={country.name}
+																				key={code}
+																				value={name}
 																				onSelect={() => {
-																					field.onChange(country.code);
-																					form.setValue('countryName', country.name);
+																					field.onChange(code);
+																					form.setValue('countryName', name);
 																					setCountryOpen(false);
 																				}}
 																			>
 																				<div className="w-5 h-5 rounded-sm overflow-hidden relative">
 																					<Image
-																						src={`https://flagcdn.com/w640/${country.code.toLowerCase()}.png`}
+																						src={`https://flagcdn.com/w640/${code.toLowerCase()}.png`}
 																						fill
-																						alt={`${country.name}'s flag`}
+																						alt={`${name}'s flag`}
 																						style={{ objectFit: 'cover', objectPosition: 'center' }}
 																						quality={80}
 																						sizes="640px"
 																					/>
 																				</div>
-																				<span className="mr-2 text-lg">{country.name}</span>
+																				<span className="mr-2 text-lg">{name}</span>
 																				<Check
-																					className={`ml-auto h-4 w-4 ${
-																						form.getValues('flag') === country.code ? 'opacity-100' : 'opacity-0'
-																					}`}
+																					className={`ml-auto h-4 w-4 ${form.getValues('flag') === code ? 'opacity-100' : 'opacity-0'}`}
 																				/>
 																			</CommandItem>
 																		))}

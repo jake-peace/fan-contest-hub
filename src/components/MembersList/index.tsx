@@ -88,7 +88,7 @@ const MembersList: React.FC<MembersListProps> = ({ contestId }) => {
 										</Avatar>
 										<h3 className="text-lg text-ellipsis">{m.displayName}</h3>
 									</div>
-									<Button size="icon" variant="outline" onClick={() => toast.message('Coming soon')}>
+									<Button size="icon" className="shrink-0" variant="outline" onClick={() => toast.message('Coming soon')}>
 										<Disc3 />
 									</Button>
 								</div>

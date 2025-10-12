@@ -50,7 +50,7 @@ export const handler: EventBridgeHandler<'Scheduled Event', null, void> = async 
 		const now = new Date().toISOString();
 
 		const parsedNow = parseISO(now);
-		console.log('Lambda time is now', parsedNow.toString())
+		console.log('Lambda time is now', parsedNow.toString());
 
 		// NOTE: This is a conceptual query. You'll need to implement a filter
 		// based on your actual data model (e.g., query by status and filter by timestamp).
@@ -80,17 +80,16 @@ export const handler: EventBridgeHandler<'Scheduled Event', null, void> = async 
 		});
 
 		const { data: recordsToUpdateSubmissions } = await client.models.Edition.list({
-			filter:
-			{
+			filter: {
 				// find editions where submission deadline is before the current time
 				submissionDeadline: { lt: parsedNow.toString() },
 				// and the phase is still 'SUBMISSION'
 				phase: { eq: 'SUBMISSION' },
 				closeSubmissionType: { eq: 'specificDate' },
 			},
-		})
+		});
 
-		if (recordsToUpdateSubmissions.length > 0){
+		if (recordsToUpdateSubmissions.length > 0) {
 			recordsToUpdateSubmissions.forEach(async (r) => {
 				const submissions = (await r.submissions()).data;
 				submissions.forEach(async (s) => {
@@ -101,8 +100,8 @@ export const handler: EventBridgeHandler<'Scheduled Event', null, void> = async 
 						});
 					});
 					await Promise.all(promises);
-				})
-			})
+				});
+			});
 		}
 
 		if (recordsToUpdate.length === 0) {

@@ -1,6 +1,6 @@
 {
   "name": "fan-contest-hub",
-  "version": "0.1.0",
+  "version": "1.0.0",
   "private": true,
   "type": "module",
   "scripts": {
@@ -110,7 +110,8 @@
     "typescript-eslint": "^8.45.0"
   },
   "release": {
-    "branches": ["0.2.0",
+    "branches": [
+      "0.2.0",
       "main",
       {
         "name": "main",

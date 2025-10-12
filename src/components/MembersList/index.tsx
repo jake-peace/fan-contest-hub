@@ -8,8 +8,8 @@ import { useQuery } from '@tanstack/react-query';
 import { Avatar, AvatarImage } from '../ui/avatar';
 import { Skeleton } from '../ui/skeleton';
 import { toast } from 'sonner';
-import { Dialog, DialogClose, DialogContent, DialogDescription, DialogFooter, DialogHeader, DialogTitle } from '../ui/dialog';
-import { useState } from 'react';
+// import { Dialog, DialogClose, DialogContent, DialogDescription, DialogFooter, DialogHeader, DialogTitle } from '../ui/dialog';
+// import { useState } from 'react';
 
 type Profile = Schema['Profile']['type'];
 type Submission = Schema['Submission']['type'];
@@ -39,11 +39,11 @@ const MembersList: React.FC<MembersListProps> = ({ contestId }) => {
 		queryFn: () => fetchParticipants(contestId),
 	});
 
-	const [entriesDialog, setEntriesDialog] = useState(false);
+	// const [entriesDialog, setEntriesDialog] = useState(false);
 
 	return (
 		<>
-			<Dialog open={entriesDialog}>
+			{/* <Dialog open={entriesDialog}>
 				<DialogContent>
 					<DialogHeader>
 						<DialogTitle>Spotify Playlist</DialogTitle>
@@ -56,7 +56,7 @@ const MembersList: React.FC<MembersListProps> = ({ contestId }) => {
 						</DialogClose>
 					</DialogFooter>
 				</DialogContent>
-			</Dialog>
+			</Dialog> */}
 			<Card className="py-4 gap-2">
 				<CardHeader>
 					<div className="flex items-center justify-between">
@@ -86,11 +86,10 @@ const MembersList: React.FC<MembersListProps> = ({ contestId }) => {
 												}
 											/>
 										</Avatar>
-										<h3 className="text-lg">{m.displayName}</h3>
+										<h3 className="text-lg truncate ellipsis">{m.displayName}</h3>
 									</div>
-									<Button size="sm" variant="outline" onClick={() => setEntriesDialog(true)}>
+									<Button size="icon" variant="outline" onClick={() => toast.message('Coming soon')}>
 										<Disc3 />
-										Entries
 									</Button>
 								</div>
 								{/* <div className="flex w-full items-center justify-between">

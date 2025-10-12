@@ -12,13 +12,15 @@ import {
 	AlertDialogHeader,
 	AlertDialogTitle,
 } from '../ui/alert-dialog';
-import { startTransition, useState } from 'react';
+import { startTransition, useEffect, useMemo, useState } from 'react';
 import { rejectSubmission } from '@/app/actions/rejectSubmission';
 import { toast } from 'sonner';
 import Image from 'next/image';
 import { Collapsible, CollapsibleContent } from '../ui/collapsible';
 import { Separator } from '../ui/separator';
 import { deleteSubmission } from '@/app/actions/deleteSubmission';
+import { SpotifyTrack } from '../SpotifySearch';
+import { useAmplifyClient } from '@/app/amplifyConfig';
 
 type Submission = Schema['Submission']['type'];
 
@@ -33,9 +35,11 @@ interface SubmissionCardProps {
 const SubmissionCard: React.FC<SubmissionCardProps> = ({ submission, onReject, isHost, showRunningOrder, contestId }) => {
 	const [dialogOpen, setDialogOpen] = useState(false);
 	const [cardOpen, setCardOpen] = useState(false);
+	// const [accessToken, setAccessToken] = useState('');
+	const [trackInfo, setTrackInfo] = useState<SpotifyTrack>();
+	const client = useAmplifyClient();
 
 	const handleRejectSong = () => {
-		console.log(`rejecting ${submission.songTitle}`);
 		startTransition(async () => {
 			const result = await rejectSubmission(submission.submissionId, contestId);
 			if (result.success) {
@@ -64,6 +68,37 @@ const SubmissionCard: React.FC<SubmissionCardProps> = ({ submission, onReject, i
 		});
 		setDialogOpen(false);
 	};
+
+	async function fetchAccessToken() {
+		const response = await client.queries.spotifyApi();
+
+		const bodyMatch = (response.data as string).split(',');
+
+		if (bodyMatch && bodyMatch[1]) {
+			const accessTokenString = bodyMatch[1].split('=')[1];
+
+			if (accessTokenString) {
+				return accessTokenString;
+			}
+		}
+	}
+
+	const accessToken = useMemo(() => fetchAccessToken(), []);
+
+	useEffect(() => {
+		async function getTrackInfo() {
+			const spotifyResults = await fetch(`https://api.spotify.com/v1/tracks/${submission.spotifyUri}?market=GB`, {
+				headers: {
+					Authorization: `Bearer ${await accessToken}`,
+				},
+			});
+
+			const spotifyResultsData = await spotifyResults.json();
+			setTrackInfo(spotifyResultsData);
+		}
+
+		getTrackInfo();
+	}, [accessToken]);
 
 	return (
 		<Card className={`p-2 border rounded-lg transition-all gap-0`}>
@@ -96,13 +131,27 @@ const SubmissionCard: React.FC<SubmissionCardProps> = ({ submission, onReject, i
 			</div>
 			<Collapsible open={cardOpen}>
 				<CollapsibleContent>
-					<CardContent className="py-2 px-1">
+					<CardContent className="py-2 px-0">
 						<Separator />
-						<div className="flex-1 text-left mt-2">
-							<h3 className="font-medium text-wrap">{submission.songTitle}</h3>
-							<p className="text-sm text-muted-foreground">by {submission.artistName}</p>
+						<div className="flex items-center gap-3 mt-2">
+							{trackInfo && (
+								<div className="min-w-10 max-w-10 h-10 rounded-sm overflow-hidden relative">
+									<Image
+										style={{ objectFit: 'cover', objectPosition: 'center' }}
+										quality={80}
+										fill
+										src={trackInfo.album.images[0].url}
+										alt={trackInfo.album.name}
+										className="w-12 h-12 rounded object-cover"
+									/>
+								</div>
+							)}
+							<div>
+								<h3 className="font-medium">{submission.songTitle}</h3>
+								<p className="text-sm text-muted-foreground">by {submission.artistName}</p>
+							</div>
 						</div>
-						<div className="flex mt-2 gap-1">
+						<div className="flex flex-wrap mt-2 gap-1">
 							{submission.spotifyUri && (
 								<Button
 									className="relative hover:bg-muted"

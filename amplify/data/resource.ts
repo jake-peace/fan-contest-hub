@@ -27,7 +27,10 @@ const schema = a
 				joinCode: a.string(),
 				hostId: a.string(),
 				editions: a.hasMany('Edition', 'contestId'),
-				participants: a.string().array().authorization((allow) => allow.authenticated()),
+				participants: a
+					.string()
+					.array()
+					.authorization((allow) => allow.authenticated()),
 			})
 			.identifier(['contestId'])
 			.authorization((allow) => [allow.ownersDefinedIn('participants'), allow.authenticated().to(['list', 'get'])]),

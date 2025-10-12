@@ -8,13 +8,13 @@ import { useEffect, useState } from 'react';
 import { Badge } from '../ui/badge';
 import { ControllerRenderProps } from 'react-hook-form';
 import { useAmplifyClient } from '@/app/amplifyConfig';
-interface SpotifyTrack {
+export interface SpotifyTrack {
 	id: string;
 	name: string;
 	artists: string[];
 	album: {
 		name: string;
-		images: string[];
+		images: { url: string }[];
 	};
 	external_urls: {
 		spotify: string;
@@ -83,14 +83,13 @@ const SpotifySearch: React.FC<SpotifySearchProps> = ({ field, onChangeArtistName
 						artists: item.artists.map((a: any) => a.name),
 						album: {
 							name: item.album.name,
-							images: item.album.images.map((i: any) => i.url),
+							images: item.album.images,
 						},
 						external_urls: {
 							spotify: item.external_urls.spotify,
 						},
 					};
 				});
-				console.log(convertToSearchResults);
 				setSearchResults(convertToSearchResults);
 			} else {
 				setSearchResults([]);
@@ -133,7 +132,7 @@ const SpotifySearch: React.FC<SpotifySearchProps> = ({ field, onChangeArtistName
 					<Image
 						width={500}
 						height={500}
-						src={selectedTrack.album.images[0]}
+						src={selectedTrack.album.images[0].url}
 						alt={selectedTrack.album.name}
 						className="w-12 h-12 rounded object-cover"
 					/>
@@ -177,7 +176,7 @@ const SpotifySearch: React.FC<SpotifySearchProps> = ({ field, onChangeArtistName
 									<Image
 										width={500}
 										height={500}
-										src={track.album.images[0]}
+										src={track.album.images[0].url}
 										alt={track.album.name}
 										className="w-12 h-12 rounded object-cover"
 									/>

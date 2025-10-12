@@ -156,6 +156,7 @@ const DashboardPage: React.FC = () => {
 							<li>{`- Added a view of a user's submitted song`}</li>
 							<li>{`- Added ability to withdraw submission`}</li>
 							<li>{`- Improved list of submissions on Edition page`}</li>
+							<li>{`- Contest host can manually open submissions`}</li>
 							<li>{`- Added flags of UK constituent countries, EU and UN`}</li>
 							<li>{`- Removed one flag`}</li>
 						</ul>

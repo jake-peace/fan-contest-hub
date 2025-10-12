@@ -110,11 +110,10 @@
     "typescript-eslint": "^8.45.0"
   },
   "release": {
-    "branches": [
+    "branches": ["main",
       {
         "name": "main",
-        "prerelease": true,
-        "channel": "prerelease"
+        "prerelease": true
       }
     ],
     "plugins": [

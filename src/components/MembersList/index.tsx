@@ -77,7 +77,7 @@ const MembersList: React.FC<MembersListProps> = ({ contestId }) => {
 						members &&
 						members.map((m) => (
 							<Card className="p-4 mb-2" key={m.userId}>
-								<div className="flex items-center justify-between">
+								<div className="flex items-center justify-between max-w-100">
 									<div className="flex items-center gap-2">
 										<Avatar>
 											<AvatarImage

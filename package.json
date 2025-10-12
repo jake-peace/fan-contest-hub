@@ -12,6 +12,17 @@
     "format": "prettier --write \"**/*.{js,jsx,ts,tsx,json,css,md}\"",
     "prepare": "husky"
   },
+  "lint-staged": {
+    "**/*.{js,jsx,ts,tsx,json,css,scss,md}": [
+      "prettier --write"
+    ],
+    "**/*.{js,jsx,ts,tsx}": [
+      "eslint --fix"
+    ],
+    "**/*.{ts,tsx}": [
+      "bash -c 'tsc --noEmit'"
+    ]
+  },
   "dependencies": {
     "@aws-amplify/adapter-nextjs": "^1.6.10",
     "@base-ui-components/react": "^1.0.0-beta.4",
@@ -84,6 +95,7 @@
     "globals": "^16.4.0",
     "husky": "^9.1.7",
     "jiti": "^2.6.0",
+    "lint-staged": "^16.2.4",
     "prettier": "^3.6.2",
     "tailwindcss": "^4",
     "tsx": "^4.20.5",

@@ -139,7 +139,7 @@
             "package.json",
             "CHANGELOG.md"
           ],
-          "message": "chore(release): ${nextRelease.version} [skip cd]\n\n${nextRelease.notes}"
+          "message": "chore(release): ${nextRelease.version} [skip-cd]\n\n${nextRelease.notes}"
         }
       ],
       "@semantic-release/github"

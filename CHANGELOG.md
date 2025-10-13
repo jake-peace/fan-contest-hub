@@ -1,3 +1,11 @@
+# [1.1.0](https://github.com/jake-peace/fan-contest-hub/compare/v1.0.2...v1.1.0) (2025-10-13)
+
+### Features
+
+- added changelog viewer and proper versioning ([01d54ed](https://github.com/jake-peace/fan-contest-hub/commit/01d54ed41b3d61af2f032233746908fcd2ff8b28))
+- host is now given a list of spotify song links to make a playlist with ([2c03e4c](https://github.com/jake-peace/fan-contest-hub/commit/2c03e4cafeeecfdbad501fc6d38bc62b2e910186))
+- improved navigation buttons ([0d93858](https://github.com/jake-peace/fan-contest-hub/commit/0d93858bcf63811228af7a94820ecafe476e059e))
+
 ## [1.0.2](https://github.com/jake-peace/fan-contest-hub/compare/v1.0.1...v1.0.2) (2025-10-13)
 
 ### Bug Fixes

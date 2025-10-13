@@ -1,3 +1,9 @@
+## [1.1.1](https://github.com/jake-peace/fan-contest-hub/compare/v1.1.0...v1.1.1) (2025-10-13)
+
+### Bug Fixes
+
+- fixed issue where users would be logged in as someone else due to server side leakage ([8ae5b66](https://github.com/jake-peace/fan-contest-hub/commit/8ae5b6673c5148ec65fa1ed3ba42f83375f36e6f))
+
 # [1.1.0](https://github.com/jake-peace/fan-contest-hub/compare/v1.0.2...v1.1.0) (2025-10-13)
 
 ### Features

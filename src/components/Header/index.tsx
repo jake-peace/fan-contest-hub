@@ -3,7 +3,7 @@
 import { useQuery } from '@tanstack/react-query';
 import { fetchProfile } from '../Dashboard';
 import { Button } from '../ui/button';
-import { HelpCircle, Mic2, User } from 'lucide-react';
+import { ArrowBigLeft, HelpCircle, Home, Mic2, User } from 'lucide-react';
 import { ThemeToggle } from '../ThemeToggle';
 import { usePathname, useRouter } from 'next/navigation';
 import { Skeleton } from '../ui/skeleton';
@@ -20,7 +20,18 @@ import {
 	AlertDialogHeader,
 	AlertDialogTitle,
 } from '../ui/alert-dialog';
-import { useState } from 'react';
+import { useEffect, useState } from 'react';
+
+const fetchContestId = async (id: string) => {
+	const response = await fetch(`/api/editions/${id}/contestId`);
+
+	if (!response.ok) {
+		throw new Error('Failed to fetch data from the server.');
+	}
+
+	const result = await response.json();
+	return result.contestId as string;
+};
 
 const Header: React.FC = () => {
 	const router = useRouter();
@@ -28,6 +39,7 @@ const Header: React.FC = () => {
 
 	const excludedPathnames = ['/results', '/signin', '/join'];
 	const [signOutDialog, setSignOutDialog] = useState(false);
+	const [backPathname, setBackPathname] = useState('/');
 
 	const { data: profile, isLoading: profileLoading } = useQuery({
 		queryKey: ['userProfileHeader'],
@@ -41,14 +53,42 @@ const Header: React.FC = () => {
 		setSignOutDialog(false);
 	};
 
+	useEffect(() => {
+		const getBackPathname = async () => {
+			if (pathname.includes('edition')) {
+				if (pathname.includes('vote') || pathname.includes('submit') || pathname.includes('results')) {
+					setBackPathname(`/edition/${pathname.split('/')[2]}`);
+				} else {
+					const contestId = await fetchContestId(pathname.split('/')[2]);
+					setBackPathname(`/contest/${contestId}`);
+				}
+			} else if (pathname.includes('contest')) {
+				if (pathname.includes('participants')) {
+					setBackPathname(`/contest/${pathname.split('/')[2]}`);
+				} else {
+					setBackPathname('/');
+				}
+			} else {
+				setBackPathname('/');
+			}
+		};
+
+		getBackPathname();
+	}, [pathname]);
+
 	return (
 		<>
 			{excludedPathnames.find((p) => pathname.includes(p)) === undefined && (
 				<div className="flex mb-2 gap-2">
 					{pathname !== '/' ? (
-						<Button variant="ghost" onClick={() => router.back()} className="mr-auto">
-							← Back
-						</Button>
+						<>
+							<Button variant="outline" size="icon" onClick={() => router.push(backPathname)}>
+								<ArrowBigLeft />
+							</Button>
+							<Button variant="outline" size="icon" className="mr-auto" onClick={() => router.push('/')}>
+								<Home />
+							</Button>
+						</>
 					) : (
 						<>
 							<Card className="mr-auto justify-center p-1 px-2 rounded-md">

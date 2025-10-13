@@ -31,9 +31,10 @@ interface SubmissionCardProps {
 	isHost: boolean;
 	showRunningOrder?: boolean;
 	contestId: string;
+	isUser?: boolean;
 }
 
-const SubmissionCard: React.FC<SubmissionCardProps> = ({ submission, onReject, isHost, showRunningOrder, contestId }) => {
+const SubmissionCard: React.FC<SubmissionCardProps> = ({ submission, onReject, isHost, showRunningOrder, contestId, isUser }) => {
 	const [dialogOpen, setDialogOpen] = useState(false);
 	const [cardOpen, setCardOpen] = useState(false);
 	// const [accessToken, setAccessToken] = useState('');
@@ -131,7 +132,6 @@ const SubmissionCard: React.FC<SubmissionCardProps> = ({ submission, onReject, i
 					<h3 className="font-medium truncate">{submission.songTitle}</h3>
 					<p className="text-sm text-muted-foreground truncate">by {submission.artistName}</p>
 				</div>
-				{/* {isHost && ( */}
 				<div className="flex items-center">
 					<Button size="icon" variant="outline" onClick={() => setCardOpen(!cardOpen)}>
 						<Ellipsis />
@@ -174,7 +174,7 @@ const SubmissionCard: React.FC<SubmissionCardProps> = ({ submission, onReject, i
 									Spotify
 								</Button>
 							)}
-							{isHost ? (
+							{isHost && (
 								<>
 									<Button variant="destructive" onClick={() => setDialogOpen(true)} disabled={isPending}>
 										{isPending ? <Spinner /> : <CircleX />}
@@ -193,7 +193,8 @@ const SubmissionCard: React.FC<SubmissionCardProps> = ({ submission, onReject, i
 										</AlertDialogContent>
 									</AlertDialog>
 								</>
-							) : (
+							)}
+							{isUser && (
 								<>
 									<Button variant="destructive" onClick={() => setDialogOpen(true)} disabled={isPending}>
 										{isPending ? <Spinner /> : <Trash />}

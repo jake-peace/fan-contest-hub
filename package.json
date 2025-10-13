@@ -1,6 +1,6 @@
 {
   "name": "fan-contest-hub",
-  "version": "1.0.0",
+  "version": "1.0.1",
   "private": true,
   "type": "module",
   "scripts": {
@@ -111,11 +111,16 @@
   },
   "release": {
     "branches": [
-      "0.2.0",
       "main",
+      "staging",
       {
         "name": "main",
         "prerelease": true
+      },
+      {
+        "name": "staging",
+        "prerelease": true,
+        "channel": "beta"
       }
     ],
     "plugins": [

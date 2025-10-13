@@ -74,7 +74,12 @@ const VotingComponent: React.FC<VotingComponentProps> = ({ editionId, user }) =>
 
 	useEffect(() => {
 		if (isFetched) {
-			setRankings(edition?.fulfilledSubmissions.filter((s) => s.rejected !== true) as Submission[]);
+			if (edition?.phase !== 'VOTING') {
+				router.push(`/edition/${editionId}`);
+				toast.error('Voting is not open for this edition.');
+			} else {
+				setRankings(edition?.fulfilledSubmissions.filter((s) => s.rejected !== true) as Submission[]);
+			}
 		}
 	}, [isFetched]);
 

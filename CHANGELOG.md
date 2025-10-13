@@ -1,3 +1,9 @@
+## [1.0.1](https://github.com/jake-peace/fan-contest-hub/compare/v1.0.0...v1.0.1) (2025-10-13)
+
+### Bug Fixes
+
+- fixed an issue where users could vote before voting was open ([9bf166e](https://github.com/jake-peace/fan-contest-hub/commit/9bf166e971e18b4112661988f1bc75ecf2380825))
+
 # 1.0.0 (2025-10-12)
 
 ### Bug Fixes

@@ -7,10 +7,9 @@ import { Alert, AlertDescription, AlertTitle } from '../ui/alert';
 import { Card, CardContent, CardHeader, CardTitle } from '../ui/card';
 import { Button } from '../ui/button';
 import { useQuery, useQueryClient } from '@tanstack/react-query';
-import { useAmplifyClient } from '@/app/amplifyConfig';
 import { toast } from 'sonner';
 import { Schema } from '../../../amplify/data/resource';
-import { AuthUser, getCurrentUser } from 'aws-amplify/auth';
+import { AuthUser } from 'aws-amplify/auth';
 import { DndContext, DragEndEvent } from '@dnd-kit/core';
 import { SortableContext, verticalListSortingStrategy, arrayMove } from '@dnd-kit/sortable';
 import { restrictToVerticalAxis } from '@dnd-kit/modifiers';
@@ -104,7 +103,6 @@ const VotingComponent: React.FC<VotingComponentProps> = ({ editionId, user }) =>
 		);
 	};
 
-	const client = useAmplifyClient();
 	const queryClient = useQueryClient();
 
 	const getPointsByRank = (rank: number): number | undefined => {
@@ -122,10 +120,6 @@ const VotingComponent: React.FC<VotingComponentProps> = ({ editionId, user }) =>
 			} else {
 				// Handle error UI
 			}
-		});
-		client.queries.submitBatchVotes({
-			ranking: rankings.map((song) => song.submissionId),
-			user: (await getCurrentUser()).userId,
 		});
 	};
 

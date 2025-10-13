@@ -1,3 +1,9 @@
+## [1.1.3](https://github.com/jake-peace/fan-contest-hub/compare/v1.1.2...v1.1.3) (2025-10-13)
+
+### Bug Fixes
+
+- fixed an issue where votes were not submitted properly ([eb5ef9e](https://github.com/jake-peace/fan-contest-hub/commit/eb5ef9e27748c1fd56f7a56a152c114ffe686f6d))
+
 ## [1.1.2](https://github.com/jake-peace/fan-contest-hub/compare/v1.1.1...v1.1.2) (2025-10-13)
 
 ### Bug Fixes

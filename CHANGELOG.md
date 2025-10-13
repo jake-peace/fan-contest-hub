@@ -1,3 +1,14 @@
+## [1.1.2](https://github.com/jake-peace/fan-contest-hub/compare/v1.1.1...v1.1.2) (2025-10-13)
+
+### Bug Fixes
+
+- fixed an issue where a user could attempt to withdraw another user's song ([04c3ff5](https://github.com/jake-peace/fan-contest-hub/commit/04c3ff541e50650f191f2b0e49922a35e742ecb3))
+- fixed an issue where editions would automatically close voting before the deadline ([6c9972c](https://github.com/jake-peace/fan-contest-hub/commit/6c9972c5f4e5655e0447645bbeb209b23f87a776))
+- fixed an issue where users could vote for their own entry ([9080d99](https://github.com/jake-peace/fan-contest-hub/commit/9080d99c8d4781e31ee13bd531f998affaa7a623))
+- fixed issue where submissions did not appear on voting screen ([6c3d5f7](https://github.com/jake-peace/fan-contest-hub/commit/6c3d5f7ac1235c3d87c5fc7c83a744b46466fba1))
+- fixes an issue where the running order was missing ([265f45a](https://github.com/jake-peace/fan-contest-hub/commit/265f45a8be6235609c6a53d40f6e7d56ddd67564))
+- list of spotify links is now in running order ([e48e957](https://github.com/jake-peace/fan-contest-hub/commit/e48e95792033f34929ccb87257fc2ced9843a85c))
+
 ## [1.1.1](https://github.com/jake-peace/fan-contest-hub/compare/v1.1.0...v1.1.1) (2025-10-13)
 
 ### Bug Fixes

@@ -119,7 +119,7 @@
       },
       {
         "name": "staging",
-        "prerelease": true,
+        "prerelease": "beta",
         "channel": "beta"
       }
     ],

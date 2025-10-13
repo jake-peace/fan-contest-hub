@@ -78,7 +78,11 @@ const VotingComponent: React.FC<VotingComponentProps> = ({ editionId, user }) =>
 				router.push(`/edition/${editionId}`);
 				toast.error('Voting is not open for this edition.');
 			} else {
-				setRankings(edition?.fulfilledSubmissions.filter((s) => s.rejected !== true) as Submission[]);
+				setRankings(
+					edition?.fulfilledSubmissions
+						.filter((s) => s.rejected !== true && s.userId !== user.userId)
+						.sort((a, b) => (a.runningOrder as number) - (b.runningOrder as number)) as Submission[]
+				);
 			}
 		}
 	}, [isFetched]);

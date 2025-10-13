@@ -1,5 +1,5 @@
 import { Button } from '../ui/button';
-import { CircleX, TicketCheckIcon } from 'lucide-react';
+import { CircleX, HelpCircle, TicketCheckIcon } from 'lucide-react';
 import React, { startTransition, useState } from 'react';
 import { closeSubmissions } from '@/app/actions/closeSubmissions';
 import { toast } from 'sonner';
@@ -21,14 +21,21 @@ import { useQueryClient } from '@tanstack/react-query';
 import { setPlaylistLink } from '@/app/actions/setPlaylistLink';
 import Image from 'next/image';
 import { openSubmissions } from '@/app/actions/openSubmissions';
+import { Collapsible, CollapsibleContent, CollapsibleTrigger } from '../ui/collapsible';
+import { Alert, AlertTitle } from '../ui/alert';
+import { Card } from '../ui/card';
+import { Schema } from '../../../amplify/data/resource';
+
+type Submission = Schema['Submission']['type'];
 
 interface EditionHostOptionsProps {
 	editionId: string;
 	phase: string;
 	onRefetch: () => void;
+	submissions?: Submission[];
 }
 
-const EditionHostOptions: React.FC<EditionHostOptionsProps> = ({ editionId, phase, onRefetch }) => {
+const EditionHostOptions: React.FC<EditionHostOptionsProps> = ({ editionId, phase, onRefetch, submissions }) => {
 	const [dialogOpen, setDialogOpen] = useState(false);
 	const [spotifyDialogOpen, setSpotifyDialogOpen] = useState(false);
 	const [playlistLink, setPlaylistInputLink] = useState('');
@@ -115,9 +122,30 @@ const EditionHostOptions: React.FC<EditionHostOptionsProps> = ({ editionId, phas
 					<DialogHeader>
 						<DialogTitle>Spotify Playlist</DialogTitle>
 						<DialogDescription>{`Enter the link for the playlist below.`}</DialogDescription>
+						<Collapsible>
+							<CollapsibleTrigger>
+								<Alert>
+									<AlertTitle className="flex items-center gap-2">
+										<HelpCircle />
+										Click here for a list of pastable Spotify links
+									</AlertTitle>
+								</Alert>
+							</CollapsibleTrigger>
+							<CollapsibleContent>
+								<div className="text-sm p-2">
+									Copy and paste the Spotify URI&apos;s of all the songs below into a new playlist on the Spotify Desktop App. This feature
+									is not yet supported on mobile. (Use CTRL/CMD + V in the Spotify desktop app to paste.)
+								</div>
+								<Card>
+									<ul>
+										{submissions && submissions.map((s) => s.spotifyUri && <li key={s.submissionId}>{`spotify:track:${s.spotifyUri}`}</li>)}
+									</ul>
+								</Card>
+							</CollapsibleContent>
+						</Collapsible>
 					</DialogHeader>
 					<div className="grid gap-3">
-						<Label htmlFor="name-1">Link</Label>
+						<Label htmlFor="name-1">Spotify Playlist Link</Label>
 						<Input value={playlistLink} onChange={(e) => setPlaylistInputLink(e.target.value)} />
 					</div>
 					<DialogFooter>

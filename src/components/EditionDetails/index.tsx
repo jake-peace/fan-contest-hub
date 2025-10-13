@@ -322,7 +322,12 @@ const EditionDetails: React.FC<EditionDetailsProps> = ({ editionId, user }) => {
 						)}
 
 						{user.userId === edition.fulfilledContest.hostId && (
-							<EditionHostOptions phase={edition.phase} onRefetch={refetch} editionId={editionId} />
+							<EditionHostOptions
+								phase={edition.phase}
+								onRefetch={refetch}
+								editionId={editionId}
+								submissions={edition.fulfilledSubmissions}
+							/>
 						)}
 					</CardContent>
 				</Card>
@@ -333,12 +338,18 @@ const EditionDetails: React.FC<EditionDetailsProps> = ({ editionId, user }) => {
 							<CardTitle className="flex items-center gap-2">Your Submission</CardTitle>
 						</CardHeader>
 						<CardContent>
-							<SubmissionCard
-								submission={userSubmission()}
-								isHost={false}
-								onReject={refetch}
-								contestId={edition.fulfilledContest.contestId as string}
-							/>
+							{isRefetching ? (
+								<Skeleton>
+									<Card className="p-4 bg-muted" />
+								</Skeleton>
+							) : (
+								<SubmissionCard
+									submission={userSubmission()}
+									isHost={false}
+									onReject={refetch}
+									contestId={edition.fulfilledContest.contestId as string}
+								/>
+							)}
 						</CardContent>
 					</Card>
 				) : (

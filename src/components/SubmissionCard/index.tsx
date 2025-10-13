@@ -1,4 +1,4 @@
-import { CircleX, Ellipsis, Trash } from 'lucide-react';
+import { CircleX, DiscAlbum, Ellipsis, Trash } from 'lucide-react';
 import { Schema } from '../../../amplify/data/resource';
 import { Button } from '../ui/button';
 import { Card, CardContent } from '../ui/card';
@@ -12,7 +12,7 @@ import {
 	AlertDialogHeader,
 	AlertDialogTitle,
 } from '../ui/alert-dialog';
-import { startTransition, useEffect, useMemo, useState } from 'react';
+import { useEffect, useMemo, useState, useTransition } from 'react';
 import { rejectSubmission } from '@/app/actions/rejectSubmission';
 import { toast } from 'sonner';
 import Image from 'next/image';
@@ -21,6 +21,7 @@ import { Separator } from '../ui/separator';
 import { deleteSubmission } from '@/app/actions/deleteSubmission';
 import { SpotifyTrack } from '../SpotifySearch';
 import { useAmplifyClient } from '@/app/amplifyConfig';
+import { Spinner } from '../ui/spinner';
 
 type Submission = Schema['Submission']['type'];
 
@@ -38,6 +39,8 @@ const SubmissionCard: React.FC<SubmissionCardProps> = ({ submission, onReject, i
 	// const [accessToken, setAccessToken] = useState('');
 	const [trackInfo, setTrackInfo] = useState<SpotifyTrack>();
 	const client = useAmplifyClient();
+
+	const [isPending, startTransition] = useTransition();
 
 	const handleRejectSong = () => {
 		startTransition(async () => {
@@ -149,10 +152,11 @@ const SubmissionCard: React.FC<SubmissionCardProps> = ({ submission, onReject, i
 										src={trackInfo.album.images[0].url}
 										alt={trackInfo.album.name}
 										className="w-12 h-12 rounded object-cover"
+										sizes="640px"
 									/>
 								</div>
 							) : (
-								<div>Song not on Spotify.</div>
+								<DiscAlbum className="w-12 h-12" />
 							)}
 							<div>
 								<h3 className="font-medium">{submission.songTitle}</h3>
@@ -167,13 +171,13 @@ const SubmissionCard: React.FC<SubmissionCardProps> = ({ submission, onReject, i
 									onClick={() => window.open(`http://open.spotify.com/track/${submission.spotifyUri}` as string)}
 								>
 									<Image src={`/spotifyLogo.svg`} width={20} height={20} alt={`spotifyLogoBlack`} quality={80} sizes="640px" />
-									Listen on Spotify
+									Spotify
 								</Button>
 							)}
 							{isHost ? (
 								<>
-									<Button variant="destructive" onClick={() => setDialogOpen(true)}>
-										<CircleX />
+									<Button variant="destructive" onClick={() => setDialogOpen(true)} disabled={isPending}>
+										{isPending ? <Spinner /> : <CircleX />}
 										Reject Song
 									</Button>
 									<AlertDialog open={dialogOpen && isHost}>
@@ -191,8 +195,8 @@ const SubmissionCard: React.FC<SubmissionCardProps> = ({ submission, onReject, i
 								</>
 							) : (
 								<>
-									<Button variant="destructive" onClick={() => setDialogOpen(true)}>
-										<Trash />
+									<Button variant="destructive" onClick={() => setDialogOpen(true)} disabled={isPending}>
+										{isPending ? <Spinner /> : <Trash />}
 										Withdraw Song
 									</Button>
 									<AlertDialog open={dialogOpen && !isHost}>

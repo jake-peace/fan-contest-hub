@@ -1,6 +1,7 @@
 'use server';
 
 import { AuthGetCurrentUserServer, cookiesClient } from '@/utils/amplify-utils';
+import { cookies } from 'next/headers';
 import { v4 } from 'uuid';
 
 const rankingPoints = new Map<number, number>([
@@ -22,7 +23,8 @@ export async function submitVotes(rankings: string[], editionId: string) {
 	};
 
 	try {
-		const authUser = await AuthGetCurrentUserServer();
+		const currentRequestCookies = cookies;
+		const authUser = await AuthGetCurrentUserServer(currentRequestCookies);
 
 		const { data: submissions } = await cookiesClient.models.Submission.list({
 			filter: {

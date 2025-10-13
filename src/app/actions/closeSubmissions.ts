@@ -1,6 +1,7 @@
 'use server';
 
 import { AuthGetCurrentUserServer, cookiesClient } from '@/utils/amplify-utils';
+import { cookies } from 'next/headers';
 
 function shuffleArray<T>(array: T[]): T[] {
 	// 1. Create a shallow copy of the array so the original is not modified.
@@ -26,7 +27,8 @@ function shuffleArray<T>(array: T[]): T[] {
 
 export async function closeSubmissions(editionId: string) {
 	try {
-		const authUser = await AuthGetCurrentUserServer();
+		const currentRequestCookies = cookies;
+		const authUser = await AuthGetCurrentUserServer(currentRequestCookies);
 
 		const { data: edition } = await cookiesClient.models.Edition.get({ editionId: editionId });
 

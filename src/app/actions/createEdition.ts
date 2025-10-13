@@ -1,6 +1,7 @@
 'use server';
 
 import { AuthGetCurrentUserServer, cookiesClient } from '@/utils/amplify-utils';
+import { cookies } from 'next/headers';
 
 export async function createEdition(formData: FormData) {
 	const name = formData.get('name') as string;
@@ -14,7 +15,8 @@ export async function createEdition(formData: FormData) {
 	const closeVotingType = formData.get('closeVotingType') as 'specificDate' | 'allEntries' | 'manually';
 
 	try {
-		const authUser = await AuthGetCurrentUserServer();
+		const currentRequestCookies = cookies;
+		const authUser = await AuthGetCurrentUserServer(currentRequestCookies);
 
 		const { data: contestData } = await cookiesClient.models.Contest.get({ contestId: contestId });
 

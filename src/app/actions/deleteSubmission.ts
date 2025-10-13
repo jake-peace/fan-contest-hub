@@ -1,10 +1,12 @@
 'use server';
 
 import { AuthGetCurrentUserServer, cookiesClient } from '@/utils/amplify-utils';
+import { cookies } from 'next/headers';
 
 export async function deleteSubmission(submissionId: string) {
 	try {
-		const authUser = await AuthGetCurrentUserServer();
+		const currentRequestCookies = cookies;
+		const authUser = await AuthGetCurrentUserServer(currentRequestCookies);
 
 		const { data: submission } = await cookiesClient.models.Submission.get({ submissionId: submissionId });
 

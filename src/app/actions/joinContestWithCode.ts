@@ -1,10 +1,12 @@
 'use server';
 
 import { AuthGetCurrentUserServer, cookiesClient } from '@/utils/amplify-utils';
+import { cookies } from 'next/headers';
 
 export async function joinContestWithCode(joinCode: string) {
 	try {
-		const authUser = await AuthGetCurrentUserServer();
+		const currentRequestCookies = cookies;
+		const authUser = await AuthGetCurrentUserServer(currentRequestCookies);
 
 		if (!authUser) {
 			throw new Error('You must be logged in to join a contest.');

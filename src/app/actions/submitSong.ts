@@ -1,6 +1,7 @@
 'use server';
 
 import { AuthGetCurrentUserServer, cookiesClient } from '@/utils/amplify-utils';
+import { cookies } from 'next/headers';
 
 export async function submitSong(formData: FormData) {
 	const submissionId = formData.get('submissionId') as string;
@@ -12,7 +13,8 @@ export async function submitSong(formData: FormData) {
 	const countryName = formData.get('countryName') as string;
 
 	try {
-		const authUser = await AuthGetCurrentUserServer();
+		const currentRequestCookies = cookies;
+		const authUser = await AuthGetCurrentUserServer(currentRequestCookies);
 
 		const { data: prevCheck } = await cookiesClient.models.Submission.list({
 			filter: {

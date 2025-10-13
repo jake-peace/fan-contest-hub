@@ -1,10 +1,12 @@
 'use server';
 
 import { AuthGetCurrentUserServer, cookiesClient } from '@/utils/amplify-utils';
+import { cookies } from 'next/headers';
 
 export async function setPlaylistLink(editionId: string, link: string) {
 	try {
-		const authUser = await AuthGetCurrentUserServer();
+		const currentRequestCookies = cookies;
+		const authUser = await AuthGetCurrentUserServer(currentRequestCookies);
 
 		const { data: edition } = await cookiesClient.models.Edition.get({ editionId: editionId });
 

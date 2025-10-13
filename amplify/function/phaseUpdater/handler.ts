@@ -115,7 +115,9 @@ export const handler: EventBridgeHandler<'Scheduled Event', null, void> = async 
 
 		// 2. Iterate and update each record's variable (status)
 		const updatePromises = recordsToUpdate.map((record) => {
-			console.log(`Updating record ID: ${record.editionId} from ${record.phase} to ${nextPhase.get(record.phase)}`);
+			console.log(
+				`Updating record ID: ${record.editionId} from ${record.phase} to ${nextPhase.get(record.phase)} because the voting deadline was ${record.votingDeadline}`
+			);
 			return client.models.Edition.update({
 				editionId: record.editionId,
 				phase: nextPhase.get(record.phase),

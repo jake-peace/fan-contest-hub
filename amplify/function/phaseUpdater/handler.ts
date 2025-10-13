@@ -50,7 +50,6 @@ export const handler: EventBridgeHandler<'Scheduled Event', null, void> = async 
 		const now = new Date().toISOString();
 
 		const parsedNow = parseISO(now);
-		console.log('Lambda time is now', parsedNow.toString());
 
 		// NOTE: This is a conceptual query. You'll need to implement a filter
 		// based on your actual data model (e.g., query by status and filter by timestamp).
@@ -58,22 +57,27 @@ export const handler: EventBridgeHandler<'Scheduled Event', null, void> = async 
 			filter: {
 				or: [
 					{
-						// Find records where the 'submissionsOpen' time is before the current time
-						submissionsOpen: { lt: parsedNow.toString() },
-						// And the phase is still 'UPCOMING'
-						phase: { eq: 'UPCOMING' },
+						and: [
+							{
+								submissionsOpen: { lt: parsedNow.toString() },
+							},
+							{
+								phase: { eq: 'UPCOMING' },
+							},
+						],
 					},
-					// {
-					// 	// find editions where submission deadline is before the current time
-					// 	submissionDeadline: { lt: parsedNow.toString() },
-					// 	// and the phase is still 'SUBMISSION'
-					// 	phase: { eq: 'SUBMISSION' },
-					// 	closeSubmissionType: { eq: 'specificDate' },
-					// },
 					{
-						votingDeadline: { lt: parsedNow.toString() },
-						phase: { eq: 'VOTING' },
-						closeVotingType: { eq: 'specificDate' },
+						and: [
+							{
+								votingDeadline: { lt: parsedNow.toString() },
+							},
+							{
+								phase: { eq: 'VOTING' },
+							},
+							{
+								closeVotingType: { eq: 'specificDate' },
+							},
+						],
 					},
 				],
 			},
@@ -114,7 +118,7 @@ export const handler: EventBridgeHandler<'Scheduled Event', null, void> = async 
 			console.log(`Updating record ID: ${record.editionId} from ${record.phase} to ${nextPhase.get(record.phase)}`);
 			return client.models.Edition.update({
 				editionId: record.editionId,
-				phase: nextPhase.get(record.phase), // Change your variable here
+				phase: nextPhase.get(record.phase),
 			});
 		});
 

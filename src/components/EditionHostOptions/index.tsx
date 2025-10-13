@@ -138,7 +138,10 @@ const EditionHostOptions: React.FC<EditionHostOptionsProps> = ({ editionId, phas
 								</div>
 								<Card>
 									<ul>
-										{submissions && submissions.map((s) => s.spotifyUri && <li key={s.submissionId}>{`spotify:track:${s.spotifyUri}`}</li>)}
+										{submissions &&
+											submissions
+												.sort((a, b) => (a.runningOrder as number) - (b.runningOrder as number))
+												.map((s) => s.spotifyUri && <li key={s.submissionId}>{`spotify:track:${s.spotifyUri}`}</li>)}
 									</ul>
 								</Card>
 							</CollapsibleContent>

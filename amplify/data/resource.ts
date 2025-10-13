@@ -33,7 +33,11 @@ const schema = a
 					.authorization((allow) => allow.authenticated()),
 			})
 			.identifier(['contestId'])
-			.authorization((allow) => [allow.ownersDefinedIn('participants'), allow.authenticated().to(['list', 'get'])]),
+			.authorization((allow) => [
+				allow.ownersDefinedIn('participants'),
+				allow.ownerDefinedIn('hostId').to(['delete']),
+				allow.authenticated().to(['list', 'get']),
+			]),
 		Phase: a.enum(['UPCOMING', 'SUBMISSION', 'VOTING', 'RESULTS', 'COMPLETE']),
 		CloseType: a.enum(['specificDate', 'allEntries', 'manually']),
 		Edition: a

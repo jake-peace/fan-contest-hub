@@ -112,15 +112,9 @@
   "release": {
     "branches": [
       "main",
-      "staging",
       {
         "name": "main",
         "prerelease": true
-      },
-      {
-        "name": "staging",
-        "prerelease": "beta",
-        "channel": "beta"
       }
     ],
     "plugins": [

@@ -113,13 +113,8 @@ const VotingComponent: React.FC<VotingComponentProps> = ({ editionId, user }) =>
 
 	const handleSubmitVote = async () => {
 		startTransition(async () => {
-			const result = await submitVotes(
-				rankings.map((r) => r.submissionId),
-				editionId
-			);
+			const result = await submitVotes(rankings.map((r) => r.submissionId).slice(0, 10), editionId);
 			if (result.success) {
-				// form.reset(); // Reset form on success
-				// toast.success(`Your song "${data.songTitle}" was submitted successfully. Good luck!`);
 				queryClient.removeQueries({ queryKey: ['editionDetailsVotes'] });
 				toast.success('Your votes have been submitted successfully!');
 				router.push(`/edition/${editionId}`);

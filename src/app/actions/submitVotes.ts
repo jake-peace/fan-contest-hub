@@ -39,7 +39,7 @@ export async function submitVotes(rankings: string[], editionId: string) {
 			}
 		});
 
-		console.log(rankings);
+		console.log('Your votes:', rankings);
 
 		const votePromises = rankings.map((song, index) => {
 			const newId = v4();

@@ -390,6 +390,7 @@ const EditionDetails: React.FC<EditionDetailsProps> = ({ editionId, user }) => {
 											submission={s}
 											isHost={false}
 											contestId={edition.fulfilledContest.contestId as string}
+											showRunningOrder
 										/>
 									))
 							)}

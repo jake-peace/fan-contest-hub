@@ -348,6 +348,7 @@ const EditionDetails: React.FC<EditionDetailsProps> = ({ editionId, user }) => {
 									isHost={false}
 									onReject={refetch}
 									contestId={edition.fulfilledContest.contestId as string}
+									isUser
 								/>
 							)}
 						</CardContent>
@@ -391,7 +392,7 @@ const EditionDetails: React.FC<EditionDetailsProps> = ({ editionId, user }) => {
 											isHost={false}
 											contestId={edition.fulfilledContest.contestId as string}
 											showRunningOrder
-											isUser
+											isUser={false}
 										/>
 									))
 							)}

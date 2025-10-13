@@ -15,7 +15,7 @@ import { toast } from 'sonner';
 import { Schema } from '../../../amplify/data/resource';
 import { Skeleton } from '../ui/skeleton';
 import { joinContestWithCode } from '@/app/actions/joinContestWithCode';
-import { Alert, AlertDescription, AlertTitle } from '../ui/alert';
+import { Alert, AlertTitle } from '../ui/alert';
 
 type Contest = Schema['Contest']['type'];
 type Edition = Schema['Edition']['type'];
@@ -50,6 +50,9 @@ export const fetchProfile = async () => {
 	const result = await response.json();
 	return result.profile; // Return the clean data
 };
+
+const appVersion = process.env.NEXT_PUBLIC_APP_VERSION;
+const envName = process.env.NODE_ENV;
 
 const DashboardPage: React.FC = () => {
 	const router = useRouter();
@@ -133,34 +136,16 @@ const DashboardPage: React.FC = () => {
 
 	return (
 		<>
-			{/* <div className="flex gap-1 mb-4">
-				{!profileLoading && (
-					<Button variant="outline">
-						<User />
-						{profile.displayName}
-					</Button>
-				)}
-				<Button onClick={onLogout} variant="outline">
-					Logout
-				</Button>
-				<ThemeToggle />
-			</div> */}
 			<div className="space-y-4 mb-6">
 				<Alert>
-					<AlertTitle className="flex gap-1 items-center">
+					<AlertTitle className="flex gap-2 items-center">
 						<Info />
-						Version 0.4.2 - 12/10/2025
+						Version {appVersion}
+						<Badge>{envName === 'development' ? 'DEV' : 'PROD'}</Badge>
+						<Button className="ml-auto" variant="secondary" onClick={() => router.push('/changelog')}>
+							View Changelog
+						</Button>
 					</AlertTitle>
-					<AlertDescription>
-						<ul>
-							<li>{`- Added a view of a user's submitted song`}</li>
-							<li>{`- Added ability to withdraw submission`}</li>
-							<li>{`- Improved list of submissions on Edition page`}</li>
-							<li>{`- Contest host can manually open submissions`}</li>
-							<li>{`- Added flags of UK constituent countries, EU and UN`}</li>
-							<li>{`- Removed one flag`}</li>
-						</ul>
-					</AlertDescription>
 				</Alert>
 				{/* Create contest button */}
 				<Button onClick={() => router.push('/create/contest')} className="w-full h-12">

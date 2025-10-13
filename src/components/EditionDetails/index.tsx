@@ -353,48 +353,77 @@ const EditionDetails: React.FC<EditionDetailsProps> = ({ editionId, user }) => {
 						</CardContent>
 					</Card>
 				) : (
+					edition.phase === 'SUBMISSION' && (
+						<Card className="mb-4 py-6 gap-2">
+							<CardHeader>
+								<CardTitle className="flex items-center gap-2">Your Submission</CardTitle>
+							</CardHeader>
+							<CardContent>
+								<Skeleton className="rounded-xl">
+									<Card className="p-4 bg-muted">
+										<div>You haven&apos;t submitted yet</div>
+									</Card>
+								</Skeleton>
+							</CardContent>
+						</Card>
+					)
+				)}
+
+				{edition.phase === 'VOTING' && (
 					<Card className="mb-4 py-6 gap-2">
 						<CardHeader>
-							<CardTitle className="flex items-center gap-2">Your Submission</CardTitle>
+							<CardTitle className="flex items-center gap-2">Submissions</CardTitle>
 						</CardHeader>
-						<CardContent>
-							<Skeleton className="rounded-xl">
-								<Card className="p-4 bg-muted">
-									<div>You haven&apos;t submitted yet</div>
-								</Card>
-							</Skeleton>
+						<CardContent className="space-y-1">
+							{/* List of submissions, in running order */}
+							{isRefetching ? (
+								<Skeleton>
+									<Card className="p-4 bg-muted" />
+								</Skeleton>
+							) : (
+								edition.fulfilledSubmissions
+									.filter((s) => s.rejected !== true)
+									.sort((a, b) => (a.runningOrder as number) - (b.runningOrder as number))
+									.map((s) => (
+										<SubmissionCard
+											key={s.submissionId}
+											submission={s}
+											isHost={false}
+											contestId={edition.fulfilledContest.contestId as string}
+										/>
+									))
+							)}
 						</CardContent>
 					</Card>
 				)}
 
-				{edition.phase === 'VOTING' ||
-					(edition.phase === 'SUBMISSION' && edition.fulfilledContest.hostId === user.userId && (
-						<Card className="mb-4 py-6 gap-2">
-							<CardHeader>
-								<CardTitle className="flex items-center gap-2">Submissions</CardTitle>
-							</CardHeader>
-							<CardContent className="space-y-1">
-								{/* List of submissions, in running order */}
-								{isRefetching ? (
-									<Skeleton>
-										<Card className="p-4 bg-muted" />
-									</Skeleton>
-								) : (
-									edition.fulfilledSubmissions
-										.filter((s) => s.rejected !== true)
-										.map((s) => (
-											<SubmissionCard
-												key={s.submissionId}
-												submission={s}
-												onReject={refetch}
-												isHost={user.userId === edition.fulfilledContest.hostId}
-												contestId={edition.fulfilledContest.contestId as string}
-											/>
-										))
-								)}
-							</CardContent>
-						</Card>
-					))}
+				{edition.phase === 'SUBMISSION' && edition.fulfilledContest.hostId === user.userId && (
+					<Card className="mb-4 py-6 gap-2">
+						<CardHeader>
+							<CardTitle className="flex items-center gap-2">Submissions</CardTitle>
+						</CardHeader>
+						<CardContent className="space-y-1">
+							{/* List of submissions, in running order */}
+							{isRefetching ? (
+								<Skeleton>
+									<Card className="p-4 bg-muted" />
+								</Skeleton>
+							) : (
+								edition.fulfilledSubmissions
+									.filter((s) => s.rejected !== true)
+									.map((s) => (
+										<SubmissionCard
+											key={s.submissionId}
+											submission={s}
+											onReject={refetch}
+											isHost={user.userId === edition.fulfilledContest.hostId}
+											contestId={edition.fulfilledContest.contestId as string}
+										/>
+									))
+							)}
+						</CardContent>
+					</Card>
+				)}
 
 				{edition.phase === 'RESULTS' && !edition.resultsRevealed && (
 					<Alert>

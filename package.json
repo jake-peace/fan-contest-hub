@@ -90,6 +90,7 @@
     "@eslint/eslintrc": "^3",
     "@eslint/js": "^9.37.0",
     "@next/eslint-plugin-next": "^15.5.4",
+    "@semantic-release/exec": "^7.1.0",
     "@tailwindcss/postcss": "^4",
     "@types/aws-lambda": "^8.10.153",
     "@types/node": "^20",
@@ -149,6 +150,10 @@
           "message": "chore(release): ${nextRelease.version} [skip-cd]\n\n${nextRelease.notes}"
         }
       ],
+      ["@semantic-release/exec", {
+        "prepareCmd": "echo \"NEXT_PUBLIC_APP_VERSION=${nextRelease.version}\" > .env.build",
+        "publishCmd": "echo 'Release complete!'"
+      }],
       "@semantic-release/github"
     ]
   }

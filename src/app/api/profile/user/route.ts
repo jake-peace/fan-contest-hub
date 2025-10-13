@@ -1,9 +1,11 @@
 import { AuthGetCurrentUserServer, cookiesClient } from '@/utils/amplify-utils';
+import { cookies } from 'next/headers';
 import { NextResponse } from 'next/server';
 
 export async function GET() {
 	try {
-		const authUser = await AuthGetCurrentUserServer();
+		const currentRequestCookies = cookies;
+		const authUser = await AuthGetCurrentUserServer(currentRequestCookies);
 
 		if (!authUser) {
 			throw new Error('Not authenticated.');

@@ -1,4 +1,5 @@
 import { AuthGetCurrentUserServer, cookiesClient } from '@/utils/amplify-utils';
+import { cookies } from 'next/headers';
 import { NextResponse } from 'next/server';
 
 export async function GET() {
@@ -8,7 +9,8 @@ export async function GET() {
 	};
 
 	try {
-		const authUser = await AuthGetCurrentUserServer();
+		const currentRequestCookies = cookies;
+		const authUser = await AuthGetCurrentUserServer(currentRequestCookies);
 		// 1. Fetch data securely using the cookieBasedClient on the server
 		const { data } = await cookiesClient.models.Contest.list({
 			filter: {

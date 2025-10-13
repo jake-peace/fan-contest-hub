@@ -96,6 +96,14 @@ const VotingComponent: React.FC<VotingComponentProps> = ({ editionId, user }) =>
 		}
 	}, [isFetchedVotes]);
 
+	const handleResetRankings = () => {
+		setRankings(
+			edition?.fulfilledSubmissions
+				.filter((s) => s.rejected !== true && s.userId !== user.userId)
+				.sort((a, b) => (a.runningOrder as number) - (b.runningOrder as number)) as Submission[]
+		);
+	};
+
 	const client = useAmplifyClient();
 	const queryClient = useQueryClient();
 
@@ -168,7 +176,7 @@ const VotingComponent: React.FC<VotingComponentProps> = ({ editionId, user }) =>
 						<Music className="w-4 h-4" />
 						<AlertDescription>Listen to songs and drag them to create your top 10 ranking. Higher ranks get more points!</AlertDescription>
 					</Alert>
-					<Button onClick={() => setRankings(edition?.fulfilledSubmissions as Submission[])} variant="secondary" className="mt-2">
+					<Button onClick={handleResetRankings} variant="secondary" className="mt-2">
 						<Undo2 className="w-4 h-4 mr-2" />
 						Reset Rankings
 					</Button>

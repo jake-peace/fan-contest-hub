@@ -59,7 +59,7 @@ export const handler: EventBridgeHandler<'Scheduled Event', null, void> = async 
 					{
 						and: [
 							{
-								submissionsOpen: { lt: parsedNow.toString() },
+								submissionsOpen: { gt: parsedNow.toString() },
 							},
 							{
 								phase: { eq: 'UPCOMING' },
@@ -69,7 +69,7 @@ export const handler: EventBridgeHandler<'Scheduled Event', null, void> = async 
 					{
 						and: [
 							{
-								votingDeadline: { lt: parsedNow.toString() },
+								votingDeadline: { gt: parsedNow.toString() },
 							},
 							{
 								phase: { eq: 'VOTING' },

@@ -97,7 +97,13 @@ const SubmissionCard: React.FC<SubmissionCardProps> = ({ submission, onReject, i
 			setTrackInfo(spotifyResultsData);
 		}
 
-		getTrackInfo();
+		if (submission.spotifyUri) {
+			try {
+				getTrackInfo();
+			} catch {
+				// catch spotify error
+			}
+		}
 	}, [accessToken]);
 
 	return (
@@ -134,7 +140,7 @@ const SubmissionCard: React.FC<SubmissionCardProps> = ({ submission, onReject, i
 					<CardContent className="py-2 px-0">
 						<Separator />
 						<div className="flex items-center gap-3 mt-2">
-							{trackInfo && (
+							{trackInfo ? (
 								<div className="min-w-10 max-w-10 h-10 rounded-sm overflow-hidden relative">
 									<Image
 										style={{ objectFit: 'cover', objectPosition: 'center' }}
@@ -145,6 +151,8 @@ const SubmissionCard: React.FC<SubmissionCardProps> = ({ submission, onReject, i
 										className="w-12 h-12 rounded object-cover"
 									/>
 								</div>
+							) : (
+								<div>Song not on Spotify.</div>
 							)}
 							<div>
 								<h3 className="font-medium">{submission.songTitle}</h3>

@@ -1,3 +1,9 @@
+## [1.0.2](https://github.com/jake-peace/fan-contest-hub/compare/v1.0.1...v1.0.2) (2025-10-13)
+
+### Bug Fixes
+
+- fixed issue where it tried to search spotify for a manual entry ([f9f1ec8](https://github.com/jake-peace/fan-contest-hub/commit/f9f1ec8861cd380849760f57cf892c6231102f1c))
+
 ## [1.0.1](https://github.com/jake-peace/fan-contest-hub/compare/v1.0.0...v1.0.1) (2025-10-13)
 
 ### Bug Fixes

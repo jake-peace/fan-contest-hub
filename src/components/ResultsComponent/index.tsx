@@ -257,6 +257,7 @@ const ResultsComponent: React.FC<ResultsComponentProps> = ({ editionId, user }) 
 					songToUpdate.score += points;
 				}
 				setHighPointMessage(`${songToUpdate?.songTitle} by ${songToUpdate?.artistName}!`);
+				console.log(`${songToUpdate?.songTitle} got ${points} points`);
 				setPointsJustReceived((prev) => ({ ...prev, [vote]: points }));
 				await delay(1000);
 				setSubmissions(updatedSongs.sort((a, b) => b.score - a.score));

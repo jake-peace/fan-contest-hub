@@ -247,22 +247,37 @@ const ResultsComponent: React.FC<ResultsComponentProps> = ({ editionId, user }) 
 			await delay(3000);
 
 			// --- Step 5: Reveal 8, 10, and 12 points with delays in between ---
-			highPointVotes.forEach(async (vote, index) => {
-				const points = rankingPoints.get(index) as number;
+			// highPointVotes.forEach(async (vote, index) => {
+			// 	const points = rankingPoints.get(index) as number;
+			// 	const updatedSongs = [...submissions];
+			// 	const songToUpdate = updatedSongs.find((s) => s.submissionId === vote);
+			// 	setHighPointMessage(`${points} points goes to...`);
+			// 	await delay(2000);
+			// 	if (songToUpdate) {
+			// 		songToUpdate.score += points;
+			// 	}
+			// 	setHighPointMessage(`${songToUpdate?.songTitle} by ${songToUpdate?.artistName}!`);
+			// 	setPointsJustReceived((prev) => ({ ...prev, [vote]: points }));
+			// 	await delay(1000);
+			// 	setSubmissions(updatedSongs.sort((a, b) => b.score - a.score));
+			// 	await delay(2000);
+			// });
+
+			for (let i = 0; i < highPointVotes.length; i++) {
+				const points = rankingPoints.get(i) as number;
 				const updatedSongs = [...submissions];
-				const songToUpdate = updatedSongs.find((s) => s.submissionId === vote);
+				const songToUpdate = updatedSongs.find((s) => s.submissionId === highPointVotes[i]);
 				setHighPointMessage(`${points} points goes to...`);
 				await delay(2000);
 				if (songToUpdate) {
 					songToUpdate.score += points;
 				}
 				setHighPointMessage(`${songToUpdate?.songTitle} by ${songToUpdate?.artistName}!`);
-				console.log(`${songToUpdate?.songTitle} got ${points} points`);
-				setPointsJustReceived((prev) => ({ ...prev, [vote]: points }));
+				setPointsJustReceived((prev) => ({ ...prev, [highPointVotes[i]]: points }));
 				await delay(1000);
 				setSubmissions(updatedSongs.sort((a, b) => b.score - a.score));
 				await delay(2000);
-			});
+			}
 
 			// --- Step 6: End of round, wait and move to next voter ---
 			await delay(2000);

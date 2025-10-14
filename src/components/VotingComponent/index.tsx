@@ -208,7 +208,7 @@ const VotingComponent: React.FC<VotingComponentProps> = ({ editionId, user }) =>
 									<SortableSong key={song.submissionId} id={song.submissionId}>
 										<div
 											key={song.submissionId}
-											className={`p-2 border rounded-lg transition-all hover:bg-muted/50 cursor-pointer border-border`}
+											className={`p-2 border rounded-lg transition-all hover:bg-muted/50 cursor-pointer border-border touch-none`}
 										>
 											<div className="flex items-center justify-between gap-3">
 												<div className="min-w-10 max-w-10 h-10 rounded-sm overflow-hidden relative">

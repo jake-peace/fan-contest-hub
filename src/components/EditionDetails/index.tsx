@@ -528,7 +528,7 @@ const EditionDetails: React.FC<EditionDetailsProps> = ({ editionId, user }) => {
 							{(edition.submissionList as SubmissionWithScore[]).map((song, index) => (
 								<div
 									key={song.submissionId}
-									className={`p-2 border rounded-lg transition-all hover:bg-muted/50 cursor-pointer border-border`}
+									className={`p-2 border rounded-lg transition-all hover:bg-muted/50 cursor-pointer border-border mb-1`}
 								>
 									<div className="flex items-center justify-between gap-3">
 										<div className="flex items-center gap-2">

@@ -203,8 +203,8 @@ const EditionDetails: React.FC<EditionDetailsProps> = ({ editionId, user }) => {
 						</AlertDescription>
 					</Alert>
 				)}
-				<Alert>
-					<AlertTitle>
+				<Alert className="mb-2">
+					<AlertTitle className="flex items-center gap-2">
 						<AlertCircle />
 						Scheduled Maintenance Tonight
 					</AlertTitle>

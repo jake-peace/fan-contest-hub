@@ -21,11 +21,25 @@ import EditionHostOptions from '../EditionHostOptions';
 import { getPhaseColor } from '../EditionList';
 import Image from 'next/image';
 import { EditionWithDetails } from '@/types/Edition';
+import { Collapsible, CollapsibleContent, CollapsibleTrigger } from '../ui/collapsible';
 
 interface EditionDetailsProps {
 	editionId: string;
 	user: AuthUser;
 }
+
+const rankingPoints = new Map<number, number>([
+	[1, 12],
+	[2, 10],
+	[3, 8],
+	[4, 7],
+	[5, 6],
+	[6, 5],
+	[7, 4],
+	[8, 3],
+	[9, 2],
+	[10, 1],
+]);
 
 type Edition = Schema['Edition']['type'];
 type Contest = Schema['Contest']['type'];
@@ -194,6 +208,22 @@ const EditionDetails: React.FC<EditionDetailsProps> = ({ editionId, user }) => {
 			</>
 		);
 	}
+
+	const getBadgeColor = (rank: number) => {
+		if (rank > 10) {
+			return 'bg-(--destructive)';
+		}
+		switch (rank) {
+			case 1:
+				return 'bg-(--gold) text-[black]';
+			case 2:
+				return 'bg-(--silver) text-[black]';
+			case 3:
+				return 'bg-(--bronze) text-[black]';
+			default:
+				return '';
+		}
+	};
 
 	return (
 		edition && (
@@ -379,33 +409,85 @@ const EditionDetails: React.FC<EditionDetailsProps> = ({ editionId, user }) => {
 				)}
 
 				{edition.phase === 'VOTING' && (
-					<Card className="mb-4 py-6 gap-2">
-						<CardHeader>
-							<CardTitle className="flex items-center gap-2">Submissions</CardTitle>
-						</CardHeader>
-						<CardContent className="space-y-1">
-							{/* List of submissions, in running order */}
-							{isRefetching ? (
-								<Skeleton>
-									<Card className="p-4 bg-muted" />
-								</Skeleton>
-							) : (
-								(edition.submissionList as Submission[])
-									.filter((s) => s.rejected !== true)
-									.sort((a, b) => (a.runningOrder as number) - (b.runningOrder as number))
-									.map((s) => (
-										<SubmissionCard
-											key={s.submissionId}
-											submission={s}
-											isHost={false}
-											contestId={edition.contestDetails.contestId as string}
-											showRunningOrder
-											isUser={false}
-										/>
-									))
-							)}
-						</CardContent>
-					</Card>
+					<>
+						<Card className="mb-4 py-6 gap-2">
+							<CardHeader>
+								<CardTitle className="flex items-center gap-2">Submissions</CardTitle>
+							</CardHeader>
+							<CardContent className="space-y-1">
+								{/* List of submissions, in running order */}
+								{isRefetching ? (
+									<Skeleton>
+										<Card className="p-4 bg-muted" />
+									</Skeleton>
+								) : (
+									(edition.submissionList as Submission[])
+										.filter((s) => s.rejected !== true)
+										.sort((a, b) => (a.runningOrder as number) - (b.runningOrder as number))
+										.map((s) => (
+											<SubmissionCard
+												key={s.submissionId}
+												submission={s}
+												isHost={false}
+												contestId={edition.contestDetails.contestId as string}
+												showRunningOrder
+												isUser={false}
+											/>
+										))
+								)}
+							</CardContent>
+						</Card>
+						<Card className="mb-4 py-6 gap-2">
+							<Collapsible>
+								<CollapsibleTrigger>
+									<CardHeader>
+										<CardTitle className="flex items-center gap-2">View Your Votes</CardTitle>
+									</CardHeader>
+								</CollapsibleTrigger>
+								<CollapsibleContent>
+									{edition.rankingsList?.find((x) => x.userId === user.userId) !== undefined ? (
+										<CardContent className="space-y-1">
+											{edition.rankingsList
+												?.find((r) => r.userId === user.userId)
+												?.rankingList?.map((s, index) => (
+													<div key={s} className={`p-2 border rounded-lg transition-all hover:bg-muted/50 cursor-pointer border-border`}>
+														<div className="flex items-center justify-between gap-3">
+															<div className="min-w-10 max-w-10 h-10 rounded-sm overflow-hidden relative">
+																<Image
+																	src={`https://flagcdn.com/w640/${edition.submissionList?.find((a) => a.submissionId === s)?.flag?.toLowerCase()}.png`}
+																	fill
+																	alt={`${edition.submissionList?.find((a) => a.submissionId === s)?.countryName}'s flag`}
+																	style={{ objectFit: 'cover', objectPosition: 'center' }}
+																	quality={80}
+																	sizes="640px"
+																/>
+															</div>
+															<div className="flex-1 truncate">
+																<h3 className="font-medium truncate">
+																	{edition.submissionList?.find((a) => a.submissionId === s)?.songTitle}
+																</h3>
+																<p className="text-sm text-muted-foreground truncate">
+																	by {edition.submissionList?.find((a) => a.submissionId === s)?.artistName}
+																</p>
+															</div>
+															<div className="flex items-center gap-2">
+																<Badge variant="secondary" className={getBadgeColor(index + 1)}>
+																	{rankingPoints.get(index + 1)}
+																</Badge>
+															</div>
+														</div>
+													</div>
+												))}
+										</CardContent>
+									) : (
+										<Alert>
+											<AlertTitle>You haven&apos;t voted yet</AlertTitle>
+										</Alert>
+									)}
+								</CollapsibleContent>
+							</Collapsible>
+						</Card>
+					</>
 				)}
 
 				{edition.phase === 'SUBMISSION' && edition.contestDetails.hostId === user.userId && (

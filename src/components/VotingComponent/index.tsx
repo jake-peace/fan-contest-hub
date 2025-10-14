@@ -222,10 +222,10 @@ const VotingComponent: React.FC<VotingComponentProps> = ({ editionId, user }) =>
 													/>
 												</div>
 												<div className="flex-1 truncate">
-													<h3 className="font-medium truncate">{song.songTitle}</h3>
-													<p className="text-sm text-muted-foreground truncate">by {song.artistName}</p>
+													<h3 className="font-medium truncate no-select">{song.songTitle}</h3>
+													<p className="text-sm text-muted-foreground truncate no-select">by {song.artistName}</p>
 												</div>
-												<div className="flex items-center gap-2">
+												<div className="flex items-center gap-2 no-select">
 													<Badge variant="secondary" className={getBadgeColor(rankings.indexOf(song) + 1)}>
 														{getPointsByRank(rankings.indexOf(song) + 1)}
 													</Badge>

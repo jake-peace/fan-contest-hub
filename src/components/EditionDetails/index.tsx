@@ -143,9 +143,12 @@ const EditionDetails: React.FC<EditionDetailsProps> = ({ editionId, user }) => {
 								Votes Submitted
 							</Button>
 						) : (
-							<Button onClick={() => router.push(`/edition/${editionId}/vote`)} className="w-full">
-								<Vote className="w-4 h-4 mr-2" />
-								Vote Now
+							// <Button onClick={() => router.push(`/edition/${editionId}/vote`)} className="w-full">
+							// 	<Vote className="w-4 h-4 mr-2" />
+							// 	Vote Now
+							// </Button>
+							<Button className="w-full" variant="destructive" disabled>
+								Voting Temporarily Closed
 							</Button>
 						)}
 					</>

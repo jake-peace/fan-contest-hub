@@ -1,3 +1,17 @@
+# [1.2.0](https://github.com/jake-peace/fan-contest-hub/compare/v1.1.3...v1.2.0) (2025-10-14)
+
+### Bug Fixes
+
+- fixed an issue where tiebreaks would not be resolved ([8e58222](https://github.com/jake-peace/fan-contest-hub/commit/8e58222b134e005fe181812983398d3e7b1935d5))
+- fixed issue where votes would submit multiple times ([e95c101](https://github.com/jake-peace/fan-contest-hub/commit/e95c101e7dce9302dc98e3a4352bc0d984bf18c0))
+- improved sequence when no there are no televotes ([dee1c29](https://github.com/jake-peace/fan-contest-hub/commit/dee1c290698ea5de62fda6eea67b5b28d0ab052e))
+
+### Features
+
+- added a view of a user's votes to the edition page ([f36d6ad](https://github.com/jake-peace/fan-contest-hub/commit/f36d6ad6ee421ea52eeb20612cb593c4d4fce3d1))
+- added list of results on edition page ([6669f11](https://github.com/jake-peace/fan-contest-hub/commit/6669f11833d12cdc9d9862242ae156e7e5e8b37c))
+- improved the tiebreaker function ([63bf3d5](https://github.com/jake-peace/fan-contest-hub/commit/63bf3d530f92bfcc20da5035d5d2f6c314c1c482))
+
 ## [1.1.3](https://github.com/jake-peace/fan-contest-hub/compare/v1.1.2...v1.1.3) (2025-10-13)
 
 ### Bug Fixes

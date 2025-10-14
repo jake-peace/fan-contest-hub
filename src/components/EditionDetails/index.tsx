@@ -1,6 +1,6 @@
 'use client';
 
-import { Clock, Vote, Users, Music, Trophy, Upload, Play, Music2, CheckCircle, TriangleAlert, Info } from 'lucide-react';
+import { Clock, Vote, Users, Music, Trophy, Upload, Play, Music2, CheckCircle, TriangleAlert, Info, AlertCircle } from 'lucide-react';
 import { Card, CardHeader, CardTitle, CardContent } from '../ui/card';
 import { EditionPhase } from '@/mockData/newMockData';
 import { formatDate, getPhaseMessage } from '@/utils';
@@ -203,6 +203,16 @@ const EditionDetails: React.FC<EditionDetailsProps> = ({ editionId, user }) => {
 						</AlertDescription>
 					</Alert>
 				)}
+				<Alert>
+					<AlertTitle>
+						<AlertCircle />
+						Scheduled Maintenance Tonight
+					</AlertTitle>
+					<AlertDescription>
+						Voting for all Contests will be closed from 21:00 tonight while maintenance is being carried out. Voting will re-open once this
+						is complete. Maintenance is expected to last at most 6 hours.
+					</AlertDescription>
+				</Alert>
 				<Card className="mb-4 py-6 gap-2">
 					<CardHeader>
 						<div className="flex items-center justify-between">

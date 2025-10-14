@@ -68,7 +68,7 @@ export async function closeSubmissions(editionId: string) {
 		const promises = shuffleArray(submissions).map((s, index) => {
 			return cookiesClient.models.Submission.update({
 				submissionId: s.submissionId,
-				runningOrder: index,
+				runningOrder: index + 1,
 			});
 		});
 

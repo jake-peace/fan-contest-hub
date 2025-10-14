@@ -100,7 +100,7 @@ export const handler: EventBridgeHandler<'Scheduled Event', null, void> = async 
 					const promises = shuffleArray(submissions).map((s, index) => {
 						return client.models.Submission.update({
 							submissionId: s.submissionId,
-							runningOrder: index,
+							runningOrder: index + 1,
 						});
 					});
 					await Promise.all(promises);

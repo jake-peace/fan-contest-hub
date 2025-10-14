@@ -48,6 +48,7 @@ const schema = a
 				description: a.string(),
 				contest: a.belongsTo('Contest', 'contestId'),
 				submissions: a.hasMany('Submission', 'editionId'),
+				rankings: a.hasMany('Ranking', 'editionId'),
 				submissionsOpen: a.datetime(),
 				submissionDeadline: a.datetime(),
 				votingDeadline: a.datetime(),
@@ -76,6 +77,16 @@ const schema = a
 			})
 			.identifier(['submissionId'])
 			.authorization((allow) => [allow.authenticated()]),
+		Ranking: a
+			.model({
+				rankingId: a.id().required(),
+				rankingList: a.string().array(),
+				userId: a.id(),
+				editionId: a.id(),
+				edition: a.belongsTo('Edition', 'editionId'),
+			})
+			.identifier(['rankingId'])
+			.authorization((allow) => allow.authenticated()),
 		Vote: a
 			.model({
 				voteId: a.id().required(),

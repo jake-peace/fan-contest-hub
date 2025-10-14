@@ -1,6 +1,6 @@
 'use client';
 
-import { Info, Pause, Play, Vote } from 'lucide-react';
+import { Info, Pause, Play } from 'lucide-react';
 import { Card, CardContent } from '../ui/card';
 import { Alert, AlertTitle } from '../ui/alert';
 import { useQuery, useQueryClient } from '@tanstack/react-query';
@@ -9,10 +9,9 @@ import { Button } from '../ui/button';
 import { AnimatePresence, motion } from 'motion/react';
 import React, { startTransition, useEffect, useState } from 'react';
 import { Progress } from '../ui/progress';
-import FinalOverlayCard from './FinalCard';
-import JuryPivotTable from './ResultsTable';
+// import FinalOverlayCard from './FinalCard';
+// import JuryPivotTable from './ResultsTable';
 import { AuthUser } from 'aws-amplify/auth';
-import { fetchEditionVotes } from '../VotingComponent';
 import { fetchEdition } from '../EditionDetails';
 import Loading from '../Loading';
 import { useRouter } from 'next/navigation';
@@ -20,9 +19,10 @@ import { hostRevealed } from '@/app/actions/hostRevealed';
 import Image from 'next/image';
 import { toast } from 'sonner';
 
-type Vote = Schema['Vote']['type'];
+// type Vote = Schema['Vote']['type'];
 type Submission = Schema['Submission']['type'];
 type Profile = Schema['Profile']['type'];
+type Ranking = Schema['Ranking']['type'];
 
 interface ResultsComponentProps {
 	editionId: string;
@@ -39,16 +39,16 @@ interface ResultsComponentProps {
 // 	});
 // 	return mockTele;
 // }
-interface Song {
-	submissionId: string;
-	songTitle: string;
-	artistName: string;
-	userId: string;
-	score: number;
-	flag: string;
-}
+// interface Song {
+// 	submissionId: string;
+// 	songTitle: string;
+// 	artistName: string;
+// 	userId: string;
+// 	score: number;
+// 	flag: string;
+// }
 
-interface SubmissionWithScore extends Submission {
+export interface SubmissionWithScore extends Submission {
 	score: number;
 }
 
@@ -65,23 +65,115 @@ const fetchProfiles = async (id: string) => {
 	return result.profiles.map((p: { data: unknown }) => p.data as Profile) as Profile[];
 };
 
+const rankingPoints = new Map<number, number>([
+	[0, 12],
+	[1, 10],
+	[2, 8],
+	[3, 7],
+	[4, 6],
+	[5, 5],
+	[6, 4],
+	[7, 3],
+	[8, 2],
+	[9, 1],
+]);
+
+const lowRankingPoints = new Map<number, number>([
+	[0, 7],
+	[1, 6],
+	[2, 5],
+	[3, 4],
+	[4, 3],
+	[5, 2],
+	[6, 1],
+]);
+
+export const tiebreakSorter = (externalData: string[][]) => {
+	try {
+		// --- Counting Logic ---
+		// Pre-calculate the count array [Count@Index0, Count@Index1, ..., Count@Index9]
+		const calculateCountArray = (id: string): number[] => {
+			// Initialize an array of 10 zeros
+			const counts = new Array<number>(10).fill(0);
+
+			// Iterate over every inner array in the external data
+			for (const innerArray of externalData) {
+				// Check the first 10 positions (index 0 to 9) of the current inner array
+				const limit = Math.min(innerArray.length, 10);
+
+				for (let i = 0; i < limit; i++) {
+					if (innerArray[i] === id) {
+						// Increment the count for that specific index (i)
+						counts[i]++;
+					}
+				}
+			}
+			return counts;
+		};
+
+		// Cache to store the pre-calculated count array for each ID
+		const idCountCache = new Map<string, number[]>();
+
+		const getCountArray = (id: string): number[] => {
+			if (idCountCache.has(id)) {
+				return idCountCache.get(id)!;
+			}
+			const countArray = calculateCountArray(id);
+			idCountCache.set(id, countArray);
+			return countArray;
+		};
+
+		// --- The Comparison Function ---
+		const complexSorter = (a: SubmissionWithScore, b: SubmissionWithScore): number => {
+			// 1. Primary Sort: Score (Descending)
+			let comparison = b.score - a.score;
+			if (comparison !== 0) {
+				return comparison;
+			}
+
+			// --- 2. Secondary Sort: Sequential ID Count (Descending) ---
+			const aCounts = getCountArray(a.submissionId);
+			const bCounts = getCountArray(b.submissionId);
+
+			// Iterate from index 0 up to 9
+			for (let i = 0; i < 10; i++) {
+				// Compare the counts at the current index (Descending)
+				comparison = bCounts[i] - aCounts[i];
+
+				// If the counts are different, this is our tie-breaker—return the result immediately
+				if (comparison !== 0) {
+					return comparison;
+				}
+				// If they are equal (comparison === 0), the loop continues to the next index (i+1)
+			}
+
+			// 3. Tertiary Sort: RunningOrder (Ascending)
+			// This is only reached if score and ALL 10 sequential counts were identical
+			return (a.runningOrder as number) - (b.runningOrder as number);
+		};
+		return complexSorter;
+	} catch (error) {
+		console.log('Error while sorting songs:', JSON.stringify(error));
+	}
+};
+
 const ResultsComponent: React.FC<ResultsComponentProps> = ({ editionId, user }) => {
 	const [submissions, setSubmissions] = useState<SubmissionWithScore[]>([]);
 	const [votingIndex, setVotingIndex] = useState(-1);
 	const [pointsJustReceived, setPointsJustReceived] = useState<Record<string, number>>({});
 	const [currentVoter, setCurrentVoter] = useState<string | null>(null);
-	const [lowPointList, setLowPointList] = useState<Vote[]>([]);
+	const [lowPointList, setLowPointList] = useState<string[]>([]);
 	const [highPointMessage, setHighPointMessage] = useState<string | undefined>();
 	const [isMobile, setIsMobile] = useState(false);
 	const [resultsStage, setResultsStage] = useState<'JURY' | 'TELEVOTE' | 'COMPLETE'>('JURY');
-	const [receivedTelevotes, setReceivedTelevotes] = useState<string[]>([]);
-	const [showFinalOverlay, setShowFinalOverlay] = useState<boolean>(false);
-	const [finalSongToReveal, setFinalSongToReveal] = useState<SubmissionWithScore>();
-	const [leader, setCurrentLeader] = useState<SubmissionWithScore>();
-	const [viewBreakdown, setViewBreakdown] = useState(false);
+	// const [receivedTelevotes, setReceivedTelevotes] = useState<string[]>([]);
+	// const [showFinalOverlay, setShowFinalOverlay] = useState<boolean>(false);
+	// const [finalSongToReveal, setFinalSongToReveal] = useState<SubmissionWithScore>();
+	// const [leader, setCurrentLeader] = useState<SubmissionWithScore>();
+	// const [viewBreakdown, setViewBreakdown] = useState(false);
 	const [paused, setPaused] = useState(false);
-	const [televotes, setTelevotes] = useState<{ submissionId: string; points: number }[]>([]);
-	const [juryVotes, setJuryVotes] = useState<Vote[]>([]);
+	// const [televotes, setTelevotes] = useState<{ submissionId: string; points: number }[]>([]);
+	const [juryVotes, setJuryVotes] = useState<Ranking[]>([]);
 	const [errorMessage, setErrorMessage] = useState<string | null>(null);
 
 	const router = useRouter();
@@ -96,12 +188,6 @@ const ResultsComponent: React.FC<ResultsComponentProps> = ({ editionId, user }) 
 		queryFn: () => fetchEdition(editionId),
 	});
 
-	const { data: votes, isFetched: isVotesFetched } = useQuery({
-		queryKey: ['resultsEditionVotes', editionId],
-		queryFn: () => fetchEditionVotes(editionId),
-		enabled: isFetched,
-	});
-
 	const { data: profiles, isLoading: isProfilesLoading } = useQuery({
 		queryKey: ['resultsProfiles', editionId],
 		queryFn: () => fetchProfiles(editionId),
@@ -109,35 +195,32 @@ const ResultsComponent: React.FC<ResultsComponentProps> = ({ editionId, user }) 
 
 	useEffect(() => {
 		if (isFetched && edition) {
-			setSubmissions(edition.fulfilledSubmissions.map((s) => ({ ...s, score: 0 })));
-			if (edition.fulfilledSubmissions.length === 0) {
+			setSubmissions((edition.submissionList as Submission[]).map((s) => ({ ...s, score: 0 })));
+			if ((edition.submissionList as Submission[]).length === 0 || edition.rankingsList?.length === 0) {
 				toast.error(`Failed to find votes`);
 				router.push(`/edition/${editionId}`);
 			}
+			setJuryVotes(edition.rankingsList as Ranking[]);
 		}
-	}, [isFetched, isVotesFetched]);
+	}, [isFetched]);
 
-	useEffect(() => {
-		if (isVotesFetched && votes && isFetched) {
-			const usersWithSongs = edition?.fulfilledSubmissions.map((s) => s.userId as string);
-			const usersWithoutSongs = edition?.fulfilledContest.participants?.filter((p) => !usersWithSongs?.includes(p));
-			let tempTelevotes: { submissionId: string; points: number }[] = [];
-			edition?.fulfilledSubmissions.forEach((s) => {
-				// const songTelevotes = votes.filter((v) => usersWithoutSongs?.includes(v.fromUserId));
-				const songTelevotes = votes.filter((v) => v.submissionId === s.submissionId && usersWithoutSongs?.includes(v.fromUserId));
-				tempTelevotes = [
-					...tempTelevotes,
-					{ submissionId: s.submissionId, points: songTelevotes.map((s) => s.points).reduce((sum, current) => sum + current, 0) },
-				];
-				// setTelevotes([
-				// 	...televotes,
-				// 	{ submissionId: s.submissionId, points: songTelevotes.map((s) => s.points).reduce((sum, current) => sum + current, 0) },
-				// ]);
-			});
-			setTelevotes(tempTelevotes);
-			setJuryVotes(votes.filter((v) => usersWithSongs?.includes(v.fromUserId)));
-		}
-	}, [isVotesFetched]);
+	// useEffect(() => {
+	// 	if (edition?.rankingsList && isFetched) {
+	// 		const usersWithSongs = edition?.submissionList?.map((s) => s.userId as string);
+	// 		let tempTelevotes: { submissionId: string; points: number }[] = [];
+	// 		// edition.rankingsList?.filter((r) => !usersWithSongs?.includes(r.userId as string)).forEach((song, index) => {
+	// 		// 	tempTelevotes = [
+	// 		// 		...tempTelevotes,
+	// 		// 		{ submissionId: song, points:  }
+	// 		// 	]
+	// 		// })
+	// 		edition?.submissionList?.forEach((s) => {
+	// 			edition.rankingsList.filter((r) => !usersWithSongs?.includes(r.userId as string) && )
+	// 		});
+	// 		setTelevotes(tempTelevotes);
+	// 		setJuryVotes(votes.filter((v) => usersWithSongs?.includes(v.fromUserId)));
+	// 	}
+	// }, [isVotesFetched]);
 
 	const allPoints = [12, 10, 8, 7, 6, 5, 4, 3, 2, 1];
 
@@ -145,21 +228,21 @@ const ResultsComponent: React.FC<ResultsComponentProps> = ({ editionId, user }) 
 	const MAX_SONGS_PER_COLUMN = 15;
 	const SONG_CARD_HEIGHT = 35;
 
-	const handleSkipJury = () => {
-		if (juryVotes) {
-			juryVotes.forEach((v) => {
-				const updatedSongs = [...submissions];
-				const songToUpdate = submissions.find((s) => s.submissionId === v.submissionId);
-				if (songToUpdate) {
-					songToUpdate.score += v.points;
-				}
-				setSubmissions(updatedSongs.sort((a, b) => b.score - a.score));
-			});
-		}
-		setResultsStage('TELEVOTE');
-		setVotingIndex(20);
-		setCurrentVoter('a');
-	};
+	// const handleSkipJury = () => {
+	// 	if (juryVotes) {
+	// 		juryVotes.forEach((v) => {
+	// 			const updatedSongs = [...submissions];
+	// 			const songToUpdate = submissions.find((s) => s.submissionId === v.submissionId);
+	// 			if (songToUpdate) {
+	// 				songToUpdate.score += v.points;
+	// 			}
+	// 			setSubmissions(updatedSongs.sort((a, b) => b.score - a.score));
+	// 		});
+	// 	}
+	// 	setResultsStage('TELEVOTE');
+	// 	setVotingIndex(20);
+	// 	setCurrentVoter('a');
+	// };
 
 	useEffect(() => {
 		const handleResize = () => {
@@ -180,7 +263,7 @@ const ResultsComponent: React.FC<ResultsComponentProps> = ({ editionId, user }) 
 	useEffect(() => {
 		// This function will run when a new voter appears
 		const runRevealSequence = async () => {
-			if (edition?.fulfilledContest.hostId === user.userId && edition?.resultsRevealed !== true) {
+			if (edition?.contestDetails.hostId === user.userId && edition?.resultsRevealed !== true) {
 				handleHostRevealed();
 			}
 			// ✨ Check if all jury votes are revealed
@@ -196,16 +279,20 @@ const ResultsComponent: React.FC<ResultsComponentProps> = ({ editionId, user }) 
 			setLowPointList([]);
 			setHighPointMessage(undefined);
 
-			const voterVotes = juryVotes?.filter((vote) => vote.fromUserId === currentVoter);
-			const sortedVotes = [...(voterVotes as Vote[])].sort((a, b) => a.points - b.points);
-			const lowPointVotes = sortedVotes.filter((vote) => vote.points < 8);
-			const highPointVotes = sortedVotes.filter((vote) => vote.points >= 8).sort((a, b) => a.points - b.points);
+			const voterVotes = juryVotes.find((v) => v.userId === currentVoter);
+			const lowPointVotes = voterVotes?.rankingList?.slice(3) as string[];
+			const highPointVotes = voterVotes?.rankingList?.slice(0, 3) as string[];
+
+			// const voterVotes = juryVotes?.filter((vote) => vote.fromUserId === currentVoter);
+			// const sortedVotes = [...(voterVotes as Vote[])].sort((a, b) => a.points - b.points);
+			// const lowPointVotes = sortedVotes.filter((vote) => vote.points < 8);
+			// const highPointVotes = sortedVotes.filter((vote) => vote.points >= 8).sort((a, b) => a.points - b.points);
 
 			console.log(highPointVotes);
 
 			// --- Step 1: Voter card and 1-7 list appear immediately ---
 			await delay(1000);
-			setLowPointList(lowPointVotes.sort((a, b) => b.points - a.points));
+			setLowPointList(lowPointVotes);
 
 			// --- Step 2: Delay for 1 second ---
 			await delay(2000);
@@ -214,33 +301,34 @@ const ResultsComponent: React.FC<ResultsComponentProps> = ({ editionId, user }) 
 			const updatedSongs = [...submissions];
 			const newSongsWithPoints = new Set<string>();
 			const newPointsReceived: Record<string, number> = {};
-			lowPointVotes.forEach((vote) => {
-				const songToUpdate = updatedSongs.find((s) => s.submissionId === vote.submissionId);
+			lowPointVotes.forEach((vote, index) => {
+				const songToUpdate = updatedSongs.find((s) => s.submissionId === vote);
 				if (songToUpdate) {
-					songToUpdate.score += vote.points;
-					newSongsWithPoints.add(vote.submissionId);
-					newPointsReceived[vote.submissionId] = vote.points;
+					songToUpdate.score += lowRankingPoints.get(index) as number;
+					newSongsWithPoints.add(vote);
+					newPointsReceived[vote] = lowRankingPoints.get(index) as number;
 				}
 			});
 			setPointsJustReceived((prev) => ({ ...prev, ...newPointsReceived }));
-			setSubmissions(updatedSongs.sort((a, b) => b.score - a.score));
+			setSubmissions(updatedSongs.sort(tiebreakSorter(edition?.rankingsList?.map((r) => r.rankingList as string[]) as string[][])));
 
 			// --- Step 4: Add a delay *between* the 1-7 and the high points ---
 			await delay(3000);
 
 			// --- Step 5: Reveal 8, 10, and 12 points with delays in between ---
-			for (const vote of highPointVotes) {
+			for (let i = 0; i < highPointVotes.length; i++) {
+				const points = rankingPoints.get(i) as number;
 				const updatedSongs = [...submissions];
-				const songToUpdate = updatedSongs.find((s) => s.submissionId === vote.submissionId);
-				setHighPointMessage(`${vote.points} points goes to...`);
+				const songToUpdate = updatedSongs.find((s) => s.submissionId === highPointVotes[i]);
+				setHighPointMessage(`${points} points goes to...`);
 				await delay(2000);
 				if (songToUpdate) {
-					songToUpdate.score += vote.points;
+					songToUpdate.score += points;
 				}
 				setHighPointMessage(`${songToUpdate?.songTitle} by ${songToUpdate?.artistName}!`);
-				setPointsJustReceived((prev) => ({ ...prev, [vote.submissionId]: vote.points }));
+				setPointsJustReceived((prev) => ({ ...prev, [highPointVotes[i]]: points }));
 				await delay(1000);
-				setSubmissions(updatedSongs.sort((a, b) => b.score - a.score));
+				setSubmissions(updatedSongs.sort(tiebreakSorter(edition?.rankingsList?.map((r) => r.rankingList as string[]) as string[][])));
 				await delay(2000);
 			}
 
@@ -253,84 +341,87 @@ const ResultsComponent: React.FC<ResultsComponentProps> = ({ editionId, user }) 
 
 		// ✨ New async function for the televote sequence
 		const runTelevoteSequence = async () => {
-			if (televotes.length === 0 || !televotes) {
-				setHighPointMessage('No televotes found for this edition!');
-				setResultsStage('COMPLETE');
-				return;
-			}
-			setReceivedTelevotes([]);
-			setLowPointList([]);
-			setHighPointMessage('Starting televote sequence...');
-			setResultsStage('TELEVOTE');
+			// if (televotes.length === 0 || !televotes) {
+			setHighPointMessage('No televotes found for this edition!');
+			setResultsStage('COMPLETE');
+			setHighPointMessage(
+				`Congratulations to ${profiles?.find((p) => p.userId === submissions[0].userId)?.displayName} with the song ${submissions[0].songTitle} by ${submissions[0].artistName}!`
+			);
+			// 	return;
+			// }
+			// setReceivedTelevotes([]);
+			// setLowPointList([]);
+			// setHighPointMessage('Starting televote sequence...');
+			// setResultsStage('TELEVOTE');
 
-			// Sort songs from lowest to highest jury score
-			const sortedSongsByJuryScore = [...submissions].sort((a, b) => a.score - b.score);
+			// // Sort songs from lowest to highest jury score
+			// const sortedSongsByJuryScore = [...submissions].sort((a, b) => a.score - b.score);
 
-			console.log(sortedSongsByJuryScore);
-			console.log(televotes);
+			// console.log(sortedSongsByJuryScore);
+			// console.log(televotes);
 
-			await delay(1000);
+			// await delay(1000);
 
-			// Loop through each song to reveal its televote points
-			for (let i = 0; i < sortedSongsByJuryScore.length; i++) {
-				const song = sortedSongsByJuryScore[i];
-				const televoteData = televotes.find((vote) => vote.submissionId === song.submissionId);
-				const finalReveal = i === sortedSongsByJuryScore.length - 1;
+			// // Loop through each song to reveal its televote points
+			// for (let i = 0; i < sortedSongsByJuryScore.length; i++) {
+			// 	const song = sortedSongsByJuryScore[i];
+			// 	const televoteData = televotes.find((vote) => vote.submissionId === song.submissionId);
+			// 	const finalReveal = i === sortedSongsByJuryScore.length - 1;
 
-				if (finalReveal && televoteData) {
-					setHighPointMessage(undefined);
-					// ✨ Corrected Logic: Find the leader from songs NOT including the final song
-					const finalSongId = televoteData.submissionId;
-					const contenders = submissions.filter((s) => s.submissionId !== finalSongId);
-					const leader = [...contenders].sort((a, b) => b.score - a.score)[0];
+			// 	if (finalReveal && televoteData) {
+			// 		setHighPointMessage(undefined);
+			// 		// ✨ Corrected Logic: Find the leader from songs NOT including the final song
+			// 		const finalSongId = televoteData.submissionId;
+			// 		const contenders = submissions.filter((s) => s.submissionId !== finalSongId);
+			// 		const leader = [...contenders].sort((a, b) => b.score - a.score)[0];
 
-					setFinalSongToReveal(song);
-					setCurrentLeader(leader);
-					if (leader.score > song.score) {
-						setShowFinalOverlay(true);
-					}
-					await delay(5500);
-					setPointsJustReceived({ [song.submissionId]: televoteData.points });
-					const updatedSongs = [...submissions];
-					const songToUpdate = updatedSongs.find((s) => s.submissionId === song.submissionId);
-					if (songToUpdate) {
-						songToUpdate.score += televoteData.points;
-					}
-					setSubmissions(updatedSongs.sort((a, b) => b.score - a.score));
-					await delay(2000);
-					setReceivedTelevotes((prev) => [...prev, song.submissionId]);
-					setPointsJustReceived({});
-					setResultsStage('COMPLETE');
-					setReceivedTelevotes([]);
-					setHighPointMessage(`Congratulations to ${updatedSongs[0].songTitle} by ${updatedSongs[0].artistName}!`);
-				}
+			// 		setFinalSongToReveal(song);
+			// 		setCurrentLeader(leader);
+			// 		if (leader.score > song.score) {
+			// 			setShowFinalOverlay(true);
+			// 		}
+			// 		await delay(5500);
+			// 		setPointsJustReceived({ [song.submissionId]: televoteData.points });
+			// 		const updatedSongs = [...submissions];
+			// 		const songToUpdate = updatedSongs.find((s) => s.submissionId === song.submissionId);
+			// 		if (songToUpdate) {
+			// 			songToUpdate.score += televoteData.points;
+			// 		}
+			// 		setSubmissions(updatedSongs.sort((a, b) => b.score - a.score));
+			// 		await delay(2000);
+			// 		setReceivedTelevotes((prev) => [...prev, song.submissionId]);
+			// 		setPointsJustReceived({});
+			// 		setResultsStage('COMPLETE');
+			// 		setReceivedTelevotes([]);
+			// 		setHighPointMessage(`Congratulations to ${updatedSongs[0].songTitle} by ${updatedSongs[0].artistName}!`);
+			// 	}
 
-				if (televoteData && !finalReveal) {
-					setHighPointMessage(`${song.songTitle} receives...`);
-					await delay(2000);
-					setHighPointMessage(`${televoteData.points} points!`);
-					await delay(500);
-					setPointsJustReceived({ [song.submissionId]: televoteData.points });
-					await delay(500);
-					const updatedSongs = [...submissions];
-					const songToUpdate = updatedSongs.find((s) => s.submissionId === song.submissionId);
-					if (songToUpdate) {
-						songToUpdate.score += televoteData.points;
-					}
-					setSubmissions(updatedSongs.sort((a, b) => b.score - a.score));
-					// todo: grey out a song if it's received televote points
-					await delay(2000);
-					setReceivedTelevotes((prev) => [...prev, song.submissionId]);
-					setPointsJustReceived({}); // Clear points for the next song
-				}
+			// 	if (televoteData && !finalReveal) {
+			// 		setHighPointMessage(`${song.songTitle} receives...`);
+			// 		await delay(2000);
+			// 		setHighPointMessage(`${televoteData.points} points!`);
+			// 		await delay(500);
+			// 		setPointsJustReceived({ [song.submissionId]: televoteData.points });
+			// 		await delay(500);
+			// 		const updatedSongs = [...submissions];
+			// 		const songToUpdate = updatedSongs.find((s) => s.submissionId === song.submissionId);
+			// 		if (songToUpdate) {
+			// 			songToUpdate.score += televoteData.points;
+			// 		}
+			// 		setSubmissions(updatedSongs.sort((a, b) => b.score - a.score));
+			// 		// todo: grey out a song if it's received televote points
+			// 		await delay(2000);
+			// 		setReceivedTelevotes((prev) => [...prev, song.submissionId]);
+			// 		setPointsJustReceived({}); // Clear points for the next song
+			// 	}
 
-				if (finalReveal) {
-					await delay(4000);
-					setShowFinalOverlay(false);
-				} else {
-					await delay(20);
-				}
-			}
+			// 	if (finalReveal) {
+			// 		await delay(4000);
+			// 		setShowFinalOverlay(false);
+			// 	} else {
+			// 		await delay(20);
+			// 	}
+			// }
 		};
 
 		runRevealSequence();
@@ -347,16 +438,16 @@ const ResultsComponent: React.FC<ResultsComponentProps> = ({ editionId, user }) 
 				console.log(submissions);
 				const nextVoterId =
 					submissions.length > 0 && submissions.sort((a, b) => (a.runningOrder as number) - (b.runningOrder as number))[votingIndex].userId;
-				const voterVotesExist = juryVotes?.some((vote) => vote.fromUserId === (nextVoterId as string));
+				const voterVotesExist = juryVotes?.some((vote) => vote.userId === (nextVoterId as string));
 				if (voterVotesExist) {
 					setCurrentVoter(nextVoterId as string);
 				}
 			} else if (currentVoter === null && votingIndex > -1) {
 				const startNextRoundTimer = setTimeout(() => {
-					const nextVoterId = edition?.fulfilledSubmissions.sort((a, b) => (a.runningOrder as number) - (b.runningOrder as number))[
-						votingIndex
-					].userId as string;
-					const voterVotesExist = juryVotes?.some((vote) => vote.fromUserId === nextVoterId);
+					const nextVoterId = (edition?.submissionList as Submission[]).sort(
+						(a, b) => (a.runningOrder as number) - (b.runningOrder as number)
+					)[votingIndex].userId as string;
+					const voterVotesExist = juryVotes?.some((vote) => vote.userId === nextVoterId);
 					if (voterVotesExist) {
 						setCurrentVoter(nextVoterId);
 					} else {
@@ -365,7 +456,7 @@ const ResultsComponent: React.FC<ResultsComponentProps> = ({ editionId, user }) 
 						setCurrentVoter(null);
 						setVotingIndex((prev) => prev + 1);
 					}
-				}, 100);
+				}, 1000);
 				return () => clearTimeout(startNextRoundTimer);
 			}
 		} else {
@@ -397,7 +488,8 @@ const ResultsComponent: React.FC<ResultsComponentProps> = ({ editionId, user }) 
 				style={{ top: topOffset, left: `${leftOffset}%`, width: cardWidth }}
 			>
 				<Card
-					className={`backdrop-blur-sm m-0 mx-0.5 rounded-lg shadow-xl bg-card text-card-foreground ${song.userId === currentVoter || receivedTelevotes.includes(song.submissionId) ? 'opacity-50 transition-opacity' : ''}`}
+					// className={`backdrop-blur-sm m-0 mx-0.5 rounded-lg shadow-xl bg-card text-card-foreground ${song.userId === currentVoter || receivedTelevotes.includes(song.submissionId) ? 'opacity-50 transition-opacity' : ''}`}
+					className={`backdrop-blur-sm m-0 mx-0.5 rounded-lg shadow-xl bg-card text-card-foreground ${song.userId === currentVoter ? 'opacity-50 transition-opacity' : ''}`}
 				>
 					<CardContent className="flex items-center p-0">
 						{/* Flag on the left */}
@@ -441,9 +533,8 @@ const ResultsComponent: React.FC<ResultsComponentProps> = ({ editionId, user }) 
 						</div>
 					</CardContent>
 					{/* ✨ The Flash Animation Overlay */}
-					{((points === 12 && resultsStage === 'JURY') ||
-						(index === 0 && resultsStage === 'COMPLETE') ||
-						(index === 0 && resultsStage === 'TELEVOTE' && receivedTelevotes.includes(song.submissionId))) && (
+					{(points === 12 && resultsStage === 'JURY') || (index === 0 && resultsStage === 'COMPLETE') || (
+						// (index === 0 && resultsStage === 'TELEVOTE' && receivedTelevotes.includes(song.submissionId))) && (
 						<motion.div
 							initial={{ backgroundPosition: '-200% 0%' }} // Start the gradient far to the left
 							animate={{ backgroundPosition: '200% 0%' }} // Animate it across the card
@@ -467,9 +558,9 @@ const ResultsComponent: React.FC<ResultsComponentProps> = ({ editionId, user }) 
 		);
 	};
 
-	if (viewBreakdown) {
-		return <JuryPivotTable juryVotes={juryVotes} televotes={televotes} submissions={submissions} />;
-	}
+	// if (viewBreakdown) {
+	// 	return <JuryPivotTable juryVotes={juryVotes} televotes={televotes} submissions={submissions} />;
+	// }
 
 	return (
 		<div className="p-1 max-w-6xl mx-auto flex flex-col md:space-x-8 mt-2">
@@ -499,16 +590,16 @@ const ResultsComponent: React.FC<ResultsComponentProps> = ({ editionId, user }) 
 								Start Reveal
 							</Button>
 							<Button
-								onClick={handleSkipJury}
-								disabled={votingIndex >= 0}
+								// onClick={handleSkipJury}
+								disabled
 								className="px-4 py-2 bg-blue-500 text-white rounded-md hover:bg-blue-600 disabled:opacity-50"
 							>
-								Skip jury sequence
+								Skip jury sequence (disabled)
 							</Button>
 						</>
 					)
 				)}
-				{resultsStage === 'COMPLETE' && <Button onClick={() => setViewBreakdown(true)}>See breakdown of results</Button>}
+				{/* {resultsStage === 'COMPLETE' && <Button onClick={() => setViewBreakdown(true)}>See breakdown of results</Button>} */}
 			</div>
 			{paused && (
 				<Alert>
@@ -541,9 +632,9 @@ const ResultsComponent: React.FC<ResultsComponentProps> = ({ editionId, user }) 
 										<div className="flex w-full justify-between">
 											<div className="w-8 h-8 min-w-8 max-w-8 rounded-md overflow-hidden shadow-md relative">
 												<Image
-													src={`https://flagcdn.com/w640/${edition?.fulfilledSubmissions[votingIndex].flag?.toLowerCase()}.png`}
+													src={`https://flagcdn.com/w640/${(edition?.submissionList as Submission[])[votingIndex].flag?.toLowerCase()}.png`}
 													fill
-													alt={`${edition?.fulfilledSubmissions[votingIndex].artistName}'s flag`}
+													alt={`${(edition?.submissionList as Submission[])[votingIndex].artistName}'s flag`}
 													style={{ objectFit: 'cover', objectPosition: 'center' }}
 													quality={80}
 													sizes="640px"
@@ -619,9 +710,9 @@ const ResultsComponent: React.FC<ResultsComponentProps> = ({ editionId, user }) 
 										})}
 								</AnimatePresence>
 							</div>
-							<Progress value={(votingIndex / (edition?.fulfilledSubmissions.length || 0)) * 100} />
+							<Progress value={(votingIndex / (edition?.submissionList?.length || 0)) * 100} />
 							<div className="flex w-full justify-between">
-								<div className="text-xs">{`Juror ${votingIndex + 1} of ${edition?.fulfilledSubmissions.length}`}</div>
+								<div className="text-xs">{`Juror ${votingIndex + 1} of ${edition?.submissionList?.length}`}</div>
 							</div>
 						</Card>
 					)}
@@ -650,17 +741,18 @@ const ResultsComponent: React.FC<ResultsComponentProps> = ({ editionId, user }) 
 								) : (
 									<motion.ul className="list-none p-0">
 										{lowPointList.map((vote, index) => {
-											const song = submissions.find((s) => s.submissionId === vote.submissionId);
+											const song = submissions.find((s) => s.submissionId === vote);
 											if (!song) return null;
 											return (
 												<motion.li
-													key={vote.voteId}
+													key={vote}
 													initial={{ opacity: 0, x: -20 }}
 													animate={{ opacity: 1, x: 0 }}
 													transition={{ delay: index * 0.1 }}
 												>
 													<Card
-														className={`backdrop-blur-sm shadow-xl bg-card text-card-foreground m-0 mb-1 rounded-lg ${song.userId === currentVoter || receivedTelevotes.includes(song.submissionId) ? 'opacity-50 transition-opacity' : ''}`}
+														// className={`backdrop-blur-sm shadow-xl bg-card text-card-foreground m-0 mb-1 rounded-lg ${song.userId === currentVoter || receivedTelevotes.includes(song.submissionId) ? 'opacity-50 transition-opacity' : ''}`}
+														className={`backdrop-blur-sm shadow-xl bg-card text-card-foreground m-0 mb-1 rounded-lg ${song.userId === currentVoter ? 'opacity-50 transition-opacity' : ''}`}
 													>
 														<CardContent className="flex items-center p-0">
 															{/* Flag on the left */}
@@ -684,7 +776,7 @@ const ResultsComponent: React.FC<ResultsComponentProps> = ({ editionId, user }) 
 																className="font-bold text-lg text-lg text-white rounded-md text-center flex items-center justify-center bg-[#2196f3]"
 																style={{ minWidth: 30, height: 30 }}
 															>
-																{vote.points}
+																{lowRankingPoints.get(index)}
 															</span>
 														</CardContent>
 													</Card>
@@ -712,14 +804,14 @@ const ResultsComponent: React.FC<ResultsComponentProps> = ({ editionId, user }) 
 				</div>
 
 				{/* ✨ The Final Reveal Overlay Component */}
-				{showFinalOverlay && (
+				{/* {showFinalOverlay && (
 					<FinalOverlayCard
 						leaderSong={leader as Song}
 						stillToScoreSong={finalSongToReveal as Song}
 						finalPoints={televotes.find((v) => v.submissionId === finalSongToReveal?.submissionId)?.points as number}
 						onAnimationEnd={() => setShowFinalOverlay(false)}
 					/>
-				)}
+				)} */}
 			</div>
 		</div>
 	);

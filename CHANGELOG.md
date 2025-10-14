@@ -1,3 +1,34 @@
+## [1.1.3](https://github.com/jake-peace/fan-contest-hub/compare/v1.1.2...v1.1.3) (2025-10-13)
+
+### Bug Fixes
+
+- fixed an issue where votes were not submitted properly ([eb5ef9e](https://github.com/jake-peace/fan-contest-hub/commit/eb5ef9e27748c1fd56f7a56a152c114ffe686f6d))
+
+## [1.1.2](https://github.com/jake-peace/fan-contest-hub/compare/v1.1.1...v1.1.2) (2025-10-13)
+
+### Bug Fixes
+
+- fixed an issue where a user could attempt to withdraw another user's song ([04c3ff5](https://github.com/jake-peace/fan-contest-hub/commit/04c3ff541e50650f191f2b0e49922a35e742ecb3))
+- fixed an issue where editions would automatically close voting before the deadline ([6c9972c](https://github.com/jake-peace/fan-contest-hub/commit/6c9972c5f4e5655e0447645bbeb209b23f87a776))
+- fixed an issue where users could vote for their own entry ([9080d99](https://github.com/jake-peace/fan-contest-hub/commit/9080d99c8d4781e31ee13bd531f998affaa7a623))
+- fixed issue where submissions did not appear on voting screen ([6c3d5f7](https://github.com/jake-peace/fan-contest-hub/commit/6c3d5f7ac1235c3d87c5fc7c83a744b46466fba1))
+- fixes an issue where the running order was missing ([265f45a](https://github.com/jake-peace/fan-contest-hub/commit/265f45a8be6235609c6a53d40f6e7d56ddd67564))
+- list of spotify links is now in running order ([e48e957](https://github.com/jake-peace/fan-contest-hub/commit/e48e95792033f34929ccb87257fc2ced9843a85c))
+
+## [1.1.1](https://github.com/jake-peace/fan-contest-hub/compare/v1.1.0...v1.1.1) (2025-10-13)
+
+### Bug Fixes
+
+- fixed issue where users would be logged in as someone else due to server side leakage ([8ae5b66](https://github.com/jake-peace/fan-contest-hub/commit/8ae5b6673c5148ec65fa1ed3ba42f83375f36e6f))
+
+# [1.1.0](https://github.com/jake-peace/fan-contest-hub/compare/v1.0.2...v1.1.0) (2025-10-13)
+
+### Features
+
+- added changelog viewer and proper versioning ([01d54ed](https://github.com/jake-peace/fan-contest-hub/commit/01d54ed41b3d61af2f032233746908fcd2ff8b28))
+- host is now given a list of spotify song links to make a playlist with ([2c03e4c](https://github.com/jake-peace/fan-contest-hub/commit/2c03e4cafeeecfdbad501fc6d38bc62b2e910186))
+- improved navigation buttons ([0d93858](https://github.com/jake-peace/fan-contest-hub/commit/0d93858bcf63811228af7a94820ecafe476e059e))
+
 ## [1.0.2](https://github.com/jake-peace/fan-contest-hub/compare/v1.0.1...v1.0.2) (2025-10-13)
 
 ### Bug Fixes

@@ -1,16 +1,15 @@
 'use client';
 
-import { startTransition, useEffect, useState } from 'react';
+import { useEffect, useState, useTransition } from 'react';
 import { Vote, Music, Undo2 } from 'lucide-react';
 import { Badge } from '../ui/badge';
 import { Alert, AlertDescription, AlertTitle } from '../ui/alert';
 import { Card, CardContent, CardHeader, CardTitle } from '../ui/card';
 import { Button } from '../ui/button';
 import { useQuery, useQueryClient } from '@tanstack/react-query';
-import { useAmplifyClient } from '@/app/amplifyConfig';
 import { toast } from 'sonner';
 import { Schema } from '../../../amplify/data/resource';
-import { AuthUser, getCurrentUser } from 'aws-amplify/auth';
+import { AuthUser } from 'aws-amplify/auth';
 import { DndContext, DragEndEvent } from '@dnd-kit/core';
 import { SortableContext, verticalListSortingStrategy, arrayMove } from '@dnd-kit/sortable';
 import { restrictToVerticalAxis } from '@dnd-kit/modifiers';
@@ -18,8 +17,9 @@ import SortableSong from './SortableSong';
 import { fetchEdition } from '../EditionDetails';
 import { useRouter } from 'next/navigation';
 import { Skeleton } from '../ui/skeleton';
-import { submitVotes } from '@/app/actions/submitVotes';
 import Image from 'next/image';
+import { submitRanking } from '@/app/actions/submitRanking';
+import { Spinner } from '../ui/spinner';
 
 const rankingPoints = new Map<number, number>([
 	[1, 12],
@@ -42,26 +42,20 @@ interface VotingComponentProps {
 type Submission = Schema['Submission']['type'];
 type Vote = Schema['Vote']['type'];
 
-export const fetchEditionVotes = async (id: string) => {
-	const response = await fetch(`/api/editions/${id}/votes`);
+// export const fetchEditionVotes = async (id: string) => {
+// 	const response = await fetch(`/api/editions/${id}/votes`);
 
-	if (!response.ok) {
-		throw new Error('Failed to fetch data from the server.');
-	}
+// 	if (!response.ok) {
+// 		throw new Error('Failed to fetch data from the server.');
+// 	}
 
-	const result = await response.json();
-	return result.votes as Vote[];
-};
+// 	const result = await response.json();
+// 	return result.votes as Vote[];
+// };
 
 const VotingComponent: React.FC<VotingComponentProps> = ({ editionId, user }) => {
 	const [rankings, setRankings] = useState<Submission[]>([]);
-
 	const router = useRouter();
-
-	const { data: votes, isFetched: isFetchedVotes } = useQuery({
-		queryKey: ['editionDetailsVotingVotes', editionId],
-		queryFn: () => fetchEditionVotes(editionId),
-	});
 
 	const {
 		data: edition,
@@ -77,9 +71,12 @@ const VotingComponent: React.FC<VotingComponentProps> = ({ editionId, user }) =>
 			if (edition?.phase !== 'VOTING') {
 				router.push(`/edition/${editionId}`);
 				toast.error('Voting is not open for this edition.');
+			} else if (edition.rankingsList?.find((r) => r.userId === user.userId) !== undefined) {
+				router.push(`/edition/${editionId}`);
+				toast.error('You have already voted in this edition.');
 			} else {
 				setRankings(
-					edition?.fulfilledSubmissions
+					(edition?.submissionList as Submission[])
 						.filter((s) => s.rejected !== true && s.userId !== user.userId)
 						.sort((a, b) => (a.runningOrder as number) - (b.runningOrder as number)) as Submission[]
 				);
@@ -87,44 +84,49 @@ const VotingComponent: React.FC<VotingComponentProps> = ({ editionId, user }) =>
 		}
 	}, [isFetched]);
 
-	useEffect(() => {
-		if (isFetchedVotes) {
-			if (votes?.find((v) => v.fromUserId === user.userId) !== undefined) {
-				router.push(`/edition/${editionId}`);
-				toast.error('You have already voted in this edition.');
-			}
-		}
-	}, [isFetchedVotes]);
+	const handleResetRankings = () => {
+		setRankings(
+			(edition?.submissionList as Submission[])
+				.filter((s) => s.rejected !== true && s.userId !== user.userId)
+				.sort((a, b) => (a.runningOrder as number) - (b.runningOrder as number)) as Submission[]
+		);
+	};
 
-	const client = useAmplifyClient();
 	const queryClient = useQueryClient();
+	const [isPending, startTransition] = useTransition();
 
 	const getPointsByRank = (rank: number): number | undefined => {
 		return rankingPoints.get(rank);
 	};
 
-	const handleSubmitVote = async () => {
+	const handleSubmitRanking = async () => {
 		startTransition(async () => {
-			const result = await submitVotes(
-				rankings.map((r) => r.submissionId),
-				editionId
-			);
+			const rankingList = rankings.map((r) => r.submissionId).slice(0, 10);
+			const result = await submitRanking(rankingList, editionId);
 			if (result.success) {
-				// form.reset(); // Reset form on success
-				// toast.success(`Your song "${data.songTitle}" was submitted successfully. Good luck!`);
-				queryClient.removeQueries({ queryKey: ['editionDetailsVotes'] });
+				// query client - invalidate future ranking query
+				queryClient.invalidateQueries({ queryKey: ['editionDetails', editionId] });
 				toast.success('Your votes have been submitted successfully!');
 				router.push(`/edition/${editionId}`);
-				// Handle success UI (e.g., toast, revalidation)
 			} else {
-				// Handle error UI
+				toast.error(`There was an error submitting your votes: ${result.error}`);
 			}
 		});
-		client.queries.submitBatchVotes({
-			ranking: rankings.map((song) => song.submissionId),
-			user: (await getCurrentUser()).userId,
-		});
 	};
+
+	// const handleSubmitVote = async () => {
+	// 	startTransition(async () => {
+	// 		const result = await submitVotes(rankings.map((r) => r.submissionId).slice(0, 10), editionId);
+	// 		if (result.success) {
+	// 			queryClient.removeQueries({ queryKey: ['editionDetailsVotes'] });
+	// 			toast.success('Your votes have been submitted successfully!');
+	// 			router.push(`/edition/${editionId}`);
+	// 			// Handle success UI (e.g., toast, revalidation)
+	// 		} else {
+	// 			// Handle error UI
+	// 		}
+	// 	});
+	// };
 
 	const getBadgeColor = (rank: number) => {
 		if (rank > 10) {
@@ -168,7 +170,7 @@ const VotingComponent: React.FC<VotingComponentProps> = ({ editionId, user }) =>
 						<Music className="w-4 h-4" />
 						<AlertDescription>Listen to songs and drag them to create your top 10 ranking. Higher ranks get more points!</AlertDescription>
 					</Alert>
-					<Button onClick={() => setRankings(edition?.fulfilledSubmissions as Submission[])} variant="secondary" className="mt-2">
+					<Button onClick={handleResetRankings} variant="secondary" className="mt-2">
 						<Undo2 className="w-4 h-4 mr-2" />
 						Reset Rankings
 					</Button>
@@ -220,10 +222,10 @@ const VotingComponent: React.FC<VotingComponentProps> = ({ editionId, user }) =>
 													/>
 												</div>
 												<div className="flex-1 truncate">
-													<h3 className="font-medium truncate">{song.songTitle}</h3>
-													<p className="text-sm text-muted-foreground truncate">by {song.artistName}</p>
+													<h3 className="font-medium truncate no-select">{song.songTitle}</h3>
+													<p className="text-sm text-muted-foreground truncate no-select">by {song.artistName}</p>
 												</div>
-												<div className="flex items-center gap-2">
+												<div className="flex items-center gap-2 no-select">
 													<Badge variant="secondary" className={getBadgeColor(rankings.indexOf(song) + 1)}>
 														{getPointsByRank(rankings.indexOf(song) + 1)}
 													</Badge>
@@ -238,9 +240,9 @@ const VotingComponent: React.FC<VotingComponentProps> = ({ editionId, user }) =>
 				</CardContent>
 			</Card>
 
-			<Button onClick={handleSubmitVote} disabled={rankings.length === 0} className="w-full">
-				<Vote className="w-4 h-4 mr-2" />
-				Submit Rankings
+			<Button onClick={handleSubmitRanking} disabled={rankings.length === 0 || isPending} className="w-full">
+				{isPending ? <Spinner /> : <Vote />}
+				Submit Votes
 			</Button>
 		</>
 	);

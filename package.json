@@ -1,6 +1,6 @@
 {
   "name": "fan-contest-hub",
-  "version": "1.0.2",
+  "version": "1.1.3",
   "private": true,
   "type": "module",
   "scripts": {
@@ -150,10 +150,13 @@
           "message": "chore(release): ${nextRelease.version} [skip-cd]\n\n${nextRelease.notes}"
         }
       ],
-      ["@semantic-release/exec", {
-        "prepareCmd": "echo \"NEXT_PUBLIC_APP_VERSION=${nextRelease.version}\" > .env.build",
-        "publishCmd": "echo 'Release complete!'"
-      }],
+      [
+        "@semantic-release/exec",
+        {
+          "prepareCmd": "echo \"NEXT_PUBLIC_APP_VERSION=${nextRelease.version}\" > .env.build",
+          "publishCmd": "echo 'Release complete!'"
+        }
+      ],
       "@semantic-release/github"
     ]
   }

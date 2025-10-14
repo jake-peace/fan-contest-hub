@@ -59,7 +59,7 @@ export const handler: EventBridgeHandler<'Scheduled Event', null, void> = async 
 					{
 						and: [
 							{
-								submissionsOpen: { lt: parsedNow.toString() },
+								submissionsOpen: { gt: parsedNow.toString() },
 							},
 							{
 								phase: { eq: 'UPCOMING' },
@@ -69,7 +69,7 @@ export const handler: EventBridgeHandler<'Scheduled Event', null, void> = async 
 					{
 						and: [
 							{
-								votingDeadline: { lt: parsedNow.toString() },
+								votingDeadline: { gt: parsedNow.toString() },
 							},
 							{
 								phase: { eq: 'VOTING' },
@@ -100,7 +100,7 @@ export const handler: EventBridgeHandler<'Scheduled Event', null, void> = async 
 					const promises = shuffleArray(submissions).map((s, index) => {
 						return client.models.Submission.update({
 							submissionId: s.submissionId,
-							runningOrder: index,
+							runningOrder: index + 1,
 						});
 					});
 					await Promise.all(promises);
@@ -115,7 +115,9 @@ export const handler: EventBridgeHandler<'Scheduled Event', null, void> = async 
 
 		// 2. Iterate and update each record's variable (status)
 		const updatePromises = recordsToUpdate.map((record) => {
-			console.log(`Updating record ID: ${record.editionId} from ${record.phase} to ${nextPhase.get(record.phase)}`);
+			console.log(
+				`Updating record ID: ${record.editionId} from ${record.phase} to ${nextPhase.get(record.phase)} because the voting deadline was ${record.votingDeadline}`
+			);
 			return client.models.Edition.update({
 				editionId: record.editionId,
 				phase: nextPhase.get(record.phase),

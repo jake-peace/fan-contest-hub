@@ -22,6 +22,7 @@ import { getPhaseColor } from '../EditionList';
 import Image from 'next/image';
 import { EditionWithDetails } from '@/types/Edition';
 import { Collapsible, CollapsibleContent, CollapsibleTrigger } from '../ui/collapsible';
+import { SubmissionWithScore } from '../ResultsComponent';
 
 interface EditionDetailsProps {
 	editionId: string;
@@ -41,15 +42,8 @@ const rankingPoints = new Map<number, number>([
 	[10, 1],
 ]);
 
-type Edition = Schema['Edition']['type'];
-type Contest = Schema['Contest']['type'];
 type Submission = Schema['Submission']['type'];
 type Vote = Schema['Vote']['type'];
-
-export interface ExpandedEdition extends Edition {
-	fulfilledContest: Contest;
-	fulfilledSubmissions: Submission[];
-}
 
 export const fetchEdition = async (id: string) => {
 	const response = await fetch(`/api/editions/${id}`);
@@ -523,6 +517,50 @@ const EditionDetails: React.FC<EditionDetailsProps> = ({ editionId, user }) => {
 						<Info />
 						<AlertDescription>Results will be available here after the host has revealed them.</AlertDescription>
 					</Alert>
+				)}
+
+				{edition.phase === 'RESULTS' && edition.resultsRevealed && (
+					<Card className="mb-4 py-6 gap-2">
+						<CardHeader>
+							<CardTitle className="flex items-center gap-2">Results</CardTitle>
+						</CardHeader>
+						<CardContent>
+							{(edition.submissionList as SubmissionWithScore[]).map((song, index) => (
+								<div
+									key={song.submissionId}
+									className={`p-2 border rounded-lg transition-all hover:bg-muted/50 cursor-pointer border-border`}
+								>
+									<div className="flex items-center justify-between gap-3">
+										<div className="flex items-center gap-2">
+											<Badge variant="secondary" className={getBadgeColor(index + 1)}>
+												{index + 1}
+											</Badge>
+										</div>
+										<div className="min-w-10 max-w-10 h-10 rounded-sm overflow-hidden relative">
+											<Image
+												src={`https://flagcdn.com/w640/${song.flag?.toLowerCase()}.png`}
+												fill
+												alt={`${song.countryName}'s flag`}
+												style={{ objectFit: 'cover', objectPosition: 'center' }}
+												quality={80}
+												sizes="640px"
+											/>
+										</div>
+										<div className="flex-1 truncate">
+											<h3 className="font-medium truncate">{song?.songTitle}</h3>
+											<p className="text-sm text-muted-foreground truncate">by {song?.artistName}</p>
+										</div>
+										<div
+											className={`text-lg text-white p-2 rounded-md min-w text-center flex items-center justify-center bg-[#2196f3]`}
+											style={{ width: 40, height: 30, fontWeight: 'bold' }}
+										>
+											{song.score}
+										</div>
+									</div>
+								</div>
+							))}
+						</CardContent>
+					</Card>
 				)}
 			</>
 		)

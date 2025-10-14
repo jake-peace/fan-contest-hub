@@ -1,3 +1,4 @@
+import { SubmissionWithScore } from '@/components/ResultsComponent';
 import { Schema } from '../../amplify/data/resource';
 
 type Submission = Schema['Submission']['type'];
@@ -7,6 +8,6 @@ type Ranking = Schema['Ranking']['type'];
 
 export interface EditionWithDetails extends Edition {
 	contestDetails: Contest;
-	submissionList?: Submission[];
+	submissionList?: Submission[] | SubmissionWithScore[];
 	rankingsList?: Ranking[];
 }

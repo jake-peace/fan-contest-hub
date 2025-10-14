@@ -48,7 +48,7 @@ interface ResultsComponentProps {
 // 	flag: string;
 // }
 
-interface SubmissionWithScore extends Submission {
+export interface SubmissionWithScore extends Submission {
 	score: number;
 }
 
@@ -88,7 +88,7 @@ const lowRankingPoints = new Map<number, number>([
 	[6, 1],
 ]);
 
-const tiebreakSorter = (externalData: string[][]) => {
+export const tiebreakSorter = (externalData: string[][]) => {
 	// --- Counting Logic ---
 	// Pre-calculate the count array [Count@Index0, Count@Index1, ..., Count@Index9]
 	const calculateCountArray = (id: string): number[] => {

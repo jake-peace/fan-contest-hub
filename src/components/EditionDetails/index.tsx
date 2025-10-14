@@ -1,6 +1,6 @@
 'use client';
 
-import { Clock, Vote, Users, Music, Trophy, Upload, Play, Music2, CheckCircle, TriangleAlert, Info, AlertCircle } from 'lucide-react';
+import { Clock, Vote, Users, Music, Trophy, Upload, Play, Music2, CheckCircle, TriangleAlert, Info } from 'lucide-react';
 import { Card, CardHeader, CardTitle, CardContent } from '../ui/card';
 import { EditionPhase } from '@/mockData/newMockData';
 import { formatDate, getPhaseMessage } from '@/utils';
@@ -155,12 +155,9 @@ const EditionDetails: React.FC<EditionDetailsProps> = ({ editionId, user }) => {
 								Votes Submitted
 							</Button>
 						) : (
-							// <Button onClick={() => router.push(`/edition/${editionId}/vote`)} className="w-full">
-							// 	<Vote className="w-4 h-4 mr-2" />
-							// 	Vote Now
-							// </Button>
-							<Button className="w-full" variant="destructive" disabled>
-								Voting Temporarily Closed
+							<Button onClick={() => router.push(`/edition/${editionId}/vote`)} className="w-full">
+								<Vote className="w-4 h-4 mr-2" />
+								Vote Now
 							</Button>
 						)}
 					</>
@@ -234,16 +231,6 @@ const EditionDetails: React.FC<EditionDetailsProps> = ({ editionId, user }) => {
 						</AlertDescription>
 					</Alert>
 				)}
-				<Alert className="mb-2">
-					<AlertTitle className="flex items-center gap-2">
-						<AlertCircle />
-						Scheduled Maintenance Tonight
-					</AlertTitle>
-					<AlertDescription>
-						Voting for all Contests will be closed from 21:00 tonight while maintenance is being carried out. Voting will re-open once this
-						is complete. Maintenance is expected to last at most 6 hours.
-					</AlertDescription>
-				</Alert>
 				<Card className="mb-4 py-6 gap-2">
 					<CardHeader>
 						<div className="flex items-center justify-between">
@@ -335,11 +322,10 @@ const EditionDetails: React.FC<EditionDetailsProps> = ({ editionId, user }) => {
 									<div className="flex justify-between">
 										<span>Votes Cast</span>
 										<span>
-											{edition.rankingsList.length / Math.min(10, (edition.submissionList as Submission[]).length - 1)}/
-											{edition.contestDetails.participants.length}
+											{edition.rankingsList.length}/{edition.contestDetails.participants.length}
 										</span>
 									</div>
-									<Progress value={(0 / edition.contestDetails.participants.length) * 100} className="h-2" />
+									<Progress value={(edition.rankingsList.length / edition.contestDetails.participants.length) * 100} className="h-2" />
 								</div>
 							)}
 						</div>
@@ -436,15 +422,15 @@ const EditionDetails: React.FC<EditionDetailsProps> = ({ editionId, user }) => {
 						</Card>
 						<Card className="mb-4 py-6 gap-2">
 							<Collapsible>
-								<CollapsibleTrigger>
-									<CardHeader>
+								<CardHeader>
+									<CollapsibleTrigger>
 										<CardTitle className="flex items-center gap-2">View Your Votes</CardTitle>
-									</CardHeader>
-								</CollapsibleTrigger>
-								<CollapsibleContent>
-									{edition.rankingsList?.find((x) => x.userId === user.userId) !== undefined ? (
-										<CardContent className="space-y-1">
-											{edition.rankingsList
+									</CollapsibleTrigger>
+								</CardHeader>
+								<CardContent className="space-y-1">
+									<CollapsibleContent>
+										{edition.rankingsList?.find((x) => x.userId === user.userId) !== undefined ? (
+											edition.rankingsList
 												?.find((r) => r.userId === user.userId)
 												?.rankingList?.map((s, index) => (
 													<div key={s} className={`p-2 border rounded-lg transition-all hover:bg-muted/50 cursor-pointer border-border`}>
@@ -474,14 +460,14 @@ const EditionDetails: React.FC<EditionDetailsProps> = ({ editionId, user }) => {
 															</div>
 														</div>
 													</div>
-												))}
-										</CardContent>
-									) : (
-										<Alert>
-											<AlertTitle>You haven&apos;t voted yet</AlertTitle>
-										</Alert>
-									)}
-								</CollapsibleContent>
+												))
+										) : (
+											<Alert>
+												<AlertTitle>You haven&apos;t voted yet</AlertTitle>
+											</Alert>
+										)}
+									</CollapsibleContent>
+								</CardContent>
 							</Collapsible>
 						</Card>
 					</>

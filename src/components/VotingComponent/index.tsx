@@ -71,7 +71,7 @@ const VotingComponent: React.FC<VotingComponentProps> = ({ editionId, user }) =>
 			if (edition?.phase !== 'VOTING') {
 				router.push(`/edition/${editionId}`);
 				toast.error('Voting is not open for this edition.');
-			} else if (edition.rankingsList?.find((r) => r.userId) !== undefined) {
+			} else if (edition.rankingsList?.find((r) => r.userId === user.userId) !== undefined) {
 				router.push(`/edition/${editionId}`);
 				toast.error('You have already voted in this edition.');
 			} else {

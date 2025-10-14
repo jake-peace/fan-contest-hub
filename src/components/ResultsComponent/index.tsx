@@ -88,6 +88,72 @@ const lowRankingPoints = new Map<number, number>([
 	[6, 1],
 ]);
 
+const tiebreakSorter = (externalData: string[][]) => {
+	// --- Counting Logic ---
+	// Pre-calculate the count array [Count@Index0, Count@Index1, ..., Count@Index9]
+	const calculateCountArray = (id: string): number[] => {
+		// Initialize an array of 10 zeros
+		const counts = new Array<number>(10).fill(0);
+
+		// Iterate over every inner array in the external data
+		for (const innerArray of externalData) {
+			// Check the first 10 positions (index 0 to 9) of the current inner array
+			const limit = Math.min(innerArray.length, 10);
+
+			for (let i = 0; i < limit; i++) {
+				if (innerArray[i] === id) {
+					// Increment the count for that specific index (i)
+					counts[i]++;
+				}
+			}
+		}
+		return counts;
+	};
+
+	// Cache to store the pre-calculated count array for each ID
+	const idCountCache = new Map<string, number[]>();
+
+	const getCountArray = (id: string): number[] => {
+		if (idCountCache.has(id)) {
+			return idCountCache.get(id)!;
+		}
+		const countArray = calculateCountArray(id);
+		idCountCache.set(id, countArray);
+		return countArray;
+	};
+
+	// --- The Comparison Function ---
+	const complexSorter = (a: SubmissionWithScore, b: SubmissionWithScore): number => {
+		// 1. Primary Sort: Score (Descending)
+		let comparison = b.score - a.score;
+		if (comparison !== 0) {
+			return comparison;
+		}
+
+		// --- 2. Secondary Sort: Sequential ID Count (Descending) ---
+		const aCounts = getCountArray(a.submissionId);
+		const bCounts = getCountArray(b.submissionId);
+
+		// Iterate from index 0 up to 9
+		for (let i = 0; i < 10; i++) {
+			// Compare the counts at the current index (Descending)
+			comparison = bCounts[i] - aCounts[i];
+
+			// If the counts are different, this is our tie-breaker—return the result immediately
+			if (comparison !== 0) {
+				return comparison;
+			}
+			// If they are equal (comparison === 0), the loop continues to the next index (i+1)
+		}
+
+		// 3. Tertiary Sort: RunningOrder (Ascending)
+		// This is only reached if score and ALL 10 sequential counts were identical
+		return (a.runningOrder as number) - (b.runningOrder as number);
+	};
+
+	return complexSorter;
+};
+
 const ResultsComponent: React.FC<ResultsComponentProps> = ({ editionId, user }) => {
 	const [submissions, setSubmissions] = useState<SubmissionWithScore[]>([]);
 	const [votingIndex, setVotingIndex] = useState(-1);
@@ -241,28 +307,12 @@ const ResultsComponent: React.FC<ResultsComponentProps> = ({ editionId, user }) 
 				}
 			});
 			setPointsJustReceived((prev) => ({ ...prev, ...newPointsReceived }));
-			setSubmissions(updatedSongs.sort((a, b) => b.score - a.score));
+			setSubmissions(updatedSongs.sort(tiebreakSorter(edition?.rankingsList?.map((r) => r.rankingList as string[]) as string[][])));
 
 			// --- Step 4: Add a delay *between* the 1-7 and the high points ---
 			await delay(3000);
 
 			// --- Step 5: Reveal 8, 10, and 12 points with delays in between ---
-			// highPointVotes.forEach(async (vote, index) => {
-			// 	const points = rankingPoints.get(index) as number;
-			// 	const updatedSongs = [...submissions];
-			// 	const songToUpdate = updatedSongs.find((s) => s.submissionId === vote);
-			// 	setHighPointMessage(`${points} points goes to...`);
-			// 	await delay(2000);
-			// 	if (songToUpdate) {
-			// 		songToUpdate.score += points;
-			// 	}
-			// 	setHighPointMessage(`${songToUpdate?.songTitle} by ${songToUpdate?.artistName}!`);
-			// 	setPointsJustReceived((prev) => ({ ...prev, [vote]: points }));
-			// 	await delay(1000);
-			// 	setSubmissions(updatedSongs.sort((a, b) => b.score - a.score));
-			// 	await delay(2000);
-			// });
-
 			for (let i = 0; i < highPointVotes.length; i++) {
 				const points = rankingPoints.get(i) as number;
 				const updatedSongs = [...submissions];
@@ -275,7 +325,7 @@ const ResultsComponent: React.FC<ResultsComponentProps> = ({ editionId, user }) 
 				setHighPointMessage(`${songToUpdate?.songTitle} by ${songToUpdate?.artistName}!`);
 				setPointsJustReceived((prev) => ({ ...prev, [highPointVotes[i]]: points }));
 				await delay(1000);
-				setSubmissions(updatedSongs.sort((a, b) => b.score - a.score));
+				setSubmissions(updatedSongs.sort(tiebreakSorter(edition?.rankingsList?.map((r) => r.rankingList as string[]) as string[][])));
 				await delay(2000);
 			}
 

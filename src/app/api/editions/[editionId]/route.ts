@@ -1,11 +1,19 @@
 import { cookiesClient } from '@/utils/amplify-utils';
 import { NextResponse } from 'next/server';
 import { Schema } from '../../../../../amplify/data/resource';
-import { ExpandedEdition } from '@/components/EditionDetails';
+import { EditionWithDetails } from '@/types/Edition';
 
 type Params = Promise<{ editionId: string }>;
 type Submission = Schema['Submission']['type'];
 type Contest = Schema['Contest']['type'];
+// type Edition = Schema['Edition']['type'];
+type Ranking = Schema['Ranking']['type'];
+
+// interface EditionWithDetails extends Edition {
+// 	contestDetails: Contest;
+// 	submissionList?: Submission[];
+// 	rankingsList?: Ranking[];
+// }
 
 export async function GET(request: Request, segmentData: { params: Params }) {
 	const params = await segmentData.params;
@@ -16,12 +24,15 @@ export async function GET(request: Request, segmentData: { params: Params }) {
 
 		const submissionsResp = await data?.submissions();
 		const contestResp = await data?.contest();
+		const rankingsResp = await data?.rankings();
 
-		const editionData: ExpandedEdition = {
+		const editionData: EditionWithDetails = {
 			...data,
-			fulfilledSubmissions: submissionsResp?.data as Submission[],
-			fulfilledContest: contestResp?.data as Contest,
-		} as ExpandedEdition;
+			submissionList: submissionsResp?.data as Submission[] | undefined,
+			contestDetails: contestResp?.data as Contest,
+			rankingsList: rankingsResp?.data as Ranking[] | undefined,
+		} as EditionWithDetails;
+
 		return NextResponse.json({ edition: editionData });
 		// eslint-disable-next-line @typescript-eslint/no-explicit-any
 	} catch (error: any) {

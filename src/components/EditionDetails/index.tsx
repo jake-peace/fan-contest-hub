@@ -18,9 +18,9 @@ import { Skeleton } from '../ui/skeleton';
 import SubmissionCard from '../SubmissionCard';
 import { Alert, AlertDescription, AlertTitle } from '../ui/alert';
 import EditionHostOptions from '../EditionHostOptions';
-import { fetchEditionVotes } from '../VotingComponent';
 import { getPhaseColor } from '../EditionList';
 import Image from 'next/image';
+import { EditionWithDetails } from '@/types/Edition';
 
 interface EditionDetailsProps {
 	editionId: string;
@@ -45,7 +45,7 @@ export const fetchEdition = async (id: string) => {
 	}
 
 	const result = await response.json();
-	return result.edition as ExpandedEdition;
+	return result.edition as EditionWithDetails;
 };
 
 const EditionDetails: React.FC<EditionDetailsProps> = ({ editionId, user }) => {
@@ -62,11 +62,11 @@ const EditionDetails: React.FC<EditionDetailsProps> = ({ editionId, user }) => {
 		queryFn: () => fetchEdition(editionId),
 	});
 
-	const { data: editionVotes } = useQuery({
-		queryKey: ['editionDetailsVotes', editionId],
-		queryFn: () => fetchEditionVotes(editionId),
-		enabled: edition && (edition.phase === 'VOTING' || edition.phase === 'RESULTS'),
-	});
+	// const { data: editionVotes } = useQuery({
+	// 	queryKey: ['editionDetailsVotes', editionId],
+	// 	queryFn: () => fetchEditionVotes(editionId),
+	// 	enabled: edition && (edition.phase === 'VOTING' || edition.phase === 'RESULTS'),
+	// });
 
 	useEffect(() => {
 		const song = searchParams.get('song');
@@ -77,21 +77,25 @@ const EditionDetails: React.FC<EditionDetailsProps> = ({ editionId, user }) => {
 	}, [searchParams]); // Reruns when query params change
 
 	const hasUserSubmitted = (): boolean => {
-		return edition?.fulfilledSubmissions.find((s) => s.userId === user.userId && s.rejected !== true) !== undefined;
+		if (!edition?.submissionList) {
+			return false;
+		}
+		return edition?.submissionList.find((s) => s.userId === user.userId && s.rejected !== true) !== undefined;
 	};
 
 	const userSubmission = (): Submission => {
-		return edition?.fulfilledSubmissions.find((s) => s.userId === user.userId && s.rejected !== true) as Submission;
+		return (edition?.submissionList as Submission[]).find((s) => s.userId === user.userId && s.rejected !== true) as Submission;
 	};
 
 	const hasUserVoted = (): boolean => {
-		return editionVotes?.find((v) => v.fromUserId === user.userId) !== undefined;
+		// return editionVotes?.find((v) => v.fromUserId === user.userId) !== undefined;
+		return edition?.rankingsList?.find((r) => r.userId === user.userId) !== undefined;
 	};
 
 	const wasEntryRejected = (): boolean => {
 		return (
-			edition?.fulfilledSubmissions.find((s) => s.userId === user.userId && s.rejected === true) !== undefined &&
-			edition?.fulfilledSubmissions.find((s) => s.userId === user.userId && s.rejected !== true) === undefined
+			(edition?.submissionList as Submission[]).find((s) => s.userId === user.userId && s.rejected === true) !== undefined &&
+			(edition?.submissionList as Submission[]).find((s) => s.userId === user.userId && s.rejected !== true) === undefined
 		);
 	};
 
@@ -129,7 +133,7 @@ const EditionDetails: React.FC<EditionDetailsProps> = ({ editionId, user }) => {
 			if (edition.phase === 'VOTING') {
 				return (
 					<>
-						{edition.fulfilledSubmissions.some((s) => s.userId === user.userId) === undefined && (
+						{edition.submissionList?.some((s) => s.userId === user.userId) === undefined && (
 							<Alert>
 								<AlertTitle>
 									<Info />
@@ -154,7 +158,7 @@ const EditionDetails: React.FC<EditionDetailsProps> = ({ editionId, user }) => {
 
 			if (edition.phase === 'RESULTS' || edition.phase === 'COMPLETE') {
 				return (
-					editionVotes && (
+					edition.rankingsList && (
 						<Button className="w-full" onClick={() => router.push(`/edition/${editionId}/results`)}>
 							<Trophy className="w-4 h-4 mr-2" />
 							View Results
@@ -267,17 +271,17 @@ const EditionDetails: React.FC<EditionDetailsProps> = ({ editionId, user }) => {
 						</div>
 
 						<div className="space-y-2">
-							{edition.fulfilledContest?.participants && (
+							{edition.contestDetails.participants && (
 								<div className="flex items-center justify-between">
 									<span className="flex items-center gap-2">
 										<Users className="w-4 h-4" />
 										Participants
 									</span>
-									<span>{edition.fulfilledContest.participants.length}</span>
+									<span>{edition.contestDetails.participants.length}</span>
 								</div>
 							)}
 
-							{edition.phase === 'SUBMISSION' && edition.fulfilledContest.participants && (
+							{edition.phase === 'SUBMISSION' && edition.contestDetails.participants && (
 								<div className="space-y-1">
 									<div className="flex items-center justify-between">
 										<span className="flex items-center gap-2">
@@ -285,14 +289,13 @@ const EditionDetails: React.FC<EditionDetailsProps> = ({ editionId, user }) => {
 											Submissions
 										</span>
 										<span>
-											{edition.fulfilledSubmissions.filter((s) => s.rejected !== true).length}/
-											{edition.fulfilledContest.participants.length}
+											{edition.submissionList?.filter((s) => s.rejected !== true).length}/{edition.contestDetails.participants.length}
 										</span>
 									</div>
 									<Progress
 										value={
-											(edition.fulfilledSubmissions.filter((s) => s.rejected !== true).length /
-												edition.fulfilledContest.participants.length) *
+											((edition.submissionList as Submission[]).filter((s) => s.rejected !== true).length /
+												edition.contestDetails.participants.length) *
 											100
 										}
 										className="h-2"
@@ -300,16 +303,16 @@ const EditionDetails: React.FC<EditionDetailsProps> = ({ editionId, user }) => {
 								</div>
 							)}
 
-							{edition.phase === 'VOTING' && edition.fulfilledContest.participants && editionVotes && (
+							{edition.phase === 'VOTING' && edition.contestDetails.participants && edition.rankingsList && (
 								<div className="space-y-1">
 									<div className="flex justify-between">
 										<span>Votes Cast</span>
 										<span>
-											{editionVotes.length / Math.min(10, edition.fulfilledSubmissions.length - 1)}/
-											{edition.fulfilledContest.participants.length}
+											{edition.rankingsList.length / Math.min(10, (edition.submissionList as Submission[]).length - 1)}/
+											{edition.contestDetails.participants.length}
 										</span>
 									</div>
-									<Progress value={(0 / edition.fulfilledContest.participants.length) * 100} className="h-2" />
+									<Progress value={(0 / edition.contestDetails.participants.length) * 100} className="h-2" />
 								</div>
 							)}
 						</div>
@@ -331,13 +334,8 @@ const EditionDetails: React.FC<EditionDetailsProps> = ({ editionId, user }) => {
 							</Button>
 						)}
 
-						{user.userId === edition.fulfilledContest.hostId && (
-							<EditionHostOptions
-								phase={edition.phase}
-								onRefetch={refetch}
-								editionId={editionId}
-								submissions={edition.fulfilledSubmissions}
-							/>
+						{user.userId === edition.contestDetails.hostId && (
+							<EditionHostOptions phase={edition.phase} onRefetch={refetch} editionId={editionId} submissions={edition.submissionList} />
 						)}
 					</CardContent>
 				</Card>
@@ -357,7 +355,7 @@ const EditionDetails: React.FC<EditionDetailsProps> = ({ editionId, user }) => {
 									submission={userSubmission()}
 									isHost={false}
 									onReject={refetch}
-									contestId={edition.fulfilledContest.contestId as string}
+									contestId={edition.contestDetails.contestId as string}
 									isUser
 								/>
 							)}
@@ -392,7 +390,7 @@ const EditionDetails: React.FC<EditionDetailsProps> = ({ editionId, user }) => {
 									<Card className="p-4 bg-muted" />
 								</Skeleton>
 							) : (
-								edition.fulfilledSubmissions
+								(edition.submissionList as Submission[])
 									.filter((s) => s.rejected !== true)
 									.sort((a, b) => (a.runningOrder as number) - (b.runningOrder as number))
 									.map((s) => (
@@ -400,7 +398,7 @@ const EditionDetails: React.FC<EditionDetailsProps> = ({ editionId, user }) => {
 											key={s.submissionId}
 											submission={s}
 											isHost={false}
-											contestId={edition.fulfilledContest.contestId as string}
+											contestId={edition.contestDetails.contestId as string}
 											showRunningOrder
 											isUser={false}
 										/>
@@ -410,7 +408,7 @@ const EditionDetails: React.FC<EditionDetailsProps> = ({ editionId, user }) => {
 					</Card>
 				)}
 
-				{edition.phase === 'SUBMISSION' && edition.fulfilledContest.hostId === user.userId && (
+				{edition.phase === 'SUBMISSION' && edition.contestDetails.hostId === user.userId && (
 					<Card className="mb-4 py-6 gap-2">
 						<CardHeader>
 							<CardTitle className="flex items-center gap-2">Submissions</CardTitle>
@@ -422,15 +420,15 @@ const EditionDetails: React.FC<EditionDetailsProps> = ({ editionId, user }) => {
 									<Card className="p-4 bg-muted" />
 								</Skeleton>
 							) : (
-								edition.fulfilledSubmissions
+								(edition.submissionList as Submission[])
 									.filter((s) => s.rejected !== true)
 									.map((s) => (
 										<SubmissionCard
 											key={s.submissionId}
 											submission={s}
 											onReject={refetch}
-											isHost={user.userId === edition.fulfilledContest.hostId}
-											contestId={edition.fulfilledContest.contestId as string}
+											isHost={user.userId === edition.contestDetails.hostId}
+											contestId={edition.contestDetails.contestId as string}
 										/>
 									))
 							)}

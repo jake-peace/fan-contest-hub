@@ -275,6 +275,9 @@ const ResultsComponent: React.FC<ResultsComponentProps> = ({ editionId, user }) 
 			// if (televotes.length === 0 || !televotes) {
 			setHighPointMessage('No televotes found for this edition!');
 			setResultsStage('COMPLETE');
+			setHighPointMessage(
+				`Congratulations to ${profiles?.find((p) => p.userId === submissions[0].userId)?.displayName} with the song ${submissions[0].songTitle} by ${submissions[0].artistName}!`
+			);
 			// 	return;
 			// }
 			// setReceivedTelevotes([]);
@@ -384,7 +387,7 @@ const ResultsComponent: React.FC<ResultsComponentProps> = ({ editionId, user }) 
 						setCurrentVoter(null);
 						setVotingIndex((prev) => prev + 1);
 					}
-				}, 100);
+				}, 1000);
 				return () => clearTimeout(startNextRoundTimer);
 			}
 		} else {

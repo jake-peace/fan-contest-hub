@@ -6,7 +6,7 @@ import { Badge } from '../ui/badge';
 import { Alert, AlertDescription, AlertTitle } from '../ui/alert';
 import { Card, CardContent, CardHeader, CardTitle } from '../ui/card';
 import { Button } from '../ui/button';
-import { useQuery } from '@tanstack/react-query';
+import { useQuery, useQueryClient } from '@tanstack/react-query';
 import { toast } from 'sonner';
 import { Schema } from '../../../amplify/data/resource';
 import { AuthUser } from 'aws-amplify/auth';
@@ -92,7 +92,7 @@ const VotingComponent: React.FC<VotingComponentProps> = ({ editionId, user }) =>
 		);
 	};
 
-	// const queryClient = useQueryClient();
+	const queryClient = useQueryClient();
 	const [isPending, startTransition] = useTransition();
 
 	const getPointsByRank = (rank: number): number | undefined => {
@@ -105,6 +105,7 @@ const VotingComponent: React.FC<VotingComponentProps> = ({ editionId, user }) =>
 			const result = await submitRanking(rankingList, editionId);
 			if (result.success) {
 				// query client - invalidate future ranking query
+				queryClient.invalidateQueries({ queryKey: ['editionDetails', editionId] });
 				toast.success('Your votes have been submitted successfully!');
 				router.push(`/edition/${editionId}`);
 			} else {

@@ -5,6 +5,26 @@ import { fetchAuthSession } from 'aws-amplify/auth/server';
 import { runWithAmplifyServerContext } from '@/utils/amplify-utils';
 
 export async function middleware(request: NextRequest) {
+	// 1. **Development Environment Cookie Fix**
+	if (process.env.NODE_ENV === 'development') {
+		const host = request.headers.get('host');
+
+		// Check if the request is coming from a local IP address (e.g., 192.168.x.x or 10.x.x.x)
+		if (host && /^(192\.168\.\d{1,3}\.\d{1,3}|10\.\d{1,3}\.\d{1,3}\.\d{1,3}):\d+$/.test(host)) {
+			const newHeaders = new Headers(request.headers);
+
+			// CRITICAL STEP: Rewrite the Host header to trick the browser/auth service
+			// into treating it as a same-site request for cookie validation.
+			newHeaders.set('host', 'localhost:3000');
+
+			// Return a response with the modified request headers
+			return NextResponse.next({
+				request: {
+					headers: newHeaders,
+				},
+			});
+		}
+	}
 	const response = NextResponse.next();
 
 	const authenticated = await runWithAmplifyServerContext({

@@ -23,6 +23,7 @@ import Image from 'next/image';
 import { EditionWithDetails } from '@/types/Edition';
 import { Collapsible, CollapsibleContent, CollapsibleTrigger } from '../ui/collapsible';
 import { SubmissionWithScore } from '../ResultsComponent';
+import { fetchSavedRanking } from '../VotingComponent';
 
 interface EditionDetailsProps {
 	editionId: string;
@@ -70,11 +71,10 @@ const EditionDetails: React.FC<EditionDetailsProps> = ({ editionId, user }) => {
 		queryFn: () => fetchEdition(editionId),
 	});
 
-	// const { data: editionVotes } = useQuery({
-	// 	queryKey: ['editionDetailsVotes', editionId],
-	// 	queryFn: () => fetchEditionVotes(editionId),
-	// 	enabled: edition && (edition.phase === 'VOTING' || edition.phase === 'RESULTS'),
-	// });
+	const { data: savedRanking } = useQuery({
+		queryKey: ['editionDetailsSavedRanking', editionId],
+		queryFn: () => fetchSavedRanking(editionId),
+	});
 
 	useEffect(() => {
 		const song = searchParams.get('song');
@@ -96,7 +96,6 @@ const EditionDetails: React.FC<EditionDetailsProps> = ({ editionId, user }) => {
 	};
 
 	const hasUserVoted = (): boolean => {
-		// return editionVotes?.find((v) => v.fromUserId === user.userId) !== undefined;
 		return edition?.rankingsList?.find((r) => r.userId === user.userId) !== undefined;
 	};
 
@@ -159,6 +158,14 @@ const EditionDetails: React.FC<EditionDetailsProps> = ({ editionId, user }) => {
 								<Vote className="w-4 h-4 mr-2" />
 								Vote Now
 							</Button>
+						)}
+						{savedRanking !== undefined && !hasUserVoted() && (
+							<Alert className="mt-2">
+								<AlertTitle className="flex items-center gap-2">
+									<Info />
+									You have a saved ranking but haven&apos;t submitted yet
+								</AlertTitle>
+							</Alert>
 						)}
 					</>
 				);

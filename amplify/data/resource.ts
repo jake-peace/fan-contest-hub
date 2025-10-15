@@ -87,6 +87,16 @@ const schema = a
 			})
 			.identifier(['rankingId'])
 			.authorization((allow) => allow.authenticated()),
+		SavedRanking: a
+			.model({
+				rankingId: a.id().required(),
+				rankingList: a.string().array(),
+				userId: a.id(),
+				editionId: a.id(),
+				edition: a.belongsTo('Edition', 'editionId'),
+			})
+			.identifier(['rankingId'])
+			.authorization((allow) => allow.authenticated()),
 		Vote: a
 			.model({
 				voteId: a.id().required(),

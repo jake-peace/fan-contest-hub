@@ -49,6 +49,7 @@ const schema = a
 				contest: a.belongsTo('Contest', 'contestId'),
 				submissions: a.hasMany('Submission', 'editionId'),
 				rankings: a.hasMany('Ranking', 'editionId'),
+				savedRankings: a.hasMany('SavedRanking', 'editionId'),
 				submissionsOpen: a.datetime(),
 				submissionDeadline: a.datetime(),
 				votingDeadline: a.datetime(),

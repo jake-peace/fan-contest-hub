@@ -1,7 +1,7 @@
 'use client';
 
 import { useEffect, useRef, useState, useTransition } from 'react';
-import { Vote, Undo2, Check, X } from 'lucide-react';
+import { Vote, Undo2, Check, X, Rows4 } from 'lucide-react';
 import { Alert, AlertDescription, AlertTitle } from '../ui/alert';
 import { Card, CardContent, CardHeader, CardTitle } from '../ui/card';
 import { Button } from '../ui/button';
@@ -19,6 +19,8 @@ import { Skeleton } from '../ui/skeleton';
 import { submitRanking } from '@/app/actions/submitRanking';
 import { Spinner } from '../ui/spinner';
 import { saveRanking } from '@/app/actions/saveRanking';
+import { Toggle } from '../ui/toggle';
+import SortableSongCompact from './SortableSongCompact';
 
 interface VotingComponentProps {
 	editionId: string;
@@ -237,6 +239,7 @@ const VotingComponent: React.FC<VotingComponentProps> = ({ editionId, user }) =>
 	});
 
 	const sensors = useSensors(mouseSensor, touchSensor);
+	const [isCompact, setIsCompact] = useState(false);
 
 	return (
 		<>
@@ -248,11 +251,15 @@ const VotingComponent: React.FC<VotingComponentProps> = ({ editionId, user }) =>
 						Rank Your Top 10
 					</CardTitle>
 				</CardHeader>
-				<CardContent>
+				<CardContent className="flex items-center justify-between">
 					<Button onClick={handleResetRankings} variant="secondary" className="mt-2">
 						<Undo2 className="w-4 h-4 mr-2" />
 						Reset Rankings
 					</Button>
+					<Toggle className="flex gap-1 items-center" pressed={isCompact} onPressedChange={() => setIsCompact(!isCompact)}>
+						<Rows4 />
+						Compact
+					</Toggle>
 				</CardContent>
 			</Card>
 
@@ -305,9 +312,13 @@ const VotingComponent: React.FC<VotingComponentProps> = ({ editionId, user }) =>
 			) : (
 				<DndContext onDragStart={handleDragStart} onDragEnd={handleDragEnd} modifiers={[restrictToVerticalAxis]} sensors={sensors}>
 					<SortableContext items={rankings.map((item) => item.submissionId)} strategy={verticalListSortingStrategy}>
-						{rankings.map((song, index) => (
-							<SortableSong key={song.submissionId} id={song.submissionId} song={song} index={index} />
-						))}
+						{rankings.map((song, index) =>
+							isCompact ? (
+								<SortableSongCompact key={song.submissionId} id={song.submissionId} song={song} index={index} />
+							) : (
+								<SortableSong key={song.submissionId} id={song.submissionId} song={song} index={index} />
+							)
+						)}
 					</SortableContext>
 				</DndContext>
 			)}

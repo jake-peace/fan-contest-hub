@@ -17,7 +17,6 @@ const rankingPoints = new Map<number, number>([
 ]);
 
 import { getAmplifyDataClientConfig } from '@aws-amplify/backend/function/runtime';
-// @ts-ignore
 import { env } from '$amplify/env/submit-batch-votes';
 
 const { resourceConfig, libraryOptions } = await getAmplifyDataClientConfig(env);

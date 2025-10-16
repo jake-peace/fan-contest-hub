@@ -159,8 +159,8 @@ const EditionDetails: React.FC<EditionDetailsProps> = ({ editionId, user }) => {
 								Vote Now
 							</Button>
 						)}
-						{savedRanking !== undefined && !hasUserVoted() && (
-							<Alert className="mt-2">
+						{savedRanking?.rankingList !== undefined && !hasUserVoted() && (
+							<Alert className="mt-1">
 								<AlertTitle className="flex items-center gap-2">
 									<Info />
 									You have a saved ranking but haven&apos;t submitted yet

@@ -155,8 +155,6 @@ export async function GET(request: Request, segmentData: { params: Params }) {
 			rankingsList: rankingsResp?.data as Ranking[] | undefined,
 		} as EditionWithDetails;
 
-		console.log(editionData);
-
 		return NextResponse.json({ edition: editionData });
 		// eslint-disable-next-line @typescript-eslint/no-explicit-any
 	} catch (error: any) {

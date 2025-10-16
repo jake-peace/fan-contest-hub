@@ -1,5 +1,6 @@
 import type { EventBridgeHandler } from 'aws-lambda';
 import { getAmplifyDataClientConfig } from '@aws-amplify/backend/function/runtime';
+// @ts-ignore
 import { env } from '$amplify/env/status-updater';
 import { generateClient } from 'aws-amplify/api';
 import { Schema } from '../../data/resource';

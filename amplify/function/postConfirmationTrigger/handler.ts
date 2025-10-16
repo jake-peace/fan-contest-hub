@@ -3,6 +3,7 @@ import type { PostConfirmationTriggerHandler } from 'aws-lambda';
 import { type Schema } from '../../data/resource';
 import { generateClient } from 'aws-amplify/api';
 import { getAmplifyDataClientConfig } from '@aws-amplify/backend/function/runtime';
+// @ts-ignore
 import { env } from '$amplify/env/postConfirmationHandler';
 import { Amplify } from 'aws-amplify';
 /**

@@ -1,3 +1,16 @@
+# [1.3.0](https://github.com/jake-peace/fan-contest-hub/compare/v1.2.0...v1.3.0) (2025-10-17)
+
+### Bug Fixes
+
+- fixes an issue where 12-8 points would reveal backwards ([b73dccd](https://github.com/jake-peace/fan-contest-hub/commit/b73dccd5136de294452d52b5de54e8836d5b4d0e))
+
+### Features
+
+- added compact view for ranking songs ([232755e](https://github.com/jake-peace/fan-contest-hub/commit/232755e5f9694d60023427d7a27e9b00290afc0c))
+- spotify playlist listenable on voting page ([4955c95](https://github.com/jake-peace/fan-contest-hub/commit/4955c9572b15403cb3a142d49749e0e6b648429e))
+- votes now save while ranking them ([94c07c6](https://github.com/jake-peace/fan-contest-hub/commit/94c07c617e3d7e0bfa35ad6811461f8de602b996))
+- warns user when they have saved rankings but are yet to submit ([6dfefba](https://github.com/jake-peace/fan-contest-hub/commit/6dfefba512d085b65594980d0e852475c72587ab))
+
 # [1.2.0](https://github.com/jake-peace/fan-contest-hub/compare/v1.1.3...v1.2.0) (2025-10-14)
 
 ### Bug Fixes

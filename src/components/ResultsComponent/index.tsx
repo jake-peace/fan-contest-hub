@@ -730,7 +730,7 @@ const ResultsComponent: React.FC<ResultsComponentProps> = ({ editionId, user }) 
 										})}
 								</AnimatePresence>
 							</div>
-							<Progress value={(votingIndex + 1 / (submissionOrder.length || 0)) * 100} />
+							<Progress value={((votingIndex + 1) / submissionOrder.length) * 100} />
 							<div className="flex w-full justify-between">
 								<div className="text-xs">{`Juror ${votingIndex + 1} of ${submissionOrder.length}`}</div>
 							</div>

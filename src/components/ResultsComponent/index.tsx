@@ -625,7 +625,7 @@ const ResultsComponent: React.FC<ResultsComponentProps> = ({ editionId, user }) 
 						</>
 					)
 				)}
-				{<Button onClick={() => setViewBreakdown(true)}>See breakdown of results</Button>}
+				{resultsStage === 'COMPLETE' && <Button onClick={() => setViewBreakdown(true)}>See breakdown of results</Button>}
 			</div>
 			{paused && (
 				<Alert>

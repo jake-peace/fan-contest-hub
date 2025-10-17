@@ -23,7 +23,7 @@ export async function GET(request: Request, segmentData: { params: Params }) {
 			},
 		});
 
-		return NextResponse.json({ ranking: data });
+		return NextResponse.json({ ranking: data[0] });
 		// eslint-disable-next-line @typescript-eslint/no-explicit-any
 	} catch (error: any) {
 		// 3. Handle authentication failures (e.g., redirect or return 401)

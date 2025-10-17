@@ -24,7 +24,7 @@ export async function saveRanking(rankings: string[], editionId: string) {
 
 		console.log(`Attempting to save rankings for ${authUser?.userId} in edition ${editionId}: ${JSON.stringify(rankings)}`);
 
-		if (existingRanking) {
+		if (existingRanking.length !== 0) {
 			const { errors } = await cookiesClient.models.SavedRanking.update({
 				rankingId: existingRanking[0].rankingId,
 				rankingList: rankings,

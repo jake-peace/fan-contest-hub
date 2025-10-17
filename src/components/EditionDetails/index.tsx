@@ -159,7 +159,7 @@ const EditionDetails: React.FC<EditionDetailsProps> = ({ editionId, user }) => {
 								Vote Now
 							</Button>
 						)}
-						{savedRanking?.rankingList !== undefined && !hasUserVoted() && (
+						{savedRanking !== undefined && !hasUserVoted() && (
 							<Alert className="mt-1">
 								<AlertTitle className="flex items-center gap-2">
 									<Info />

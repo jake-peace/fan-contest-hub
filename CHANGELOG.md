@@ -1,3 +1,9 @@
+## [1.3.1](https://github.com/jake-peace/fan-contest-hub/compare/v1.3.0...v1.3.1) (2025-10-17)
+
+### Bug Fixes
+
+- fixes an issue where saved rankings wouldn't load back in ([895477c](https://github.com/jake-peace/fan-contest-hub/commit/895477c9031fab3a2220f4e143b673afef6440b3))
+
 # [1.3.0](https://github.com/jake-peace/fan-contest-hub/compare/v1.2.0...v1.3.0) (2025-10-17)
 
 ### Bug Fixes

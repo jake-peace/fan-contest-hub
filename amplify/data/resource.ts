@@ -58,6 +58,8 @@ const schema = a
 				phase: a.ref('Phase').required(),
 				resultsRevealed: a.boolean(),
 				spotifyPlaylistLink: a.string(),
+				televoteId: a.id(),
+				televotes: a.hasMany('Televote', 'editionId'),
 			})
 			.identifier(['editionId'])
 			.authorization((allow) => allow.authenticated()),
@@ -98,6 +100,16 @@ const schema = a
 			})
 			.identifier(['rankingId'])
 			.authorization((allow) => allow.authenticated()),
+		Televote: a
+			.model({
+				televoteId: a.id().required(),
+				rankingList: a.string().array(),
+				guestName: a.string(),
+				editionId: a.id(),
+				edition: a.belongsTo('Edition', 'editionId'),
+			})
+			.identifier(['televoteId'])
+			.authorization((allow) => [allow.guest(), allow.authenticated().to(['delete'])]),
 		Vote: a
 			.model({
 				voteId: a.id().required(),

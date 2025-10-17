@@ -1,8 +1,7 @@
 'use client';
 
-import { useEffect, useState, useTransition } from 'react';
-import { Vote, Music, Undo2 } from 'lucide-react';
-import { Badge } from '../ui/badge';
+import { useEffect, useRef, useState, useTransition } from 'react';
+import { Vote, Undo2, Check, X, Rows4 } from 'lucide-react';
 import { Alert, AlertDescription, AlertTitle } from '../ui/alert';
 import { Card, CardContent, CardHeader, CardTitle } from '../ui/card';
 import { Button } from '../ui/button';
@@ -10,29 +9,18 @@ import { useQuery, useQueryClient } from '@tanstack/react-query';
 import { toast } from 'sonner';
 import { Schema } from '../../../amplify/data/resource';
 import { AuthUser } from 'aws-amplify/auth';
-import { DndContext, DragEndEvent } from '@dnd-kit/core';
+import { DndContext, DragEndEvent, MouseSensor, TouchSensor, useSensor, useSensors } from '@dnd-kit/core';
 import { SortableContext, verticalListSortingStrategy, arrayMove } from '@dnd-kit/sortable';
 import { restrictToVerticalAxis } from '@dnd-kit/modifiers';
 import SortableSong from './SortableSong';
 import { fetchEdition } from '../EditionDetails';
 import { useRouter } from 'next/navigation';
 import { Skeleton } from '../ui/skeleton';
-import Image from 'next/image';
 import { submitRanking } from '@/app/actions/submitRanking';
 import { Spinner } from '../ui/spinner';
-
-const rankingPoints = new Map<number, number>([
-	[1, 12],
-	[2, 10],
-	[3, 8],
-	[4, 7],
-	[5, 6],
-	[6, 5],
-	[7, 4],
-	[8, 3],
-	[9, 2],
-	[10, 1],
-]);
+import { saveRanking } from '@/app/actions/saveRanking';
+import { Toggle } from '../ui/toggle';
+import SortableSongCompact from './SortableSongCompact';
 
 interface VotingComponentProps {
 	editionId: string;
@@ -41,21 +29,63 @@ interface VotingComponentProps {
 
 type Submission = Schema['Submission']['type'];
 type Vote = Schema['Vote']['type'];
+type Ranking = Schema['Ranking']['type'];
+interface EmbedOptions {
+	uri: string;
+	width?: number | string;
+	height?: number | string;
+}
 
-// export const fetchEditionVotes = async (id: string) => {
-// 	const response = await fetch(`/api/editions/${id}/votes`);
+interface EmbedController {
+	loadUri(uri: string): void;
+	play(): void;
+	pause(): void;
+	resume(): void;
+	togglePlay(): void;
+	seek(seconds: number): void;
+	destroy(): void;
+	// eslint-disable-next-line @typescript-eslint/no-explicit-any
+	addListener(event: string, callback: (event: any) => void): void;
+	// eslint-disable-next-line @typescript-eslint/no-explicit-any
+	removeListener(event: string, callback: (event: any) => void): void;
+}
 
-// 	if (!response.ok) {
-// 		throw new Error('Failed to fetch data from the server.');
-// 	}
+interface IFrameAPI {
+	createController(element: HTMLElement | null, options: EmbedOptions, callback: (controller: EmbedController) => void): void;
+}
+declare global {
+	interface Window {
+		onSpotifyIframeApiReady: (IFrameAPI: IFrameAPI) => void;
+	}
+}
 
-// 	const result = await response.json();
-// 	return result.votes as Vote[];
-// };
+function convertPlaylistUrlToUri(url: string): string {
+	const playlistRegex = /https:\/\/open\.spotify\.com\/playlist\/([a-zA-Z0-9]+).*/;
+	const replacementString = 'spotify:playlist:$1';
+	const uri = url.replace(playlistRegex, replacementString);
+
+	console.log(uri);
+
+	return uri;
+}
+
+export const fetchSavedRanking = async (id: string) => {
+	const response = await fetch(`/api/editions/${id}/savedranking`);
+
+	if (!response.ok) {
+		throw new Error('Failed to fetch data from the server.');
+	}
+
+	const result = await response.json();
+	return result.ranking as Ranking;
+};
 
 const VotingComponent: React.FC<VotingComponentProps> = ({ editionId, user }) => {
 	const [rankings, setRankings] = useState<Submission[]>([]);
+	const [debouncedRankings, setDebouncedRankings] = useState(rankings);
 	const router = useRouter();
+	const playerDivRef = useRef<HTMLDivElement>(null);
+	const [saved, setSaved] = useState(false);
 
 	const {
 		data: edition,
@@ -64,6 +94,15 @@ const VotingComponent: React.FC<VotingComponentProps> = ({ editionId, user }) =>
 	} = useQuery({
 		queryKey: ['editionDetailsVoting', editionId],
 		queryFn: () => fetchEdition(editionId),
+	});
+
+	const {
+		data: savedRanking,
+		isLoading: loadingSaved,
+		isFetched: fetchedSaved,
+	} = useQuery({
+		queryKey: ['savedRankingVoting', editionId],
+		queryFn: () => fetchSavedRanking(editionId),
 	});
 
 	useEffect(() => {
@@ -75,14 +114,28 @@ const VotingComponent: React.FC<VotingComponentProps> = ({ editionId, user }) =>
 				router.push(`/edition/${editionId}`);
 				toast.error('You have already voted in this edition.');
 			} else {
-				setRankings(
-					(edition?.submissionList as Submission[])
-						.filter((s) => s.rejected !== true && s.userId !== user.userId)
-						.sort((a, b) => (a.runningOrder as number) - (b.runningOrder as number)) as Submission[]
-				);
+				if (fetchedSaved) {
+					if (!savedRanking) {
+						setRankings(
+							(edition?.submissionList as Submission[])
+								.filter((s) => s.rejected !== true && s.userId !== user.userId)
+								.sort((a, b) => (a.runningOrder as number) - (b.runningOrder as number)) as Submission[]
+						);
+					} else {
+						setRankings(
+							(edition?.submissionList as Submission[])
+								.filter((s) => s.rejected !== true && s.userId !== user.userId)
+								.sort(
+									(a, b) =>
+										(savedRanking.rankingList?.indexOf(a.submissionId) as number) -
+										(savedRanking.rankingList?.indexOf(b.submissionId) as number)
+								) as Submission[]
+						);
+					}
+				}
 			}
 		}
-	}, [isFetched]);
+	}, [isFetched, fetchedSaved]);
 
 	const handleResetRankings = () => {
 		setRankings(
@@ -94,10 +147,6 @@ const VotingComponent: React.FC<VotingComponentProps> = ({ editionId, user }) =>
 
 	const queryClient = useQueryClient();
 	const [isPending, startTransition] = useTransition();
-
-	const getPointsByRank = (rank: number): number | undefined => {
-		return rankingPoints.get(rank);
-	};
 
 	const handleSubmitRanking = async () => {
 		startTransition(async () => {
@@ -114,131 +163,165 @@ const VotingComponent: React.FC<VotingComponentProps> = ({ editionId, user }) =>
 		});
 	};
 
-	// const handleSubmitVote = async () => {
-	// 	startTransition(async () => {
-	// 		const result = await submitVotes(rankings.map((r) => r.submissionId).slice(0, 10), editionId);
-	// 		if (result.success) {
-	// 			queryClient.removeQueries({ queryKey: ['editionDetailsVotes'] });
-	// 			toast.success('Your votes have been submitted successfully!');
-	// 			router.push(`/edition/${editionId}`);
-	// 			// Handle success UI (e.g., toast, revalidation)
-	// 		} else {
-	// 			// Handle error UI
-	// 		}
-	// 	});
-	// };
-
-	const getBadgeColor = (rank: number) => {
-		if (rank > 10) {
-			return 'bg-(--destructive)';
-		}
-		switch (rank) {
-			case 1:
-				return 'bg-(--gold) text-[black]';
-			case 2:
-				return 'bg-(--silver) text-[black]';
-			case 3:
-				return 'bg-(--bronze) text-[black]';
-			default:
-				return '';
-		}
+	const handleDragStart = () => {
+		setSaved(false);
 	};
 
 	const handleDragEnd = (event: DragEndEvent) => {
 		const { active, over } = event;
 
 		if (over && active.id !== over.id) {
-			setRankings((items) => {
-				const oldIndex = items.findIndex((item) => item.submissionId === active.id);
-				const newIndex = items.findIndex((item) => item.submissionId === over.id);
-				return arrayMove(items, oldIndex, newIndex);
-			});
+			const oldIndex = rankings.findIndex((item) => item.submissionId === active.id);
+			const newIndex = rankings.findIndex((item) => item.submissionId === over.id);
+			const newOrder = arrayMove(rankings, oldIndex, newIndex);
+			setRankings(newOrder);
+			setDebouncedRankings(newOrder);
 		}
 	};
 
+	// --- The Debounce Effect ---
+	useEffect(() => {
+		if (debouncedRankings.length === 0) return;
+
+		const timerId = setTimeout(() => {
+			startTransition(async () => {
+				const debouncedRankingsList = debouncedRankings.map((r) => r.submissionId);
+				const result = await saveRanking(debouncedRankingsList, editionId);
+				if (result.success) {
+					setSaved(true);
+				}
+			});
+		}, 3000);
+
+		return () => {
+			clearTimeout(timerId);
+		};
+	}, [debouncedRankings]);
+
+	useEffect(() => {
+		if (edition?.spotifyPlaylistLink !== undefined) {
+			window.onSpotifyIframeApiReady = (IFrameAPI: IFrameAPI) => {
+				console.log('Spotify IFrame API is ready. The playlist link is', edition?.spotifyPlaylistLink);
+
+				const element = playerDivRef.current;
+
+				if (element) {
+					const options: EmbedOptions = {
+						uri: edition?.spotifyPlaylistLink ? convertPlaylistUrlToUri(edition.spotifyPlaylistLink) : '',
+						height: 152,
+					};
+
+					IFrameAPI.createController(element, options, (embedController) => {
+						embedController.addListener('onPlaybackStatusChange', (status) => {
+							if (!status.data.isPaused && status.data.position === 0) {
+								console.log('Track finished. Reloading playlist context.');
+								embedController.loadUri(edition?.spotifyPlaylistLink ? convertPlaylistUrlToUri(edition.spotifyPlaylistLink) : '');
+							}
+						});
+					});
+				}
+			};
+		}
+	}, [edition?.spotifyPlaylistLink]);
+
+	const mouseSensor = useSensor(MouseSensor, {
+		activationConstraint: {
+			distance: 0,
+			handler: '.drag-handle',
+		},
+	});
+	const touchSensor = useSensor(TouchSensor, {
+		activationConstraint: {
+			handler: '.drag-handle',
+			delay: 250,
+			tolerance: 5,
+		},
+	});
+
+	const sensors = useSensors(mouseSensor, touchSensor);
+	const [isCompact, setIsCompact] = useState(false);
+
 	return (
 		<>
-			<Card className="mb-4 py-6">
+			<script src="https://open.spotify.com/embed/iframe-api/v1" async></script>
+			<Card className="mb-4 py-6 gap-1">
 				<CardHeader>
 					<CardTitle className="flex items-center gap-2">
 						<Vote className="w-5 h-5" />
 						Rank Your Top 10
 					</CardTitle>
 				</CardHeader>
-				<CardContent>
-					<Alert>
-						<Music className="w-4 h-4" />
-						<AlertDescription>Listen to songs and drag them to create your top 10 ranking. Higher ranks get more points!</AlertDescription>
-					</Alert>
+				<CardContent className="flex items-center justify-between">
 					<Button onClick={handleResetRankings} variant="secondary" className="mt-2">
 						<Undo2 className="w-4 h-4 mr-2" />
 						Reset Rankings
 					</Button>
+					<Toggle className="flex gap-1 items-center" pressed={isCompact} onPressedChange={() => setIsCompact(!isCompact)}>
+						<Rows4 />
+						Compact
+					</Toggle>
 				</CardContent>
 			</Card>
 
-			<Card className="mb-6 py-6">
-				<CardHeader>
-					<CardTitle>Entries</CardTitle>
-				</CardHeader>
-				<CardContent className="space-y-2">
-					{isFetched && rankings.length === 0 && (
-						<Alert>
-							<AlertTitle>No entries found</AlertTitle>
-							<AlertDescription>Something went wrong fetching the entries</AlertDescription>
-						</Alert>
-					)}
-					{isLoading ? (
-						<>
-							<Skeleton>
-								<div className="p-3 bg-muted rounded-lg">
-									<Skeleton className="w-50 h-5" />
-								</div>
-							</Skeleton>
-							<Skeleton>
-								<div className="p-3 bg-muted rounded-lg">
-									<Skeleton className="w-50 h-5" />
-								</div>
-							</Skeleton>
-						</>
-					) : (
-						<DndContext onDragEnd={handleDragEnd} modifiers={[restrictToVerticalAxis]}>
-							<SortableContext items={rankings.map((item) => item.submissionId)} strategy={verticalListSortingStrategy}>
-								{rankings.map((song) => (
-									<SortableSong key={song.submissionId} id={song.submissionId}>
-										<div
-											key={song.submissionId}
-											className={`p-2 border rounded-lg transition-all hover:bg-muted/50 cursor-pointer border-border touch-none`}
-										>
-											<div className="flex items-center justify-between gap-3">
-												<div className="min-w-10 max-w-10 h-10 rounded-sm overflow-hidden relative">
-													<Image
-														src={`https://flagcdn.com/w640/${song.flag?.toLowerCase()}.png`}
-														fill
-														alt={`${song.artistName}'s flag`}
-														style={{ objectFit: 'cover', objectPosition: 'center' }}
-														quality={80}
-														sizes="640px"
-													/>
-												</div>
-												<div className="flex-1 truncate">
-													<h3 className="font-medium truncate no-select">{song.songTitle}</h3>
-													<p className="text-sm text-muted-foreground truncate no-select">by {song.artistName}</p>
-												</div>
-												<div className="flex items-center gap-2 no-select">
-													<Badge variant="secondary" className={getBadgeColor(rankings.indexOf(song) + 1)}>
-														{getPointsByRank(rankings.indexOf(song) + 1)}
-													</Badge>
-												</div>
-											</div>
-										</div>
-									</SortableSong>
-								))}
-							</SortableContext>
-						</DndContext>
-					)}
-				</CardContent>
-			</Card>
+			<div className="m-2 font-bold text-xl">Playlist</div>
+			<div className="mb-4">
+				<div ref={playerDivRef} style={{ height: '352px', width: '100%', marginBottom: '20px' }}></div>
+			</div>
+
+			<div className="flex items-center gap-1">
+				<div className="m-2 font-bold text-xl mr-auto">Entries</div>
+				{!saved && !isPending && isFetched && fetchedSaved && (
+					<>
+						<div className="text-(--destructive)">Not Saved</div>
+						<X className="text-(--destructive)" />
+					</>
+				)}
+				{isPending && (
+					<>
+						<div>Saving</div>
+						<Spinner />
+					</>
+				)}
+				{saved && !isPending && (
+					<>
+						<div className="text-(--success)">Ranking Saved</div>
+						<Check className="text-(--success)" />
+					</>
+				)}
+			</div>
+
+			{isFetched && fetchedSaved && rankings.length === 0 && (
+				<Alert>
+					<AlertTitle>No entries found</AlertTitle>
+					<AlertDescription>Something went wrong fetching the entries</AlertDescription>
+				</Alert>
+			)}
+			{isLoading || loadingSaved ? (
+				<>
+					<Skeleton>
+						<div className="p-3 bg-muted rounded-lg mb-1">
+							<Skeleton className="w-50 h-5" />
+						</div>
+					</Skeleton>
+					<Skeleton>
+						<div className="p-3 bg-muted rounded-lg mb-1">
+							<Skeleton className="w-50 h-5" />
+						</div>
+					</Skeleton>
+				</>
+			) : (
+				<DndContext onDragStart={handleDragStart} onDragEnd={handleDragEnd} modifiers={[restrictToVerticalAxis]} sensors={sensors}>
+					<SortableContext items={rankings.map((item) => item.submissionId)} strategy={verticalListSortingStrategy}>
+						{rankings.map((song, index) =>
+							isCompact ? (
+								<SortableSongCompact key={song.submissionId} id={song.submissionId} song={song} index={index} />
+							) : (
+								<SortableSong key={song.submissionId} id={song.submissionId} song={song} index={index} />
+							)
+						)}
+					</SortableContext>
+				</DndContext>
+			)}
 
 			<Button onClick={handleSubmitRanking} disabled={rankings.length === 0 || isPending} className="w-full">
 				{isPending ? <Spinner /> : <Vote />}

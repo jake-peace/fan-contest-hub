@@ -62,7 +62,7 @@ const getPointsByRank = (rank: number): number | undefined => {
 	return rankingPoints.get(rank);
 };
 
-const SortableSong: React.FC<SortableItemProps> = ({ id, song, index }) => {
+const SortableSongCompact: React.FC<SortableItemProps> = ({ id, song, index }) => {
 	const { attributes, listeners, setNodeRef, transform, transition, isDragging } = useSortable({ id: id });
 
 	const style = {
@@ -73,14 +73,14 @@ const SortableSong: React.FC<SortableItemProps> = ({ id, song, index }) => {
 
 	return (
 		<div style={style}>
-			<div key={song.submissionId} className={`p-2 border rounded-lg transition-all hover:bg-muted/50 cursor-pointer border-border mb-1`}>
-				<div className="flex items-center justify-between gap-3">
-					<div className="flex items-center gap-2 touch-none">
-						<Badge variant="secondary" className={`${getBadgeColor(index + 1)} w-7.5 font-bold`}>
+			<div key={song.submissionId} className={`p-0.5 border rounded-md transition-all hover:bg-muted/50 cursor-pointer border-border mb-1`}>
+				<div className="flex gap-1.5 items-center">
+					<div className="flex items-center touch-none ml-0.5">
+						<Badge variant="secondary" className={`${getBadgeColor(index + 1)} w-7.5`}>
 							{getPointsByRank(index + 1) || formatOrdinal(index + 1)}
 						</Badge>
 					</div>
-					<div className="min-w-10 max-w-10 h-10 rounded-sm overflow-hidden relative touch-none">
+					<div className="min-w-5 max-w-5 h-5 rounded-xs overflow-hidden relative touch-none items-center">
 						<Image
 							src={`https://flagcdn.com/w640/${song.flag?.toLowerCase()}.png`}
 							fill
@@ -90,17 +90,17 @@ const SortableSong: React.FC<SortableItemProps> = ({ id, song, index }) => {
 							sizes="640px"
 						/>
 					</div>
-					<div className="flex-1 truncate touch-none">
+					<div className="flex truncate touch-none items-baseline">
 						<h3 className="font-medium truncate no-select">{song.songTitle}</h3>
-						<p className="text-sm text-muted-foreground truncate no-select">by {song.artistName}</p>
+						<p className="text-sm text-muted-foreground truncate no-select pl-1">{song.artistName}</p>
 					</div>
 					<div
 						ref={setNodeRef}
 						{...attributes}
 						{...listeners}
-						className="drag-handle cursor-grab p-1" // Unique class
+						className="drag-handle cursor-grab p-1 ml-auto" // Unique class
 					>
-						<GripVertical />
+						<GripVertical className="w-5 h-5" />
 					</div>
 				</div>
 			</div>
@@ -108,4 +108,4 @@ const SortableSong: React.FC<SortableItemProps> = ({ id, song, index }) => {
 	);
 };
 
-export default SortableSong;
+export default SortableSongCompact;

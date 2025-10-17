@@ -37,7 +37,6 @@ interface SubmissionCardProps {
 const SubmissionCard: React.FC<SubmissionCardProps> = ({ submission, onReject, isHost, showRunningOrder, contestId, isUser }) => {
 	const [dialogOpen, setDialogOpen] = useState(false);
 	const [cardOpen, setCardOpen] = useState(false);
-	// const [accessToken, setAccessToken] = useState('');
 	const [trackInfo, setTrackInfo] = useState<SpotifyTrack>();
 	const client = useAmplifyClient();
 

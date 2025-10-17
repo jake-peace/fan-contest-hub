@@ -18,6 +18,7 @@ import { useRouter } from 'next/navigation';
 import { hostRevealed } from '@/app/actions/hostRevealed';
 import Image from 'next/image';
 import { toast } from 'sonner';
+import NewResultsTable from './NewResultsTable';
 
 // type Vote = Schema['Vote']['type'];
 type Submission = Schema['Submission']['type'];
@@ -88,64 +89,64 @@ const lowRankingPoints = new Map<number, number>([
 	[6, 1],
 ]);
 
-export const tiebreakSorter = (externalData: string[][]) => {
+export const tiebreakSorter = () => {
 	try {
 		// --- Counting Logic ---
 		// Pre-calculate the count array [Count@Index0, Count@Index1, ..., Count@Index9]
-		const calculateCountArray = (id: string): number[] => {
-			// Initialize an array of 10 zeros
-			const counts = new Array<number>(10).fill(0);
+		// const calculateCountArray = (id: string): number[] => {
+		// 	// Initialize an array of 10 zeros
+		// 	const counts = new Array<number>(10).fill(0);
 
-			// Iterate over every inner array in the external data
-			for (const innerArray of externalData) {
-				// Check the first 10 positions (index 0 to 9) of the current inner array
-				const limit = Math.min(innerArray.length, 10);
+		// 	// Iterate over every inner array in the external data
+		// 	for (const innerArray of externalData) {
+		// 		// Check the first 10 positions (index 0 to 9) of the current inner array
+		// 		const limit = Math.min(innerArray.length, 10);
 
-				for (let i = 0; i < limit; i++) {
-					if (innerArray[i] === id) {
-						// Increment the count for that specific index (i)
-						counts[i]++;
-					}
-				}
-			}
-			return counts;
-		};
+		// 		for (let i = 0; i < limit; i++) {
+		// 			if (innerArray[i] === id) {
+		// 				// Increment the count for that specific index (i)
+		// 				counts[i]++;
+		// 			}
+		// 		}
+		// 	}
+		// 	return counts;
+		// };
 
 		// Cache to store the pre-calculated count array for each ID
-		const idCountCache = new Map<string, number[]>();
+		// const idCountCache = new Map<string, number[]>();
 
-		const getCountArray = (id: string): number[] => {
-			if (idCountCache.has(id)) {
-				return idCountCache.get(id)!;
-			}
-			const countArray = calculateCountArray(id);
-			idCountCache.set(id, countArray);
-			return countArray;
-		};
+		// const getCountArray = (id: string): number[] => {
+		// 	if (idCountCache.has(id)) {
+		// 		return idCountCache.get(id)!;
+		// 	}
+		// 	const countArray = calculateCountArray(id);
+		// 	idCountCache.set(id, countArray);
+		// 	return countArray;
+		// };
 
 		// --- The Comparison Function ---
 		const complexSorter = (a: SubmissionWithScore, b: SubmissionWithScore): number => {
 			// 1. Primary Sort: Score (Descending)
-			let comparison = b.score - a.score;
+			const comparison = b.score - a.score;
 			if (comparison !== 0) {
 				return comparison;
 			}
 
 			// --- 2. Secondary Sort: Sequential ID Count (Descending) ---
-			const aCounts = getCountArray(a.submissionId);
-			const bCounts = getCountArray(b.submissionId);
+			// const aCounts = getCountArray(a.submissionId);
+			// const bCounts = getCountArray(b.submissionId);
 
-			// Iterate from index 0 up to 9
-			for (let i = 0; i < 10; i++) {
-				// Compare the counts at the current index (Descending)
-				comparison = bCounts[i] - aCounts[i];
+			// // Iterate from index 0 up to 9
+			// for (let i = 0; i < 10; i++) {
+			// 	// Compare the counts at the current index (Descending)
+			// 	comparison = bCounts[i] - aCounts[i];
 
-				// If the counts are different, this is our tie-breaker—return the result immediately
-				if (comparison !== 0) {
-					return comparison;
-				}
-				// If they are equal (comparison === 0), the loop continues to the next index (i+1)
-			}
+			// 	// If the counts are different, this is our tie-breaker—return the result immediately
+			// 	if (comparison !== 0) {
+			// 		return comparison;
+			// 	}
+			// 	// If they are equal (comparison === 0), the loop continues to the next index (i+1)
+			// }
 
 			// 3. Tertiary Sort: RunningOrder (Ascending)
 			// This is only reached if score and ALL 10 sequential counts were identical
@@ -170,11 +171,12 @@ const ResultsComponent: React.FC<ResultsComponentProps> = ({ editionId, user }) 
 	// const [showFinalOverlay, setShowFinalOverlay] = useState<boolean>(false);
 	// const [finalSongToReveal, setFinalSongToReveal] = useState<SubmissionWithScore>();
 	// const [leader, setCurrentLeader] = useState<SubmissionWithScore>();
-	// const [viewBreakdown, setViewBreakdown] = useState(false);
+	const [viewBreakdown, setViewBreakdown] = useState(false);
 	const [paused, setPaused] = useState(false);
 	// const [televotes, setTelevotes] = useState<{ submissionId: string; points: number }[]>([]);
 	const [juryVotes, setJuryVotes] = useState<Ranking[]>([]);
-	const [errorMessage, setErrorMessage] = useState<string | null>(null);
+
+	const submissionOrder = [...submissions].sort((a, b) => (a.runningOrder as number) - (b.runningOrder as number));
 
 	const router = useRouter();
 	const queryClient = useQueryClient();
@@ -195,7 +197,13 @@ const ResultsComponent: React.FC<ResultsComponentProps> = ({ editionId, user }) 
 
 	useEffect(() => {
 		if (isFetched && edition) {
-			setSubmissions((edition.submissionList as Submission[]).map((s) => ({ ...s, score: 0 })));
+			console.log((edition.submissionList as Submission[]).map((s) => ({ ...s, score: 0 })));
+			setSubmissions(
+				(edition.submissionList as Submission[])
+					.filter((s) => s.rejected !== true)
+					.map((s) => ({ ...s, score: 0 }))
+					.sort((a, b) => (a.runningOrder as number) - (b.runningOrder as number))
+			);
 			if ((edition.submissionList as Submission[]).length === 0 || edition.rankingsList?.length === 0) {
 				toast.error(`Failed to find votes`);
 				router.push(`/edition/${editionId}`);
@@ -266,8 +274,12 @@ const ResultsComponent: React.FC<ResultsComponentProps> = ({ editionId, user }) 
 			if (edition?.contestDetails.hostId === user.userId && edition?.resultsRevealed !== true) {
 				handleHostRevealed();
 			}
+			console.log('voting index', votingIndex);
+			console.log('current voter', currentVoter);
+			console.log('submissions length', submissions);
 			// ✨ Check if all jury votes are revealed
-			if (votingIndex >= submissions.length) {
+			if (isFetched && votingIndex >= submissions.length - 1) {
+				console.log('all jury votes revealed.');
 				runTelevoteSequence();
 				return;
 			}
@@ -310,26 +322,28 @@ const ResultsComponent: React.FC<ResultsComponentProps> = ({ editionId, user }) 
 				}
 			});
 			setPointsJustReceived((prev) => ({ ...prev, ...newPointsReceived }));
-			setSubmissions(updatedSongs.sort(tiebreakSorter(edition?.rankingsList?.map((r) => r.rankingList as string[]) as string[][])));
+			// setSubmissions(updatedSongs.sort(tiebreakSorter(edition?.rankingsList?.map((r) => r.rankingList as string[]) as string[][])));
+			setSubmissions(updatedSongs.sort(tiebreakSorter()));
 
 			// --- Step 4: Add a delay *between* the 1-7 and the high points ---
 			await delay(3000);
 
 			// --- Step 5: Reveal 8, 10, and 12 points with delays in between ---
-			for (let i = 0; i < highPointVotes.length; i++) {
+			for (let i = 2; i >= 0; i--) {
 				const points = rankingPoints.get(i) as number;
 				const updatedSongs = [...submissions];
 				const songToUpdate = updatedSongs.find((s) => s.submissionId === highPointVotes[i]);
-				setHighPointMessage(`${points} points goes to...`);
-				await delay(2000);
 				if (songToUpdate) {
+					setHighPointMessage(`${points} points goes to...`);
+					await delay(2000);
 					songToUpdate.score += points;
+					setHighPointMessage(`${songToUpdate?.songTitle} by ${songToUpdate?.artistName}!`);
+					setPointsJustReceived((prev) => ({ ...prev, [highPointVotes[i]]: points }));
+					await delay(1000);
+					// setSubmissions(updatedSongs.sort(tiebreakSorter(edition?.rankingsList?.map((r) => r.rankingList as string[]) as string[][])));
+					setSubmissions(updatedSongs.sort(tiebreakSorter()));
+					await delay(2000);
 				}
-				setHighPointMessage(`${songToUpdate?.songTitle} by ${songToUpdate?.artistName}!`);
-				setPointsJustReceived((prev) => ({ ...prev, [highPointVotes[i]]: points }));
-				await delay(1000);
-				setSubmissions(updatedSongs.sort(tiebreakSorter(edition?.rankingsList?.map((r) => r.rankingList as string[]) as string[][])));
-				await delay(2000);
 			}
 
 			// --- Step 6: End of round, wait and move to next voter ---
@@ -435,26 +449,31 @@ const ResultsComponent: React.FC<ResultsComponentProps> = ({ editionId, user }) 
 	useEffect(() => {
 		if (!paused) {
 			if (votingIndex === -1) {
-				console.log(submissions);
 				const nextVoterId =
-					submissions.length > 0 && submissions.sort((a, b) => (a.runningOrder as number) - (b.runningOrder as number))[votingIndex].userId;
+					submissions.length > 0 &&
+					[...submissions].sort((a, b) => (a.runningOrder as number) - (b.runningOrder as number))[votingIndex].userId;
 				const voterVotesExist = juryVotes?.some((vote) => vote.userId === (nextVoterId as string));
 				if (voterVotesExist) {
 					setCurrentVoter(nextVoterId as string);
 				}
 			} else if (currentVoter === null && votingIndex > -1) {
 				const startNextRoundTimer = setTimeout(() => {
-					const nextVoterId = (edition?.submissionList as Submission[]).sort(
-						(a, b) => (a.runningOrder as number) - (b.runningOrder as number)
-					)[votingIndex].userId as string;
+					const submissionsCopy = [...submissions];
+					const nextVoterId = submissionsCopy.sort((a, b) => (a.runningOrder as number) - (b.runningOrder as number))[votingIndex]
+						.userId as string;
 					const voterVotesExist = juryVotes?.some((vote) => vote.userId === nextVoterId);
 					if (voterVotesExist) {
 						setCurrentVoter(nextVoterId);
 					} else {
-						setErrorMessage(`Failed to find any votes from ${profiles?.find((p) => p.userId === nextVoterId)?.displayName}`);
+						console.log('current voting index is', votingIndex);
+						toast.error(`Failed to find any votes from ${profiles?.find((p) => p.userId === nextVoterId)?.displayName}`);
 						delay(2000);
 						setCurrentVoter(null);
-						setVotingIndex((prev) => prev + 1);
+						if (votingIndex !== submissions.length - 1) {
+							setVotingIndex((prev) => prev + 1);
+						} else {
+							setCurrentVoter('failed');
+						}
 					}
 				}, 1000);
 				return () => clearTimeout(startNextRoundTimer);
@@ -533,7 +552,7 @@ const ResultsComponent: React.FC<ResultsComponentProps> = ({ editionId, user }) 
 						</div>
 					</CardContent>
 					{/* ✨ The Flash Animation Overlay */}
-					{(points === 12 && resultsStage === 'JURY') || (index === 0 && resultsStage === 'COMPLETE') || (
+					{((points === 12 && resultsStage === 'JURY') || (index === 0 && resultsStage === 'COMPLETE')) && (
 						// (index === 0 && resultsStage === 'TELEVOTE' && receivedTelevotes.includes(song.submissionId))) && (
 						<motion.div
 							initial={{ backgroundPosition: '-200% 0%' }} // Start the gradient far to the left
@@ -558,9 +577,16 @@ const ResultsComponent: React.FC<ResultsComponentProps> = ({ editionId, user }) 
 		);
 	};
 
-	// if (viewBreakdown) {
-	// 	return <JuryPivotTable juryVotes={juryVotes} televotes={televotes} submissions={submissions} />;
-	// }
+	if (viewBreakdown) {
+		return (
+			<NewResultsTable
+				submissions={submissions}
+				rankings={edition?.rankingsList as Ranking[]}
+				name={edition?.name as string}
+				profiles={profiles as Profile[]}
+			/>
+		);
+	}
 
 	return (
 		<div className="p-1 max-w-6xl mx-auto flex flex-col md:space-x-8 mt-2">
@@ -599,18 +625,12 @@ const ResultsComponent: React.FC<ResultsComponentProps> = ({ editionId, user }) 
 						</>
 					)
 				)}
-				{/* {resultsStage === 'COMPLETE' && <Button onClick={() => setViewBreakdown(true)}>See breakdown of results</Button>} */}
+				{<Button onClick={() => setViewBreakdown(true)}>See breakdown of results</Button>}
 			</div>
 			{paused && (
 				<Alert>
 					<Info />
 					<AlertTitle>Reveal will only pause after the current juror&apos;s votes are revealed.</AlertTitle>
-				</Alert>
-			)}
-			{errorMessage && (
-				<Alert>
-					<Info />
-					<AlertTitle>{errorMessage}</AlertTitle>
 				</Alert>
 			)}
 			{/* Main content area: Voter Card + Scoreboard Columns */}
@@ -632,9 +652,9 @@ const ResultsComponent: React.FC<ResultsComponentProps> = ({ editionId, user }) 
 										<div className="flex w-full justify-between">
 											<div className="w-8 h-8 min-w-8 max-w-8 rounded-md overflow-hidden shadow-md relative">
 												<Image
-													src={`https://flagcdn.com/w640/${(edition?.submissionList as Submission[])[votingIndex].flag?.toLowerCase()}.png`}
+													src={`https://flagcdn.com/w640/${submissionOrder[votingIndex].flag?.toLowerCase()}.png`}
 													fill
-													alt={`${(edition?.submissionList as Submission[])[votingIndex].artistName}'s flag`}
+													alt={`${submissionOrder[votingIndex].artistName}'s flag`}
 													style={{ objectFit: 'cover', objectPosition: 'center' }}
 													quality={80}
 													sizes="640px"
@@ -710,9 +730,9 @@ const ResultsComponent: React.FC<ResultsComponentProps> = ({ editionId, user }) 
 										})}
 								</AnimatePresence>
 							</div>
-							<Progress value={(votingIndex / (edition?.submissionList?.length || 0)) * 100} />
+							<Progress value={((votingIndex + 1) / submissionOrder.length) * 100} />
 							<div className="flex w-full justify-between">
-								<div className="text-xs">{`Juror ${votingIndex + 1} of ${edition?.submissionList?.length}`}</div>
+								<div className="text-xs">{`Juror ${votingIndex + 1} of ${submissionOrder.length}`}</div>
 							</div>
 						</Card>
 					)}

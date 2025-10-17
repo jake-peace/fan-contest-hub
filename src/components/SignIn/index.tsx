@@ -57,9 +57,10 @@ const SignInComponent: React.FC = () => {
 				toast.success(`Signed in!`);
 				router.push('/');
 			}
-		} catch {
+		} catch (error) {
 			setOTPError(true);
-			toast.error('Something went wrong when checking OTP code.');
+			toast.error(`Something went wrong when checking OTP code: ${JSON.stringify(error)}`);
+			console.error(`Error checking OTP code: ${JSON.stringify(error)}`);
 		}
 		setIsLoading(false);
 	};

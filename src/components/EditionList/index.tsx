@@ -30,7 +30,6 @@ const fetchContestEditions = async (contestId: string) => {
 };
 
 export const getPhaseColor = (phase: string) => {
-	console.log(phase);
 	switch (phase) {
 		case 'UPCOMING':
 			return `customc`;

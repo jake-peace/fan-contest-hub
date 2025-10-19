@@ -64,8 +64,6 @@ function convertPlaylistUrlToUri(url: string): string {
 	const replacementString = 'spotify:playlist:$1';
 	const uri = url.replace(playlistRegex, replacementString);
 
-	console.log(uri);
-
 	return uri;
 }
 
@@ -206,8 +204,6 @@ const VotingComponent: React.FC<VotingComponentProps> = ({ editionId, user }) =>
 	useEffect(() => {
 		if (edition?.spotifyPlaylistLink !== undefined) {
 			window.onSpotifyIframeApiReady = (IFrameAPI: IFrameAPI) => {
-				console.log('Spotify IFrame API is ready. The playlist link is', edition?.spotifyPlaylistLink);
-
 				const element = playerDivRef.current;
 
 				if (element) {
@@ -219,7 +215,6 @@ const VotingComponent: React.FC<VotingComponentProps> = ({ editionId, user }) =>
 					IFrameAPI.createController(element, options, (embedController) => {
 						embedController.addListener('onPlaybackStatusChange', (status) => {
 							if (!status.data.isPaused && status.data.position === 0) {
-								console.log('Track finished. Reloading playlist context.');
 								embedController.loadUri(edition?.spotifyPlaylistLink ? convertPlaylistUrlToUri(edition.spotifyPlaylistLink) : '');
 							}
 						});

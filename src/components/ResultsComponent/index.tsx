@@ -175,7 +175,6 @@ const ResultsComponent: React.FC<ResultsComponentProps> = ({ editionId, user }) 
 
 	useEffect(() => {
 		if (isFetched && edition) {
-			console.log((edition.submissionList as Submission[]).map((s) => ({ ...s, score: 0 })));
 			setSubmissions(
 				(edition.submissionList as Submission[])
 					.filter((s) => s.rejected !== true)
@@ -256,9 +255,6 @@ const ResultsComponent: React.FC<ResultsComponentProps> = ({ editionId, user }) 
 			if (edition?.contestDetails.hostId === user.userId && edition?.resultsRevealed !== true) {
 				handleHostRevealed();
 			}
-			console.log('voting index', votingIndex);
-			console.log('current voter', currentVoter);
-			console.log('submissions length', submissions);
 			// ✨ Check if all jury votes are revealed
 			if (isFetched && votingIndex >= submissions.length) {
 				console.log('all jury votes revealed.');
@@ -276,13 +272,6 @@ const ResultsComponent: React.FC<ResultsComponentProps> = ({ editionId, user }) 
 			const voterVotes = juryVotes.find((v) => v.userId === currentVoter);
 			const lowPointVotes = voterVotes?.rankingList?.slice(3) as string[];
 			const highPointVotes = voterVotes?.rankingList?.slice(0, 3) as string[];
-
-			// const voterVotes = juryVotes?.filter((vote) => vote.fromUserId === currentVoter);
-			// const sortedVotes = [...(voterVotes as Vote[])].sort((a, b) => a.points - b.points);
-			// const lowPointVotes = sortedVotes.filter((vote) => vote.points < 8);
-			// const highPointVotes = sortedVotes.filter((vote) => vote.points >= 8).sort((a, b) => a.points - b.points);
-
-			console.log(highPointVotes);
 
 			// --- Step 1: Voter card and 1-7 list appear immediately ---
 			await delay(100);
@@ -304,7 +293,7 @@ const ResultsComponent: React.FC<ResultsComponentProps> = ({ editionId, user }) 
 				}
 			});
 			setPointsJustReceived((prev) => ({ ...prev, ...newPointsReceived }));
-			// setSubmissions(updatedSongs.sort(tiebreakSorter(edition?.rankingsList?.map((r) => r.rankingList as string[]) as string[][])));
+
 			setSubmissions(updatedSongs.sort(tiebreakSorter()));
 
 			// --- Step 4: Add a delay *between* the 1-7 and the high points ---
@@ -446,7 +435,6 @@ const ResultsComponent: React.FC<ResultsComponentProps> = ({ editionId, user }) 
 					if (voterVotesExist) {
 						setCurrentVoter(nextVoterId as string);
 					} else {
-						console.log('current voting index is', votingIndex);
 						toast.error(`Failed to find any votes from ${profiles?.find((p) => p.userId === nextVoterId)?.displayName}`);
 						delay(2000);
 						setCurrentVoter(null);

@@ -1,35 +1,31 @@
 'use client';
 
 import { useEffect, useRef, useState, useTransition } from 'react';
-import { Vote, Undo2, Check, X, Rows4 } from 'lucide-react';
+import { Vote, Undo2, Rows4 } from 'lucide-react';
 import { Alert, AlertDescription, AlertTitle } from '../ui/alert';
 import { Card, CardContent, CardHeader, CardTitle } from '../ui/card';
 import { Button } from '../ui/button';
-import { useQuery, useQueryClient } from '@tanstack/react-query';
+import { useQuery } from '@tanstack/react-query';
 import { toast } from 'sonner';
 import { Schema } from '../../../amplify/data/resource';
-import { AuthUser } from 'aws-amplify/auth';
 import { DndContext, DragEndEvent, MouseSensor, TouchSensor, useSensor, useSensors } from '@dnd-kit/core';
 import { SortableContext, verticalListSortingStrategy, arrayMove } from '@dnd-kit/sortable';
 import { restrictToVerticalAxis } from '@dnd-kit/modifiers';
-import SortableSong from './SortableSong';
-import { fetchEdition } from '../EditionDetails';
 import { useRouter } from 'next/navigation';
 import { Skeleton } from '../ui/skeleton';
-import { submitRanking } from '@/app/actions/submitRanking';
 import { Spinner } from '../ui/spinner';
-import { saveRanking } from '@/app/actions/saveRanking';
 import { Toggle } from '../ui/toggle';
-import SortableSongCompact from './SortableSongCompact';
+import { EditionWithDetails } from '@/types/Edition';
+import SortableSongCompact from '../VotingComponent/SortableSongCompact';
+import SortableSong from '../VotingComponent/SortableSong';
+import { submitTelevote } from '@/app/actions/submitTelevote';
+import { Input } from '../ui/input';
 
-interface VotingComponentProps {
-	editionId: string;
-	user: AuthUser;
+interface TelevotePageProps {
+	televoteId: string;
 }
 
 type Submission = Schema['Submission']['type'];
-type Vote = Schema['Vote']['type'];
-type Ranking = Schema['Ranking']['type'];
 interface EmbedOptions {
 	uri: string;
 	width?: number | string;
@@ -64,110 +60,73 @@ function convertPlaylistUrlToUri(url: string): string {
 	const replacementString = 'spotify:playlist:$1';
 	const uri = url.replace(playlistRegex, replacementString);
 
+	console.log(uri);
+
 	return uri;
 }
 
-export const fetchSavedRanking = async (id: string) => {
-	const response = await fetch(`/api/editions/${id}/savedranking`);
+const fetchEditionFromTelevote = async (id: string) => {
+	const response = await fetch(`/api/editions/televote/${id}`);
 
 	if (!response.ok) {
 		throw new Error('Failed to fetch data from the server.');
 	}
 
 	const result = await response.json();
-	if (result.ranking === undefined) {
-		return null;
-	}
-
-	return result.ranking as Ranking;
+	return result.edition as EditionWithDetails;
 };
 
-const VotingComponent: React.FC<VotingComponentProps> = ({ editionId, user }) => {
+const TelevotePage: React.FC<TelevotePageProps> = ({ televoteId }) => {
 	const [rankings, setRankings] = useState<Submission[]>([]);
-	const [debouncedRankings, setDebouncedRankings] = useState(rankings);
+	const [name, setName] = useState('');
 	const router = useRouter();
 	const playerDivRef = useRef<HTMLDivElement>(null);
-	const [saved, setSaved] = useState(false);
 
 	const {
 		data: edition,
 		isLoading,
 		isFetched,
 	} = useQuery({
-		queryKey: ['editionDetailsVoting', editionId],
-		queryFn: () => fetchEdition(editionId),
-	});
-
-	const {
-		data: savedRanking,
-		isLoading: loadingSaved,
-		isFetched: fetchedSaved,
-	} = useQuery({
-		queryKey: ['savedRankingVoting', editionId],
-		queryFn: () => fetchSavedRanking(editionId),
-		refetchOnWindowFocus: 'always',
+		queryKey: ['televoteDetails', televoteId],
+		queryFn: () => fetchEditionFromTelevote(televoteId),
 	});
 
 	useEffect(() => {
 		if (isFetched) {
 			if (edition?.phase !== 'VOTING') {
-				router.push(`/edition/${editionId}`);
+				router.push(`/signin`);
 				toast.error('Voting is not open for this edition.');
-			} else if (edition.rankingsList?.find((r) => r.userId === user.userId) !== undefined) {
-				router.push(`/edition/${editionId}`);
-				toast.error('You have already voted in this edition.');
 			} else {
-				if (fetchedSaved) {
-					if (!savedRanking) {
-						setRankings(
-							(edition?.submissionList as Submission[])
-								.filter((s) => s.rejected !== true && s.userId !== user.userId)
-								.sort((a, b) => (a.runningOrder as number) - (b.runningOrder as number)) as Submission[]
-						);
-					} else {
-						setRankings(
-							(edition?.submissionList as Submission[])
-								.filter((s) => s.rejected !== true && s.userId !== user.userId)
-								.sort(
-									(a, b) =>
-										(savedRanking.rankingList?.indexOf(a.submissionId) as number) -
-										(savedRanking.rankingList?.indexOf(b.submissionId) as number)
-								) as Submission[]
-						);
-					}
-				}
+				setRankings(
+					(edition?.submissionList as Submission[])
+						.filter((s) => s.rejected !== true)
+						.sort((a, b) => (a.runningOrder as number) - (b.runningOrder as number)) as Submission[]
+				);
 			}
 		}
-	}, [isFetched, fetchedSaved]);
+	}, [isFetched]);
 
 	const handleResetRankings = () => {
 		setRankings(
 			(edition?.submissionList as Submission[])
-				.filter((s) => s.rejected !== true && s.userId !== user.userId)
+				.filter((s) => s.rejected !== true)
 				.sort((a, b) => (a.runningOrder as number) - (b.runningOrder as number)) as Submission[]
 		);
 	};
 
-	const queryClient = useQueryClient();
 	const [isPending, startTransition] = useTransition();
 
 	const handleSubmitRanking = async () => {
 		startTransition(async () => {
 			const rankingList = rankings.map((r) => r.submissionId).slice(0, 10);
-			const result = await submitRanking(rankingList, editionId);
+			const result = await submitTelevote(rankingList, edition?.editionId as string, 'jacob');
 			if (result.success) {
-				// query client - invalidate future ranking query
-				queryClient.invalidateQueries({ queryKey: ['editionDetails', editionId] });
-				toast.success('Your votes have been submitted successfully!');
-				router.push(`/edition/${editionId}`);
+				toast.success('Your televote has been submitted successfully!');
+				router.push(`/signin`);
 			} else {
 				toast.error(`There was an error submitting your votes: ${result.error}`);
 			}
 		});
-	};
-
-	const handleDragStart = () => {
-		setSaved(false);
 	};
 
 	const handleDragEnd = (event: DragEndEvent) => {
@@ -178,32 +137,14 @@ const VotingComponent: React.FC<VotingComponentProps> = ({ editionId, user }) =>
 			const newIndex = rankings.findIndex((item) => item.submissionId === over.id);
 			const newOrder = arrayMove(rankings, oldIndex, newIndex);
 			setRankings(newOrder);
-			setDebouncedRankings(newOrder);
 		}
 	};
-
-	// --- The Debounce Effect ---
-	useEffect(() => {
-		if (debouncedRankings.length === 0) return;
-
-		const timerId = setTimeout(() => {
-			startTransition(async () => {
-				const debouncedRankingsList = debouncedRankings.map((r) => r.submissionId);
-				const result = await saveRanking(debouncedRankingsList, editionId);
-				if (result.success) {
-					setSaved(true);
-				}
-			});
-		}, 3000);
-
-		return () => {
-			clearTimeout(timerId);
-		};
-	}, [debouncedRankings]);
 
 	useEffect(() => {
 		if (edition?.spotifyPlaylistLink !== undefined) {
 			window.onSpotifyIframeApiReady = (IFrameAPI: IFrameAPI) => {
+				console.log('Spotify IFrame API is ready. The playlist link is', edition?.spotifyPlaylistLink);
+
 				const element = playerDivRef.current;
 
 				if (element) {
@@ -215,6 +156,7 @@ const VotingComponent: React.FC<VotingComponentProps> = ({ editionId, user }) =>
 					IFrameAPI.createController(element, options, (embedController) => {
 						embedController.addListener('onPlaybackStatusChange', (status) => {
 							if (!status.data.isPaused && status.data.position === 0) {
+								console.log('Track finished. Reloading playlist context.');
 								embedController.loadUri(edition?.spotifyPlaylistLink ? convertPlaylistUrlToUri(edition.spotifyPlaylistLink) : '');
 							}
 						});
@@ -248,7 +190,7 @@ const VotingComponent: React.FC<VotingComponentProps> = ({ editionId, user }) =>
 				<CardHeader>
 					<CardTitle className="flex items-center gap-2">
 						<Vote className="w-5 h-5" />
-						Rank Your Top 10
+						{isLoading ? <Skeleton /> : `Submit a televote for ${edition?.name} in ${edition?.contestDetails.name}`}
 					</CardTitle>
 				</CardHeader>
 				<CardContent className="flex items-center justify-between">
@@ -273,34 +215,22 @@ const VotingComponent: React.FC<VotingComponentProps> = ({ editionId, user }) =>
 			)}
 
 			<div className="flex items-center gap-1">
-				<div className="m-2 font-bold text-xl mr-auto">Entries</div>
-				{!saved && !isPending && isFetched && fetchedSaved && (
-					<>
-						<div className="text-(--destructive)">Not Saved</div>
-						<X className="text-(--destructive)" />
-					</>
-				)}
-				{isPending && (
-					<>
-						<div>Saving</div>
-						<Spinner />
-					</>
-				)}
-				{saved && !isPending && (
-					<>
-						<div className="text-(--success)">Ranking Saved</div>
-						<Check className="text-(--success)" />
-					</>
-				)}
+				<div className="m-2 font-bold text-xl mr-auto">Your Name</div>
 			</div>
 
-			{isFetched && fetchedSaved && rankings.length === 0 && (
+			<Input value={name} onChange={(e) => setName(e.target.value)} />
+
+			<div className="flex items-center gap-1">
+				<div className="m-2 font-bold text-xl mr-auto">Entries</div>
+			</div>
+
+			{isFetched && rankings.length === 0 && (
 				<Alert>
 					<AlertTitle>No entries found</AlertTitle>
 					<AlertDescription>Something went wrong fetching the entries</AlertDescription>
 				</Alert>
 			)}
-			{isLoading || loadingSaved ? (
+			{isLoading ? (
 				<>
 					<Skeleton>
 						<div className="p-3 bg-muted rounded-lg mb-1">
@@ -314,7 +244,7 @@ const VotingComponent: React.FC<VotingComponentProps> = ({ editionId, user }) =>
 					</Skeleton>
 				</>
 			) : (
-				<DndContext onDragStart={handleDragStart} onDragEnd={handleDragEnd} modifiers={[restrictToVerticalAxis]} sensors={sensors}>
+				<DndContext onDragEnd={handleDragEnd} modifiers={[restrictToVerticalAxis]} sensors={sensors}>
 					<SortableContext items={rankings.map((item) => item.submissionId)} strategy={verticalListSortingStrategy}>
 						{rankings.map((song, index) =>
 							isCompact ? (
@@ -335,4 +265,4 @@ const VotingComponent: React.FC<VotingComponentProps> = ({ editionId, user }) =>
 	);
 };
 
-export default VotingComponent;
+export default TelevotePage;

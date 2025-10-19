@@ -5,6 +5,7 @@ import { submitBatchVotes } from './function/submit-batch-votes/resource';
 import { spotifyApi } from './function/spotifyApi/resource';
 import { phaseUpdater } from './function/phaseUpdater/resource';
 import { postConfirmationHandler } from './function/postConfirmationTrigger/resource';
+import { televoteSubmitter } from './function/televoteSubmitter/resource';
 
 /**
  * @see https://docs.amplify.aws/react/build-a-backend/ to add storage, functions, and more
@@ -16,6 +17,7 @@ const backend = defineBackend({
 	spotifyApi,
 	phaseUpdater,
 	postConfirmationHandler,
+	televoteSubmitter,
 });
 
 const { cfnResources } = backend.auth.resources;

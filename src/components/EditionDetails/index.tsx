@@ -357,7 +357,13 @@ const EditionDetails: React.FC<EditionDetailsProps> = ({ editionId, user }) => {
 						)}
 
 						{user.userId === edition.contestDetails.hostId && (
-							<EditionHostOptions phase={edition.phase} onRefetch={refetch} editionId={editionId} submissions={edition.submissionList} />
+							<EditionHostOptions
+								phase={edition.phase}
+								onRefetch={refetch}
+								editionId={editionId}
+								submissions={edition.submissionList}
+								televote={edition.televoteId !== null}
+							/>
 						)}
 					</CardContent>
 				</Card>

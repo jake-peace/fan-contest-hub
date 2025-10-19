@@ -1,6 +1,6 @@
 import { Button } from '../ui/button';
-import { CircleX, HelpCircle, TicketCheckIcon } from 'lucide-react';
-import React, { startTransition, useState } from 'react';
+import { Check, CircleX, DoorOpen, HelpCircle, TicketCheckIcon } from 'lucide-react';
+import React, { useState, useTransition } from 'react';
 import { closeSubmissions } from '@/app/actions/closeSubmissions';
 import { toast } from 'sonner';
 import {
@@ -25,6 +25,8 @@ import { Collapsible, CollapsibleContent, CollapsibleTrigger } from '../ui/colla
 import { Alert, AlertTitle } from '../ui/alert';
 import { Card } from '../ui/card';
 import { Schema } from '../../../amplify/data/resource';
+import { openTelevote } from '@/app/actions/openTelevote';
+import { Spinner } from '../ui/spinner';
 
 type Submission = Schema['Submission']['type'];
 
@@ -33,14 +35,18 @@ interface EditionHostOptionsProps {
 	phase: string;
 	onRefetch: () => void;
 	submissions?: Submission[];
+	televote: boolean;
 }
 
-const EditionHostOptions: React.FC<EditionHostOptionsProps> = ({ editionId, phase, onRefetch, submissions }) => {
+const EditionHostOptions: React.FC<EditionHostOptionsProps> = ({ editionId, phase, onRefetch, submissions, televote }) => {
 	const [dialogOpen, setDialogOpen] = useState(false);
 	const [spotifyDialogOpen, setSpotifyDialogOpen] = useState(false);
 	const [playlistLink, setPlaylistInputLink] = useState('');
 
 	const queryClient = useQueryClient();
+	const [isPending, startTransition] = useTransition();
+
+	console.log(televote);
 
 	const handleAction = (description: string) => {
 		switch (description) {
@@ -115,6 +121,18 @@ const EditionHostOptions: React.FC<EditionHostOptionsProps> = ({ editionId, phas
 		});
 	};
 
+	const handleOpenTelevote = () => {
+		startTransition(async () => {
+			const result = await openTelevote(editionId);
+			if (result.success) {
+				queryClient.invalidateQueries({ queryKey: ['editionDetails', editionId] });
+				toast.success(`Televote opened!`);
+			} else {
+				toast.error('Something went wrong opening the televote.');
+			}
+		});
+	};
+
 	const SpotifyPlaylistDialog = () => {
 		return (
 			<Dialog open={spotifyDialogOpen}>
@@ -181,7 +199,18 @@ const EditionHostOptions: React.FC<EditionHostOptionsProps> = ({ editionId, phas
 						Add Spotify Playlist
 					</Button>
 					{SpotifyPlaylistDialog()}
-					<Button variant="destructive" className="w-full" onClick={() => setDialogOpen(true)}>
+					{televote ? (
+						<Button className="w-full mb-2" variant="outline" disabled>
+							<Check />
+							Televote Open
+						</Button>
+					) : (
+						<Button className="w-full relative hover:bg-muted mb-2" variant="outline" onClick={handleOpenTelevote} disabled={isPending}>
+							{isPending ? <Spinner /> : <DoorOpen />}
+							Open a Televote
+						</Button>
+					)}
+					<Button variant="destructive" className="w-full mt-2" onClick={() => setDialogOpen(true)}>
 						<CircleX className="w-4 h-4 mr-2" />
 						Close Voting
 					</Button>

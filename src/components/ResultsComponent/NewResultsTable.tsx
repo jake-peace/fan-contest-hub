@@ -28,7 +28,6 @@ const rankingPoints = new Map<number, number>([
 ]);
 
 const NewResultsTable: React.FC<NewResultsTableProps> = ({ submissions, rankings, name, profiles }) => {
-	console.log(submissions);
 	return (
 		<Card className="m-5 p-2">
 			<Table>

@@ -24,7 +24,6 @@ export async function GET(request: Request, segmentData: { params: Params }) {
 		editionsData.forEach(async (e) => {
 			const submissionsData = (await e.submissions()).data;
 			entries = [...entries, ...submissionsData.filter((s) => s.userId === userId)];
-			console.log(entries);
 		});
 
 		// 2. The client never sees the auth token or the GraphQL endpoint.

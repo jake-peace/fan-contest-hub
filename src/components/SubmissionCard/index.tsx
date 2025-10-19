@@ -64,7 +64,7 @@ const getBadgeColor = (rank: number) => {
 	}
 };
 
-const SubmissionCard: React.FC<SubmissionCardProps> = ({ submission, onReject, isHost, showRunningOrder, contestId, isUser }) => {
+const SubmissionCard: React.FC<SubmissionCardProps> = ({ submission, onReject, isHost, showRunningOrder, contestId, isUser, score }) => {
 	const [dialogOpen, setDialogOpen] = useState(false);
 	const [cardOpen, setCardOpen] = useState(false);
 	const [trackInfo, setTrackInfo] = useState<SpotifyTrack>();
@@ -210,6 +210,12 @@ const SubmissionCard: React.FC<SubmissionCardProps> = ({ submission, onReject, i
 									<Image src={`/spotifyLogo.svg`} width={20} height={20} alt={`spotifyLogoBlack`} quality={80} sizes="640px" />
 									Spotify
 								</Button>
+							)}
+							{score && submission.rank && (
+								<Badge
+									variant={submission.rank < 4 ? 'default' : 'outline'}
+									className={`${getBadgeColor(submission.rank)}`}
+								>{`Came ${formatOrdinal(submission.rank)} with ${score} points`}</Badge>
 							)}
 							{isHost && (
 								<>

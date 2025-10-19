@@ -37,7 +37,7 @@ const Header: React.FC = () => {
 	const router = useRouter();
 	const pathname = usePathname();
 
-	const excludedPathnames = ['/results', '/signin', '/join'];
+	const excludedPathnames = ['/results', '/signin', '/join', '/televote'];
 	const [signOutDialog, setSignOutDialog] = useState(false);
 	const [backPathname, setBackPathname] = useState('/');
 

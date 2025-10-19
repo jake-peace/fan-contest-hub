@@ -3,6 +3,7 @@ import { submitBatchVotes } from '../function/submit-batch-votes/resource';
 import { spotifyApi } from '../function/spotifyApi/resource';
 import { phaseUpdater } from '../function/phaseUpdater/resource';
 import { postConfirmationHandler } from '../function/postConfirmationTrigger/resource';
+import { televoteSubmitter } from '../function/televoteSubmitter/resource';
 
 /*== STEP 1 ===============================================================
 The section below creates a Todo database table with a "content" field. Try
@@ -62,7 +63,7 @@ const schema = a
 				televotes: a.hasMany('Televote', 'editionId'),
 			})
 			.identifier(['editionId'])
-			.authorization((allow) => allow.authenticated()),
+			.authorization((allow) => [allow.authenticated()]),
 		Submission: a
 			.model({
 				userId: a.id(),
@@ -135,12 +136,23 @@ const schema = a
 			.returns(a.string())
 			.authorization((allow) => allow.authenticated())
 			.handler(a.handler.function(spotifyApi)),
+		televoteSubmitter: a
+			.query()
+			.returns(a.string())
+			.authorization((allow) => allow.guest())
+			.arguments({
+				ranking: a.string().array(),
+				name: a.string(),
+				editionId: a.string(),
+			})
+			.handler(a.handler.function(televoteSubmitter)),
 	})
 	.authorization((allow) => [
 		allow.resource(submitBatchVotes),
 		allow.resource(spotifyApi),
 		allow.resource(phaseUpdater),
 		allow.resource(postConfirmationHandler),
+		allow.guest().to(['read']),
 	]);
 
 export type Schema = ClientSchema<typeof schema>;

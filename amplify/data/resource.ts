@@ -62,7 +62,7 @@ const schema = a
 				televotes: a.hasMany('Televote', 'editionId'),
 			})
 			.identifier(['editionId'])
-			.authorization((allow) => [allow.authenticated()]),
+			.authorization((allow) => [allow.authenticated(), allow.guest().to(['list'])]),
 		Submission: a
 			.model({
 				userId: a.id(),
@@ -141,7 +141,6 @@ const schema = a
 		allow.resource(spotifyApi),
 		allow.resource(phaseUpdater),
 		allow.resource(postConfirmationHandler),
-		allow.guest().to(['read']),
 	]);
 
 export type Schema = ClientSchema<typeof schema>;

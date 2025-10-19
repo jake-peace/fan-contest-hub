@@ -44,7 +44,7 @@ const Header: React.FC = () => {
 	const { data: profile, isLoading: profileLoading } = useQuery({
 		queryKey: ['userProfileHeader'],
 		queryFn: () => fetchProfile(),
-		enabled: pathname !== '/signin',
+		enabled: excludedPathnames.find((p) => pathname.includes(p)) === undefined,
 	});
 
 	const handleSignOut = async () => {

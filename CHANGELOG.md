@@ -1,3 +1,9 @@
+# [1.5.0](https://github.com/jake-peace/fan-contest-hub/compare/v1.4.0...v1.5.0) (2025-10-19)
+
+### Features
+
+- added televote page ([fe06582](https://github.com/jake-peace/fan-contest-hub/commit/fe06582479d2a2f1f6083f5ea2ebc83be4b8806f))
+
 # [1.4.0](https://github.com/jake-peace/fan-contest-hub/compare/v1.3.1...v1.4.0) (2025-10-19)
 
 ### Features

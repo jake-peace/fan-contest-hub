@@ -10,7 +10,6 @@ import { AnimatePresence, motion } from 'motion/react';
 import React, { startTransition, useEffect, useState } from 'react';
 import { Progress } from '../ui/progress';
 // import FinalOverlayCard from './FinalCard';
-// import JuryPivotTable from './ResultsTable';
 import { AuthUser } from 'aws-amplify/auth';
 import { fetchEdition } from '../EditionDetails';
 import Loading from '../Loading';
@@ -18,7 +17,6 @@ import { useRouter } from 'next/navigation';
 import { hostRevealed } from '@/app/actions/hostRevealed';
 import Image from 'next/image';
 import { toast } from 'sonner';
-import NewResultsTable from './NewResultsTable';
 
 // type Vote = Schema['Vote']['type'];
 type Submission = Schema['Submission']['type'];
@@ -30,32 +28,13 @@ interface ResultsComponentProps {
 	user: AuthUser;
 }
 
-// function generateMockTele(submissionIds: string[]) {
-// 	const mockTele: { submissionId: string; points: number }[] = [];
-// 	submissionIds.forEach((s) => {
-// 		mockTele.push({
-// 			submissionId: s,
-// 			points: Math.floor(Math.random() * (120 - 0 + 1) + 0),
-// 		});
-// 	});
-// 	return mockTele;
-// }
-// interface Song {
-// 	submissionId: string;
-// 	songTitle: string;
-// 	artistName: string;
-// 	userId: string;
-// 	score: number;
-// 	flag: string;
-// }
-
 export interface SubmissionWithScore extends Submission {
 	score: number;
 }
 
 const delay = (ms: number) => new Promise((res) => setTimeout(res, ms));
 
-const fetchProfiles = async (id: string) => {
+export const fetchProfiles = async (id: string) => {
 	const response = await fetch(`/api/profile/${id}`);
 
 	if (!response.ok) {
@@ -171,7 +150,6 @@ const ResultsComponent: React.FC<ResultsComponentProps> = ({ editionId, user }) 
 	// const [showFinalOverlay, setShowFinalOverlay] = useState<boolean>(false);
 	// const [finalSongToReveal, setFinalSongToReveal] = useState<SubmissionWithScore>();
 	// const [leader, setCurrentLeader] = useState<SubmissionWithScore>();
-	const [viewBreakdown, setViewBreakdown] = useState(false);
 	const [paused, setPaused] = useState(false);
 	// const [televotes, setTelevotes] = useState<{ submissionId: string; points: number }[]>([]);
 	const [juryVotes, setJuryVotes] = useState<Ranking[]>([]);
@@ -236,21 +214,25 @@ const ResultsComponent: React.FC<ResultsComponentProps> = ({ editionId, user }) 
 	const MAX_SONGS_PER_COLUMN = 15;
 	const SONG_CARD_HEIGHT = 35;
 
-	// const handleSkipJury = () => {
-	// 	if (juryVotes) {
-	// 		juryVotes.forEach((v) => {
-	// 			const updatedSongs = [...submissions];
-	// 			const songToUpdate = submissions.find((s) => s.submissionId === v.submissionId);
-	// 			if (songToUpdate) {
-	// 				songToUpdate.score += v.points;
-	// 			}
-	// 			setSubmissions(updatedSongs.sort((a, b) => b.score - a.score));
-	// 		});
-	// 	}
-	// 	setResultsStage('TELEVOTE');
-	// 	setVotingIndex(20);
-	// 	setCurrentVoter('a');
-	// };
+	const handleSkipJury = () => {
+		if (juryVotes) {
+			// const updatedSongs = [...submissions];
+
+			const updatedSongs = [...submissions];
+			juryVotes.forEach((v) => {
+				v.rankingList?.forEach((song, index) => {
+					const songToUpdate = updatedSongs.find((s) => s.submissionId === song);
+					if (songToUpdate) {
+						songToUpdate.score += rankingPoints.get(index) as number;
+					}
+				});
+			});
+			setSubmissions(updatedSongs.sort(tiebreakSorter()));
+		}
+		setResultsStage('TELEVOTE');
+		setVotingIndex(20);
+		setCurrentVoter('a');
+	};
 
 	useEffect(() => {
 		const handleResize = () => {
@@ -278,7 +260,7 @@ const ResultsComponent: React.FC<ResultsComponentProps> = ({ editionId, user }) 
 			console.log('current voter', currentVoter);
 			console.log('submissions length', submissions);
 			// ✨ Check if all jury votes are revealed
-			if (isFetched && votingIndex >= submissions.length - 1) {
+			if (isFetched && votingIndex >= submissions.length) {
 				console.log('all jury votes revealed.');
 				runTelevoteSequence();
 				return;
@@ -303,11 +285,11 @@ const ResultsComponent: React.FC<ResultsComponentProps> = ({ editionId, user }) 
 			console.log(highPointVotes);
 
 			// --- Step 1: Voter card and 1-7 list appear immediately ---
-			await delay(1000);
+			await delay(100);
 			setLowPointList(lowPointVotes);
 
 			// --- Step 2: Delay for 1 second ---
-			await delay(2000);
+			await delay(200);
 
 			// --- Step 3: Apply 1-7 points to the scoreboard ---
 			const updatedSongs = [...submissions];
@@ -326,7 +308,7 @@ const ResultsComponent: React.FC<ResultsComponentProps> = ({ editionId, user }) 
 			setSubmissions(updatedSongs.sort(tiebreakSorter()));
 
 			// --- Step 4: Add a delay *between* the 1-7 and the high points ---
-			await delay(3000);
+			await delay(300);
 
 			// --- Step 5: Reveal 8, 10, and 12 points with delays in between ---
 			for (let i = 2; i >= 0; i--) {
@@ -335,19 +317,19 @@ const ResultsComponent: React.FC<ResultsComponentProps> = ({ editionId, user }) 
 				const songToUpdate = updatedSongs.find((s) => s.submissionId === highPointVotes[i]);
 				if (songToUpdate) {
 					setHighPointMessage(`${points} points goes to...`);
-					await delay(2000);
+					await delay(200);
 					songToUpdate.score += points;
 					setHighPointMessage(`${songToUpdate?.songTitle} by ${songToUpdate?.artistName}!`);
 					setPointsJustReceived((prev) => ({ ...prev, [highPointVotes[i]]: points }));
-					await delay(1000);
+					await delay(100);
 					// setSubmissions(updatedSongs.sort(tiebreakSorter(edition?.rankingsList?.map((r) => r.rankingList as string[]) as string[][])));
 					setSubmissions(updatedSongs.sort(tiebreakSorter()));
-					await delay(2000);
+					await delay(200);
 				}
 			}
 
 			// --- Step 6: End of round, wait and move to next voter ---
-			await delay(2000);
+			await delay(200);
 			setCurrentVoter(null);
 			setVotingIndex((prev) => prev + 1);
 			setLowPointList([]);
@@ -456,14 +438,13 @@ const ResultsComponent: React.FC<ResultsComponentProps> = ({ editionId, user }) 
 				if (voterVotesExist) {
 					setCurrentVoter(nextVoterId as string);
 				}
-			} else if (currentVoter === null && votingIndex > -1) {
+			} else if (currentVoter === null && votingIndex > -1 && votingIndex < submissionOrder.length) {
 				const startNextRoundTimer = setTimeout(() => {
 					const submissionsCopy = [...submissions];
-					const nextVoterId = submissionsCopy.sort((a, b) => (a.runningOrder as number) - (b.runningOrder as number))[votingIndex]
-						.userId as string;
+					const nextVoterId = submissionsCopy.sort((a, b) => (a.runningOrder as number) - (b.runningOrder as number))[votingIndex].userId;
 					const voterVotesExist = juryVotes?.some((vote) => vote.userId === nextVoterId);
 					if (voterVotesExist) {
-						setCurrentVoter(nextVoterId);
+						setCurrentVoter(nextVoterId as string);
 					} else {
 						console.log('current voting index is', votingIndex);
 						toast.error(`Failed to find any votes from ${profiles?.find((p) => p.userId === nextVoterId)?.displayName}`);
@@ -577,17 +558,6 @@ const ResultsComponent: React.FC<ResultsComponentProps> = ({ editionId, user }) 
 		);
 	};
 
-	if (viewBreakdown) {
-		return (
-			<NewResultsTable
-				submissions={submissions}
-				rankings={edition?.rankingsList as Ranking[]}
-				name={edition?.name as string}
-				profiles={profiles as Profile[]}
-			/>
-		);
-	}
-
 	return (
 		<div className="p-1 max-w-6xl mx-auto flex flex-col md:space-x-8 mt-2">
 			<div className="flex">
@@ -616,16 +586,16 @@ const ResultsComponent: React.FC<ResultsComponentProps> = ({ editionId, user }) 
 								Start Reveal
 							</Button>
 							<Button
-								// onClick={handleSkipJury}
-								disabled
+								onClick={handleSkipJury}
+								// disabled
 								className="px-4 py-2 bg-blue-500 text-white rounded-md hover:bg-blue-600 disabled:opacity-50"
 							>
-								Skip jury sequence (disabled)
+								Skip jury sequence
 							</Button>
 						</>
 					)
 				)}
-				{resultsStage === 'COMPLETE' && <Button onClick={() => setViewBreakdown(true)}>See breakdown of results</Button>}
+				{<Button onClick={() => router.push(`/edition/${editionId}/results/breakdown`)}>See breakdown of results</Button>}
 			</div>
 			{paused && (
 				<Alert>

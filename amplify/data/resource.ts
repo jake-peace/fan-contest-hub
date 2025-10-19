@@ -77,6 +77,7 @@ const schema = a
 				edition: a.belongsTo('Edition', 'editionId'),
 				votes: a.hasMany('Vote', 'voteId'),
 				rejected: a.boolean(),
+				rank: a.integer(),
 			})
 			.identifier(['submissionId'])
 			.authorization((allow) => [allow.authenticated()]),

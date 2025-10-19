@@ -22,6 +22,7 @@ import { deleteSubmission } from '@/app/actions/deleteSubmission';
 import { SpotifyTrack } from '../SpotifySearch';
 import { useAmplifyClient } from '@/app/amplifyConfig';
 import { Spinner } from '../ui/spinner';
+import { Badge } from '../ui/badge';
 
 type Submission = Schema['Submission']['type'];
 
@@ -32,7 +33,36 @@ interface SubmissionCardProps {
 	showRunningOrder?: boolean;
 	contestId: string;
 	isUser?: boolean;
+	score?: number;
 }
+
+const ordinalRules = new Intl.PluralRules('en-GB', { type: 'ordinal' });
+
+const suffixes = new Map([
+	['one', 'st'],
+	['two', 'nd'],
+	['few', 'rd'],
+	['other', 'th'],
+]);
+
+function formatOrdinal(n: number): string {
+	const rule = ordinalRules.select(n);
+	const suffix = suffixes.get(rule);
+	return `${n}${suffix}`;
+}
+
+const getBadgeColor = (rank: number) => {
+	switch (rank) {
+		case 1:
+			return 'bg-(--gold) text-[black]';
+		case 2:
+			return 'bg-(--silver) text-[black]';
+		case 3:
+			return 'bg-(--bronze) text-[black]';
+		default:
+			return '';
+	}
+};
 
 const SubmissionCard: React.FC<SubmissionCardProps> = ({ submission, onReject, isHost, showRunningOrder, contestId, isUser }) => {
 	const [dialogOpen, setDialogOpen] = useState(false);
@@ -131,6 +161,14 @@ const SubmissionCard: React.FC<SubmissionCardProps> = ({ submission, onReject, i
 					<h3 className="font-medium truncate">{submission.songTitle}</h3>
 					<p className="text-sm text-muted-foreground truncate">by {submission.artistName}</p>
 				</div>
+				{submission.rank && (
+					<div className="flex items-center text-xs">
+						<Badge
+							variant={submission.rank < 4 ? 'default' : 'outline'}
+							className={`${getBadgeColor(submission.rank)}`}
+						>{`${formatOrdinal(submission.rank)}`}</Badge>
+					</div>
+				)}
 				<div className="flex items-center">
 					<Button size="icon" variant="outline" onClick={() => setCardOpen(!cardOpen)}>
 						<Ellipsis />

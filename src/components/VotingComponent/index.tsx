@@ -77,6 +77,10 @@ export const fetchSavedRanking = async (id: string) => {
 	}
 
 	const result = await response.json();
+	if (result.ranking === undefined) {
+		return null;
+	}
+
 	return result.ranking as Ranking;
 };
 

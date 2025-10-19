@@ -23,6 +23,10 @@ export async function GET(request: Request, segmentData: { params: Params }) {
 			},
 		});
 
+		if (data.length === 0) {
+			return NextResponse.json({ undefined });
+		}
+
 		return NextResponse.json({ ranking: data[0] });
 		// eslint-disable-next-line @typescript-eslint/no-explicit-any
 	} catch (error: any) {

@@ -8,14 +8,17 @@ import { useQuery } from '@tanstack/react-query';
 import { Avatar, AvatarImage } from '../ui/avatar';
 import { Skeleton } from '../ui/skeleton';
 import { toast } from 'sonner';
+import { Collapsible, CollapsibleContent, CollapsibleTrigger } from '../ui/collapsible';
+import SubmissionCard from '../SubmissionCard';
+import { SubmissionWithScore } from '../ResultsComponent';
 // import { Dialog, DialogClose, DialogContent, DialogDescription, DialogFooter, DialogHeader, DialogTitle } from '../ui/dialog';
 // import { useState } from 'react';
 
 type Profile = Schema['Profile']['type'];
-type Submission = Schema['Submission']['type'];
+// type Submission = Schema['Submission']['type'];
 
 export interface ProfileWithEntries extends Profile {
-	entries: Submission[];
+	entries: SubmissionWithScore[];
 }
 
 interface MembersListProps {
@@ -33,11 +36,37 @@ const fetchParticipants = async (id: string) => {
 	return result.participants as ProfileWithEntries[];
 };
 
+// const fetchParticipantEntries = async (id: string, userId: string) => {
+// 	const response = await fetch(`/api/contest/${id}/entries/${userId}`);
+
+// 	if (!response.ok) {
+// 		throw new Error('Failed to fetch data from the server.');
+// 	}
+
+// 	const result = await response.json();
+// 	return result.entries as Submission[];
+// };
+
 const MembersList: React.FC<MembersListProps> = ({ contestId }) => {
 	const { data: members, isLoading } = useQuery({
 		queryKey: ['contestParticipants', contestId],
 		queryFn: () => fetchParticipants(contestId),
 	});
+
+	// const getParticipantEntries = async (userId: string, displayName: string) => {
+	// 	const entries = await fetchParticipantEntries(contestId, userId);
+	// 	return (
+	// 		<Card className="p-2 mb-2">
+	// 			<div className="font-bold">{`${displayName}'s Entries`}</div>
+	// 			{entries &&
+	// 				entries.map((e) => (
+	// 					<Card key={e.submissionId}>
+	// 						<div>{e.songTitle}</div>
+	// 					</Card>
+	// 				))}
+	// 		</Card>
+	// 	);
+	// };
 
 	// const [entriesDialog, setEntriesDialog] = useState(false);
 
@@ -76,23 +105,27 @@ const MembersList: React.FC<MembersListProps> = ({ contestId }) => {
 					) : (
 						members &&
 						members.map((m) => (
-							<Card className="p-4 mb-2" key={m.userId}>
-								<div className="flex items-center justify-between max-w-100 overflow-hidden">
-									<div className="flex items-center gap-2 min-w-0">
-										<Avatar>
-											<AvatarImage
-												src={
-													'https://upload.wikimedia.org/wikipedia/commons/thumb/8/8d/President_Barack_Obama.jpg/961px-President_Barack_Obama.jpg'
-												}
-											/>
-										</Avatar>
-										<h3 className="text-lg truncate min-w-0 flex-grow">{m.displayName}</h3>
-									</div>
-									<Button size="icon" className="shrink-0" variant="outline" onClick={() => toast.message('Coming soon')}>
-										<Disc3 />
-									</Button>
-								</div>
-								{/* <div className="flex w-full items-center justify-between">
+							<div key={m.userId}>
+								<Collapsible>
+									<Card className="p-2 mb-2">
+										<div className="flex items-center justify-between max-w-100 overflow-hidden">
+											<div className="flex items-center gap-2 min-w-0">
+												<Avatar>
+													<AvatarImage
+														src={
+															'https://upload.wikimedia.org/wikipedia/commons/thumb/8/8d/President_Barack_Obama.jpg/961px-President_Barack_Obama.jpg'
+														}
+													/>
+												</Avatar>
+												<h3 className="text-lg truncate min-w-0 flex-grow">{m.displayName}</h3>
+											</div>
+											<CollapsibleTrigger className="border rounded-md p-1.5">
+												{/* <Button size="icon" className="shrink-0" variant="outline" onClick={() => toast.message('Coming soon')}> */}
+												<Disc3 />
+												{/* </Button> */}
+											</CollapsibleTrigger>
+										</div>
+										{/* <div className="flex w-full items-center justify-between">
 									<div className="bg-(--gold) flex text-black px-4 py-2 rounded-lg gap-2">
 										<Trophy />
 										<div className="font-bold">2</div>
@@ -106,7 +139,30 @@ const MembersList: React.FC<MembersListProps> = ({ contestId }) => {
 										<div className="font-bold">2</div>
 									</div>
 								</div> */}
-							</Card>
+									</Card>
+									<CollapsibleContent>
+										<Card className="p-2 mb-2 space-y-0 gap-1">
+											<CardTitle>
+												<div className="font-bold">{`${m.displayName}'s Entries`}</div>
+											</CardTitle>
+											{m.entries &&
+												m.entries.map((e) => (
+													<SubmissionCard
+														key={e.submissionId}
+														submission={e}
+														isHost={false}
+														isUser={false}
+														contestId={contestId}
+														score={e.score}
+													/>
+													// <Card className="mb-0" key={e.submissionId}>
+													// 	<div>{e.songTitle}</div>
+													// </Card>
+												))}
+										</Card>
+									</CollapsibleContent>
+								</Collapsible>
+							</div>
 						))
 					)}
 				</CardContent>

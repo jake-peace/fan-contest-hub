@@ -1,3 +1,10 @@
+# [1.4.0](https://github.com/jake-peace/fan-contest-hub/compare/v1.3.1...v1.4.0) (2025-10-19)
+
+### Features
+
+- added list of entries to participants list ([db9604b](https://github.com/jake-peace/fan-contest-hub/commit/db9604b049d3ebd7a92f07ad69160120f9e89a09))
+- improved results breakdown grid ([d17e0e6](https://github.com/jake-peace/fan-contest-hub/commit/d17e0e68ff1c7de812ebcc122b8c8839afc3ef5d))
+
 ## [1.3.1](https://github.com/jake-peace/fan-contest-hub/compare/v1.3.0...v1.3.1) (2025-10-17)
 
 ### Bug Fixes

@@ -1,3 +1,9 @@
+## [1.5.1](https://github.com/jake-peace/fan-contest-hub/compare/v1.5.0...v1.5.1) (2025-10-19)
+
+### Bug Fixes
+
+- fixed an issue where the api would not allow a guest to submit a televote ([8ccf622](https://github.com/jake-peace/fan-contest-hub/commit/8ccf6225636c6260f541f2cabd92a91c22d89291))
+
 # [1.5.0](https://github.com/jake-peace/fan-contest-hub/compare/v1.4.0...v1.5.0) (2025-10-19)
 
 ### Features

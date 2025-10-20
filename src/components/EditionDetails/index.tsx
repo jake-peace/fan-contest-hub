@@ -186,6 +186,24 @@ const EditionDetails: React.FC<EditionDetailsProps> = ({ editionId, user }) => {
 		}
 	};
 
+	const handleShare = async () => {
+		try {
+			await navigator.share({
+				title: `Vote in ${edition?.name}!`,
+				text: `You've been invited to be part of the televote for ${edition?.name}!`,
+				url: `http://fancontest.org/televote/${edition?.televoteId as string}`,
+			});
+			// eslint-disable-next-line @typescript-eslint/no-explicit-any
+		} catch (error: any) {
+			if (error.name === 'AbortError') {
+				console.log('Aborted share');
+			} else {
+				console.error('Error sharing content:', error);
+				toast.error(`Couldn't get share link`);
+			}
+		}
+	};
+
 	if (isLoading) {
 		return (
 			<>
@@ -355,13 +373,18 @@ const EditionDetails: React.FC<EditionDetailsProps> = ({ editionId, user }) => {
 						)}
 
 						{user.userId === edition.contestDetails.hostId && (
-							<EditionHostOptions
-								phase={edition.phase}
-								onRefetch={refetch}
-								editionId={editionId}
-								submissions={edition.submissionList}
-								televote={edition.televoteId !== null}
-							/>
+							<>
+								<EditionHostOptions
+									phase={edition.phase}
+									onRefetch={refetch}
+									editionId={editionId}
+									submissions={edition.submissionList}
+									televote={edition.televoteId !== null}
+								/>
+								<Button onClick={handleShare} className="my-1 w-full" variant="outline">
+									Share Televote Link
+								</Button>
+							</>
 						)}
 					</CardContent>
 				</Card>

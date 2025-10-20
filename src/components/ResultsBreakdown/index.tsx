@@ -51,7 +51,7 @@ const ResultsBreakdown: React.FC<BreakdownComponentProps> = ({ editionId }) => {
 	} = useQuery({
 		queryKey: ['breakdownEditionDetails', editionId],
 		queryFn: () => fetchEdition(editionId),
-		refetchOnWindowFocus: 'always',
+		refetchOnMount: 'always',
 	});
 
 	const { data: profiles, isLoading: isProfilesLoading } = useQuery({

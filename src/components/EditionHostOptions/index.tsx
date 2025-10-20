@@ -1,5 +1,5 @@
 import { Button } from '../ui/button';
-import { Check, CircleX, DoorOpen, HelpCircle, TicketCheckIcon } from 'lucide-react';
+import { CircleX, DoorOpen, HelpCircle, ListChecksIcon, TicketCheckIcon } from 'lucide-react';
 import React, { useState, useTransition } from 'react';
 import { closeSubmissions } from '@/app/actions/closeSubmissions';
 import { toast } from 'sonner';
@@ -27,6 +27,7 @@ import { Card } from '../ui/card';
 import { Schema } from '../../../amplify/data/resource';
 import { openTelevote } from '@/app/actions/openTelevote';
 import { Spinner } from '../ui/spinner';
+import { useRouter } from 'next/navigation';
 
 type Submission = Schema['Submission']['type'];
 
@@ -42,7 +43,7 @@ const EditionHostOptions: React.FC<EditionHostOptionsProps> = ({ editionId, phas
 	const [dialogOpen, setDialogOpen] = useState(false);
 	const [spotifyDialogOpen, setSpotifyDialogOpen] = useState(false);
 	const [playlistLink, setPlaylistInputLink] = useState('');
-
+	const router = useRouter();
 	const queryClient = useQueryClient();
 	const [isPending, startTransition] = useTransition();
 
@@ -200,9 +201,9 @@ const EditionHostOptions: React.FC<EditionHostOptionsProps> = ({ editionId, phas
 					</Button>
 					{SpotifyPlaylistDialog()}
 					{televote ? (
-						<Button className="w-full mb-2" variant="outline" disabled>
-							<Check />
-							Televote Open
+						<Button className="w-full mb-2" variant="outline" onClick={() => router.push(`/edition/${editionId}/votes`)}>
+							<ListChecksIcon />
+							View Televotes
 						</Button>
 					) : (
 						<Button className="w-full relative hover:bg-muted mb-2" variant="outline" onClick={handleOpenTelevote} disabled={isPending}>

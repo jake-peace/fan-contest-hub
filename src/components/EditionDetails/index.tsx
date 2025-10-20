@@ -127,7 +127,7 @@ const EditionDetails: React.FC<EditionDetailsProps> = ({ editionId, user }) => {
 		if (edition) {
 			if (edition.phase === 'SUBMISSION') {
 				return hasUserSubmitted() ? (
-					<Button disabled={true} className="w-full bg-(--success)">
+					<Button className="w-full bg-(--success)">
 						<CheckCircle className="w-4 h-4 mr-2" />
 						Song Submitted
 					</Button>
@@ -151,7 +151,7 @@ const EditionDetails: React.FC<EditionDetailsProps> = ({ editionId, user }) => {
 							</Alert>
 						)}
 						{hasUserVoted() ? (
-							<Button disabled={true} className="w-full bg-(--success)">
+							<Button className="w-full bg-(--success)">
 								<CheckCircle className="w-4 h-4 mr-2" />
 								Votes Submitted
 							</Button>
@@ -161,7 +161,7 @@ const EditionDetails: React.FC<EditionDetailsProps> = ({ editionId, user }) => {
 								Vote Now
 							</Button>
 						)}
-						{savedRanking !== undefined && !hasUserVoted() && (
+						{savedRanking !== null && !hasUserVoted() && (
 							<Alert className="mt-1">
 								<AlertTitle className="flex items-center gap-2">
 									<Info />

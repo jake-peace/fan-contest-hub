@@ -7,7 +7,8 @@ import { Schema } from '../../../amplify/data/resource';
 import { useQuery } from '@tanstack/react-query';
 import { useRouter } from 'next/navigation';
 import { Skeleton } from '../ui/skeleton';
-import { compareAsc, formatDistanceToNow, parseISO } from 'date-fns';
+import { compareDesc, formatDistanceToNow, parseISO } from 'date-fns';
+import { CircleAlert, CircleCheck, Send, Trophy, Vote } from 'lucide-react';
 
 interface EditionListProps {
 	contest: Contest;
@@ -16,17 +17,20 @@ interface EditionListProps {
 type Contest = Schema['Contest']['type'];
 type Edition = Schema['Edition']['type'];
 
+interface EditionInList extends Edition {
+	hasVoted: boolean;
+	hasSubmitted: boolean;
+}
+
 const fetchContestEditions = async (contestId: string) => {
-	// Call the secure Next.js Route Handler
 	const response = await fetch(`/api/contest/${contestId}/editions`);
 
 	if (!response.ok) {
-		// TanStack Query's error boundary will catch this
 		throw new Error('Failed to fetch data from the server.');
 	}
 
 	const result = await response.json();
-	return result.editions as Edition[]; // Return the clean data
+	return result.editions as EditionInList[]; // Return the clean data
 };
 
 export const getPhaseColor = (phase: string) => {
@@ -41,6 +45,19 @@ export const getPhaseColor = (phase: string) => {
 			return 'customb';
 		default:
 			return 'custome';
+	}
+};
+
+const getPhaseIcon = (phase: string) => {
+	switch (phase) {
+		case 'SUBMISSION':
+			return <Send />;
+		case 'VOTING':
+			return <Vote />;
+		case 'RESULTS':
+			return <Trophy />;
+		default:
+			return undefined;
 	}
 };
 
@@ -102,8 +119,8 @@ const EditionList: React.FC<EditionListProps> = ({ contest }) => {
 				) : (
 					editions &&
 					editions
-						.sort((a, b) => compareAsc(parseISO(a.submissionsOpen as string), parseISO(b.submissionsOpen as string)))
-						.map((edition: Edition) => (
+						.sort((a, b) => compareDesc(parseISO(a.submissionsOpen as string), parseISO(b.submissionsOpen as string)))
+						.map((edition: EditionInList) => (
 							<div key={edition.editionId}>
 								<div
 									className={`p-2 rounded-lg border cursor-pointer transition-colors border-border hover:bg-muted/50`}
@@ -113,7 +130,8 @@ const EditionList: React.FC<EditionListProps> = ({ contest }) => {
 										<h4 className="font-medium">{edition.name}</h4>
 										<div className="flex items-center gap-2">
 											{edition.phase && (
-												<Badge variant="default" className={`text-xs bg-(--${getPhaseColor(edition.phase)})`}>
+												<Badge variant="default" className={`text-xs bg-(--customa) flex gap-1 items-center`}>
+													{getPhaseIcon(edition.phase)}
 													{edition.phase}
 												</Badge>
 											)}
@@ -122,6 +140,22 @@ const EditionList: React.FC<EditionListProps> = ({ contest }) => {
 									<div className="flex items-center justify-between text-sm text-muted-foreground">
 										<span>{edition.phase && getPhaseStatus(edition)}</span>
 									</div>
+									{edition.phase === 'VOTING' && (
+										<Alert className="mt-1">
+											<AlertTitle className="flex gap-2 items-center">
+												{edition.hasVoted ? <CircleCheck /> : <CircleAlert />}
+												{edition.hasVoted ? 'Voted!' : `You haven't voted yet`}
+											</AlertTitle>
+										</Alert>
+									)}
+									{edition.phase === 'SUBMISSION' && (
+										<Alert className="mt-1">
+											<AlertTitle className="flex gap-2 items-center">
+												{edition.hasSubmitted ? <CircleCheck /> : <CircleAlert />}
+												{edition.hasSubmitted ? 'Song Submitted!' : `You haven't submitted a song yet`}
+											</AlertTitle>
+										</Alert>
+									)}
 								</div>
 							</div>
 						))

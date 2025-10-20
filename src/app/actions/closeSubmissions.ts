@@ -65,8 +65,8 @@ export async function closeSubmissions(editionId: string) {
 			throw new Error('More submissions than participants. Seek help.');
 		}
 
-		const promises = shuffleArray(submissions).map((s, index) => {
-			return cookiesClient.models.Submission.update({
+		const promises = shuffleArray(submissions).map(async (s, index) => {
+			await cookiesClient.models.Submission.update({
 				submissionId: s.submissionId,
 				runningOrder: index + 1,
 			});

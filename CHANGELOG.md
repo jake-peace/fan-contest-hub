@@ -1,3 +1,18 @@
+# [1.6.0](https://github.com/jake-peace/fan-contest-hub/compare/v1.5.1...v1.6.0) (2025-10-20)
+
+### Bug Fixes
+
+- fixed an issue with fetching results ([cb46832](https://github.com/jake-peace/fan-contest-hub/commit/cb46832f6bdb309ab1f687c9d583c2b9e5b79b92))
+
+### Features
+
+- a saved ranking now auto-loads when a user goes to vote ([a0a3900](https://github.com/jake-peace/fan-contest-hub/commit/a0a3900a69e3930ab7a7ab66fdbdd760ff9bd765))
+- a televoter is presented with a thank you screen after voting ([1314776](https://github.com/jake-peace/fan-contest-hub/commit/1314776f21b404c55ba76dc0ce5f5e73320de957))
+- added televotes to results reveal ([4f573e7](https://github.com/jake-peace/fan-contest-hub/commit/4f573e766ca1e91ab9c9f32c09ab462bb848f00e))
+- adjusted timings of results reveal ([66787d3](https://github.com/jake-peace/fan-contest-hub/commit/66787d34f7794e4449114928f2029a251549c9b1))
+- allow the host to see who has televoted, and to delete a televote ([44d018b](https://github.com/jake-peace/fan-contest-hub/commit/44d018b9d5fd71762a34802352e4839cabfe9d41))
+- visual changes, including a clearer indicator for when a user has submitted or voted ([aa7e9fb](https://github.com/jake-peace/fan-contest-hub/commit/aa7e9fbb539bca05921061509d6d8360ea250cae))
+
 ## [1.5.1](https://github.com/jake-peace/fan-contest-hub/compare/v1.5.0...v1.5.1) (2025-10-19)
 
 ### Bug Fixes

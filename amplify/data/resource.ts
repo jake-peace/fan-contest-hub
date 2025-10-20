@@ -111,7 +111,7 @@ const schema = a
 				edition: a.belongsTo('Edition', 'editionId'),
 			})
 			.identifier(['televoteId'])
-			.authorization((allow) => [allow.guest().to(['create']), allow.authenticated().to(['delete'])]),
+			.authorization((allow) => [allow.guest().to(['create']), allow.authenticated().to(['delete', 'list'])]),
 		Vote: a
 			.model({
 				voteId: a.id().required(),

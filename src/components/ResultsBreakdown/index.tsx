@@ -2,8 +2,7 @@
 
 import { useQuery } from '@tanstack/react-query';
 import { useRouter } from 'next/navigation';
-import { fetchEdition } from '../EditionDetails';
-import { fetchProfiles } from '../ResultsComponent';
+import { fetchEditionWithResults, fetchProfiles } from '../ResultsComponent';
 import { Card } from '../ui/card';
 import Image from 'next/image';
 import { ArrowBigLeft, Phone, Users } from 'lucide-react';
@@ -50,7 +49,7 @@ const ResultsBreakdown: React.FC<BreakdownComponentProps> = ({ editionId }) => {
 		isFetched,
 	} = useQuery({
 		queryKey: ['breakdownEditionDetails', editionId],
-		queryFn: () => fetchEdition(editionId),
+		queryFn: () => fetchEditionWithResults(editionId),
 		refetchOnMount: 'always',
 	});
 
@@ -69,10 +68,10 @@ const ResultsBreakdown: React.FC<BreakdownComponentProps> = ({ editionId }) => {
 
 	const getTelevoteScore = (submissionId: string): number => {
 		let score = 0;
-		edition?.rankingsList?.forEach((r) => {
+		edition?.televoteList?.forEach((r) => {
 			score = score + (rankingPoints.get(r.rankingList?.indexOf(submissionId) as number) as number);
 		});
-		return 0;
+		return score;
 	};
 
 	if (isLoading || isProfilesLoading) {
@@ -156,7 +155,12 @@ const ResultsBreakdown: React.FC<BreakdownComponentProps> = ({ editionId }) => {
 
 						<tbody className="max-w-screen">
 							{edition.submissionList
-								?.sort((a, b) => getSubmissionScore(b.submissionId) - getSubmissionScore(a.submissionId))
+								?.sort(
+									(a, b) =>
+										getSubmissionScore(b.submissionId) +
+										getTelevoteScore(b.submissionId) -
+										(getTelevoteScore(a.submissionId) + getSubmissionScore(a.submissionId))
+								)
 								.map((song) => (
 									<tr key={song.submissionId} className="hover:bg-muted">
 										{/* --- SONG NAME CELL (Left) --- */}

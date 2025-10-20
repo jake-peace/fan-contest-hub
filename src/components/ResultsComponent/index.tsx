@@ -46,7 +46,7 @@ export const fetchProfiles = async (id: string) => {
 	return result.profiles.map((p: { data: unknown }) => p.data as Profile) as Profile[];
 };
 
-const fetchEditionWithResults = async (id: string) => {
+export const fetchEditionWithResults = async (id: string) => {
 	const response = await fetch(`/api/editions/${id}/results`);
 
 	if (!response.ok) {
@@ -176,9 +176,11 @@ const ResultsComponent: React.FC<ResultsComponentProps> = ({ editionId, user }) 
 		data: edition,
 		isLoading,
 		isFetched,
+		isRefetching,
 	} = useQuery({
 		queryKey: ['resultsEditionDetails', editionId],
 		queryFn: () => fetchEditionWithResults(editionId),
+		refetchOnMount: 'always',
 	});
 
 	const { data: profiles, isLoading: isProfilesLoading } = useQuery({
@@ -479,7 +481,7 @@ const ResultsComponent: React.FC<ResultsComponentProps> = ({ editionId, user }) 
 		}
 	}, [currentVoter, votingIndex, paused]);
 
-	if (isLoading || isProfilesLoading) {
+	if (isLoading || isProfilesLoading || isRefetching) {
 		return <Loading />;
 	}
 

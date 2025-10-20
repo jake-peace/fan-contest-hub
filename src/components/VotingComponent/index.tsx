@@ -96,6 +96,7 @@ const VotingComponent: React.FC<VotingComponentProps> = ({ editionId, user }) =>
 	} = useQuery({
 		queryKey: ['editionDetailsVoting', editionId],
 		queryFn: () => fetchEdition(editionId),
+		refetchOnMount: 'always',
 	});
 
 	const {
@@ -105,7 +106,7 @@ const VotingComponent: React.FC<VotingComponentProps> = ({ editionId, user }) =>
 	} = useQuery({
 		queryKey: ['savedRankingVoting', editionId],
 		queryFn: () => fetchSavedRanking(editionId),
-		refetchOnWindowFocus: 'always',
+		refetchOnMount: 'always',
 	});
 
 	useEffect(() => {

@@ -76,8 +76,6 @@ const EditionDetails: React.FC<EditionDetailsProps> = ({ editionId, user }) => {
 		queryFn: () => fetchSavedRanking(editionId),
 	});
 
-	console.log(savedRanking);
-
 	useEffect(() => {
 		const song = searchParams.get('song');
 		if (song) {

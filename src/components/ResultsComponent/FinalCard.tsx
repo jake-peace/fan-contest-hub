@@ -2,18 +2,11 @@ import React, { useState, useEffect } from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
 import { Card } from '../ui/card';
 import Image from 'next/image';
-
-interface Song {
-	submissionId: string;
-	songTitle: string;
-	artistName: string;
-	flag: string;
-	score: number;
-}
+import { SubmissionWithScore } from '.';
 
 interface FinalOverlayCardProps {
-	leaderSong: Song;
-	stillToScoreSong: Song;
+	leaderSong: SubmissionWithScore;
+	stillToScoreSong: SubmissionWithScore;
 	finalPoints: number;
 	onAnimationEnd: () => void;
 }
@@ -22,7 +15,7 @@ const FinalOverlayCard: React.FC<FinalOverlayCardProps> = ({ leaderSong, stillTo
 	const [showPoints, setShowPoints] = useState(false);
 	const [displayScore, setDisplayScore] = useState(stillToScoreSong.score);
 	const [showCelebration, setShowCelebration] = useState(false);
-	const [winner, setWinner] = useState<Song | null>(null);
+	const [winner, setWinner] = useState<SubmissionWithScore | null>(null);
 	const [showPointsNeeded, setShowPointsNeeded] = useState(true);
 	const [showPointsReceived, setShowPointsReceived] = useState(false);
 	const pointsNeeded = leaderSong.score - stillToScoreSong.score + 1;

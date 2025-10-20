@@ -37,6 +37,7 @@ const schema = a
 				allow.ownersDefinedIn('participants'),
 				allow.ownerDefinedIn('hostId').to(['delete']),
 				allow.authenticated().to(['list', 'get']),
+				allow.guest().to(['list']),
 			]),
 		Phase: a.enum(['UPCOMING', 'SUBMISSION', 'VOTING', 'RESULTS', 'COMPLETE']),
 		CloseType: a.enum(['specificDate', 'allEntries', 'manually']),
@@ -80,7 +81,7 @@ const schema = a
 				rank: a.integer(),
 			})
 			.identifier(['submissionId'])
-			.authorization((allow) => [allow.authenticated()]),
+			.authorization((allow) => [allow.authenticated(), allow.guest().to(['list'])]),
 		Ranking: a
 			.model({
 				rankingId: a.id().required(),

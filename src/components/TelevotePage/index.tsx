@@ -1,7 +1,7 @@
 'use client';
 
 import { useEffect, useRef, useState, useTransition } from 'react';
-import { Vote, Undo2, Rows4 } from 'lucide-react';
+import { Vote, Undo2, Rows4, Smile } from 'lucide-react';
 import { Alert, AlertDescription, AlertTitle } from '../ui/alert';
 import { Card, CardContent, CardHeader, CardTitle } from '../ui/card';
 import { Button } from '../ui/button';
@@ -79,6 +79,7 @@ const fetchEditionFromTelevote = async (id: string) => {
 const TelevotePage: React.FC<TelevotePageProps> = ({ televoteId }) => {
 	const [rankings, setRankings] = useState<Submission[]>([]);
 	const [name, setName] = useState('');
+	const [successful, setSuccessful] = useState(false);
 	const router = useRouter();
 	const playerDivRef = useRef<HTMLDivElement>(null);
 
@@ -119,10 +120,10 @@ const TelevotePage: React.FC<TelevotePageProps> = ({ televoteId }) => {
 	const handleSubmitRanking = async () => {
 		startTransition(async () => {
 			const rankingList = rankings.map((r) => r.submissionId).slice(0, 10);
-			const result = await submitTelevote(rankingList, edition?.editionId as string, 'jacob');
+			const result = await submitTelevote(rankingList, edition?.editionId as string, name);
 			if (result.success) {
 				toast.success('Your televote has been submitted successfully!');
-				router.push(`/signin`);
+				setSuccessful(true);
 			} else {
 				toast.error(`There was an error submitting your votes: ${result.error}`);
 			}
@@ -183,6 +184,25 @@ const TelevotePage: React.FC<TelevotePageProps> = ({ televoteId }) => {
 	const sensors = useSensors(mouseSensor, touchSensor);
 	const [isCompact, setIsCompact] = useState(false);
 
+	if (successful) {
+		return (
+			<>
+				<div className="w-full flex items-center justify-between wrap mb-2">
+					<Card className="w-50 items-center justify-between p-2">fancontest.org</Card>
+					<Button onClick={() => router.push('/signin')}>Create an account!</Button>
+				</div>
+				<Card className="mb-4 py-6 gap-1">
+					<CardHeader>
+						<CardTitle className="flex gap-3 items-center">
+							<Smile />
+							<div className="text-2xl font-bold">Thanks for voting!</div>
+						</CardTitle>
+					</CardHeader>
+				</Card>
+			</>
+		);
+	}
+
 	return (
 		<>
 			<script src="https://open.spotify.com/embed/iframe-api/v1" async></script>
@@ -190,7 +210,8 @@ const TelevotePage: React.FC<TelevotePageProps> = ({ televoteId }) => {
 				<CardHeader>
 					<CardTitle className="flex items-center gap-2">
 						<Vote className="w-5 h-5" />
-						{isLoading ? <Skeleton /> : `Submit a televote for ${edition?.name} in ${edition?.contestDetails.name}`}
+						{/* {isLoading ? <Skeleton /> : `Submit a televote for ${edition?.name} in ${edition?.contestDetails.name}`} */}
+						{isLoading ? <Skeleton /> : `Submit a televote for ${edition?.name}`}
 					</CardTitle>
 				</CardHeader>
 				<CardContent className="flex items-center justify-between">
@@ -218,14 +239,15 @@ const TelevotePage: React.FC<TelevotePageProps> = ({ televoteId }) => {
 				<div className="m-2 font-bold text-xl mr-auto">Your Name</div>
 			</div>
 
-			<Input value={name} onChange={(e) => setName(e.target.value)} />
+			<Input placeholder="Enter your name here" value={name} onChange={(e) => setName(e.target.value)} />
+			<div className="text-muted-foreground text-sm mt-1">Name must be 3 or more characters.</div>
 
 			<div className="flex items-center gap-1">
 				<div className="m-2 font-bold text-xl mr-auto">Entries</div>
 			</div>
 
 			{isFetched && rankings.length === 0 && (
-				<Alert>
+				<Alert className="mb-2">
 					<AlertTitle>No entries found</AlertTitle>
 					<AlertDescription>Something went wrong fetching the entries</AlertDescription>
 				</Alert>
@@ -257,7 +279,7 @@ const TelevotePage: React.FC<TelevotePageProps> = ({ televoteId }) => {
 				</DndContext>
 			)}
 
-			<Button onClick={handleSubmitRanking} disabled={rankings.length === 0 || isPending} className="w-full">
+			<Button onClick={handleSubmitRanking} disabled={rankings.length === 0 || isPending || name.length < 3} className="w-full">
 				{isPending ? <Spinner /> : <Vote />}
 				Submit Votes
 			</Button>

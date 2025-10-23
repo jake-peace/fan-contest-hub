@@ -1,3 +1,9 @@
+## [1.6.2](https://github.com/jake-peace/fan-contest-hub/compare/v1.6.1...v1.6.2) (2025-10-23)
+
+### Bug Fixes
+
+- 1-7 Points now reveal in ascending order ([7f94e33](https://github.com/jake-peace/fan-contest-hub/commit/7f94e33be10962af9175caf194e86ed851f4eeb1))
+
 ## [1.6.1](https://github.com/jake-peace/fan-contest-hub/compare/v1.6.0...v1.6.1) (2025-10-20)
 
 ### Bug Fixes

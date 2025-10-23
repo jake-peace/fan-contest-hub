@@ -17,6 +17,7 @@ import Image from 'next/image';
 import { toast } from 'sonner';
 import { EditionWithResults } from '@/app/api/editions/[editionId]/results/route';
 import FinalOverlayCard from './FinalCard';
+import { Badge } from '../ui/badge';
 
 // type Vote = Schema['Vote']['type'];
 type Submission = Schema['Submission']['type'];
@@ -180,7 +181,6 @@ const ResultsComponent: React.FC<ResultsComponentProps> = ({ editionId, user }) 
 	} = useQuery({
 		queryKey: ['resultsEditionDetails', editionId],
 		queryFn: () => fetchEditionWithResults(editionId),
-		refetchOnMount: 'always',
 	});
 
 	const { data: profiles, isLoading: isProfilesLoading } = useQuery({
@@ -197,7 +197,6 @@ const ResultsComponent: React.FC<ResultsComponentProps> = ({ editionId, user }) 
 					.sort((a, b) => (a.runningOrder as number) - (b.runningOrder as number))
 			);
 			if ((edition.submissionList as Submission[]).length === 0 || edition.rankingsList?.length === 0) {
-				console.log(edition.submissionList);
 				toast.error(`Failed to find votes`);
 				router.push(`/edition/${editionId}`);
 			}
@@ -272,15 +271,13 @@ const ResultsComponent: React.FC<ResultsComponentProps> = ({ editionId, user }) 
 			if (edition?.contestDetails.hostId === user.userId && edition?.resultsRevealed !== true) {
 				handleHostRevealed();
 			}
-			console.log(votingIndex);
+
 			// ✨ Check if all jury votes are revealed
 			if (isFetched && votingIndex >= submissions.length - 1) {
-				console.log('all jury votes revealed.');
 				runTelevoteSequence();
 				return;
 			}
 
-			console.log(currentVoter);
 			if (!currentVoter || currentVoter === 'failed') return;
 
 			// Reset state for a clean slate
@@ -360,9 +357,6 @@ const ResultsComponent: React.FC<ResultsComponentProps> = ({ editionId, user }) 
 
 			// Sort songs from lowest to highest jury score
 			const sortedSongsByJuryScore = [...submissions].reverse();
-
-			console.log(sortedSongsByJuryScore);
-			console.log(televotes);
 
 			await delay(1000);
 
@@ -636,7 +630,7 @@ const ResultsComponent: React.FC<ResultsComponentProps> = ({ editionId, user }) 
 										transition={{ type: 'spring', stiffness: 300, damping: 25 }}
 										className="flex flex-col items-center justify-center h-full"
 									>
-										<div className="flex w-full justify-between">
+										<div className="flex w-full justify-between items-center mb-4">
 											<div className="w-8 h-8 min-w-8 max-w-8 rounded-md overflow-hidden shadow-md relative">
 												<Image
 													src={`https://flagcdn.com/w640/${submissionOrder[votingIndex].flag?.toLowerCase()}.png`}
@@ -647,8 +641,13 @@ const ResultsComponent: React.FC<ResultsComponentProps> = ({ editionId, user }) 
 													sizes="640px"
 												/>
 											</div>
-											<h2 className="text-2xl font-bold">{profiles?.find((p) => p.userId === currentVoter)?.displayName}</h2>
+											<h2 className="ml-2 align-center text-xl font-bold whitespace-normal break-words hyphens-auto">
+												{profiles?.find((p) => p.userId === currentVoter)?.displayName}
+											</h2>
 										</div>
+										<Badge className="w-full whitespace-normal" variant="outline">
+											{`Sent ${submissions.find((s) => s.userId === currentVoter && !s.rejected)?.songTitle} by ${submissions.find((s) => s.userId === currentVoter && !s.rejected)?.artistName}`}
+										</Badge>
 									</motion.div>
 								) : (
 									<motion.div
@@ -755,7 +754,7 @@ const ResultsComponent: React.FC<ResultsComponentProps> = ({ editionId, user }) 
 													key={vote}
 													initial={{ opacity: 0, x: -20 }}
 													animate={{ opacity: 1, x: 0 }}
-													transition={{ delay: index * 0.2 }}
+													transition={{ delay: (lowPointList.length - 1 - index) * 0.3 }}
 												>
 													<Card
 														// className={`backdrop-blur-sm shadow-xl bg-card text-card-foreground m-0 mb-1 rounded-lg ${song.userId === currentVoter || receivedTelevotes.includes(song.submissionId) ? 'opacity-50 transition-opacity' : ''}`}
@@ -763,7 +762,7 @@ const ResultsComponent: React.FC<ResultsComponentProps> = ({ editionId, user }) 
 													>
 														<CardContent className="flex items-center p-0">
 															{/* Flag on the left */}
-															<div className="w-5 h-5 rounded-lg overflow-hidden mr-4 ml-2 shadow-md relative">
+															<div className="w-5 h-5 rounded-sm overflow-hidden mr-2 ml-2 shadow-md relative">
 																<Image
 																	src={`https://flagcdn.com/w640/${song.flag?.toLowerCase()}.png`}
 																	fill

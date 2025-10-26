@@ -58,6 +58,8 @@ const Header: React.FC = () => {
 			if (pathname.includes('edition')) {
 				if (pathname.includes('vote') || pathname.includes('submit') || pathname.includes('results')) {
 					setBackPathname(`/edition/${pathname.split('/')[2]}`);
+				} else if (pathname.includes('create')) {
+					setBackPathname(`/contest/${pathname.split('/')[2]}`);
 				} else {
 					const contestId = await fetchContestId(pathname.split('/')[2]);
 					setBackPathname(`/contest/${contestId}`);

@@ -125,7 +125,7 @@ const EditionDetails: React.FC<EditionDetailsProps> = ({ editionId, user }) => {
 		if (edition) {
 			if (edition.phase === 'SUBMISSION') {
 				return hasUserSubmitted() ? (
-					<Button className="w-full bg-(--success)">
+					<Button className="w-full bg-(--success) text-secondary hover:bg-(--success)">
 						<CheckCircle className="w-4 h-4 mr-2" />
 						Song Submitted
 					</Button>

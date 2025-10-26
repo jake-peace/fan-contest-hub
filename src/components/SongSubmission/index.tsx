@@ -8,7 +8,7 @@ import { Input } from '../ui/input';
 import { Badge } from '../ui/badge';
 import { Popover, PopoverContent, PopoverTrigger } from '../ui/popover';
 import { Command, CommandEmpty, CommandGroup, CommandInput, CommandItem, CommandList } from '../ui/command';
-import { startTransition, useEffect, useState } from 'react';
+import { useEffect, useState, useTransition } from 'react';
 import { useForm } from 'react-hook-form';
 import z from 'zod/v3';
 import { zodResolver } from '@hookform/resolvers/zod';
@@ -24,6 +24,7 @@ import { submitSong } from '@/app/actions/submitSong';
 import { fetchEdition } from '../EditionDetails';
 import Image from 'next/image';
 import countryList from '../../utils/countryList.json';
+import { Spinner } from '../ui/spinner';
 
 interface SongSubmissionProps {
 	editionId: string;
@@ -43,6 +44,8 @@ const SongSubmission: React.FC<SongSubmissionProps> = ({ editionId, user }) => {
 	const [activeTab, setActiveTab] = useState<'spotify' | 'manual'>('spotify');
 	const queryClient = useQueryClient();
 	const router = useRouter();
+
+	const [isPending, startTransition] = useTransition();
 
 	const countries: CountryList = countryList as CountryList;
 
@@ -344,10 +347,8 @@ const SongSubmission: React.FC<SongSubmissionProps> = ({ editionId, user }) => {
 							</div>
 
 							<Button type="submit" className="w-full">
-								<>
-									<Check className="w-4 h-4 mr-2" />
-									Submit Song
-								</>
+								{isPending ? <Spinner /> : <Check className="w-4 h-4 mr-2" />}
+								{isPending ? 'Submitting...' : 'Submit Song'}
 							</Button>
 						</form>
 					</Form>

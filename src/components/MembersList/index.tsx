@@ -7,10 +7,10 @@ import { Button } from '../ui/button';
 import { useQuery } from '@tanstack/react-query';
 import { Avatar, AvatarImage } from '../ui/avatar';
 import { Skeleton } from '../ui/skeleton';
-import { toast } from 'sonner';
 import { Collapsible, CollapsibleContent, CollapsibleTrigger } from '../ui/collapsible';
 import SubmissionCard from '../SubmissionCard';
 import { SubmissionWithScore } from '../ResultsComponent';
+import { useRouter } from 'next/navigation';
 // import { Dialog, DialogClose, DialogContent, DialogDescription, DialogFooter, DialogHeader, DialogTitle } from '../ui/dialog';
 // import { useState } from 'react';
 
@@ -25,7 +25,7 @@ interface MembersListProps {
 	contestId: string;
 }
 
-const fetchParticipants = async (id: string) => {
+export const fetchParticipants = async (id: string) => {
 	const response = await fetch(`/api/contest/${id}/participants`);
 
 	if (!response.ok) {
@@ -48,49 +48,22 @@ const fetchParticipants = async (id: string) => {
 // };
 
 const MembersList: React.FC<MembersListProps> = ({ contestId }) => {
+	const router = useRouter();
+
 	const { data: members, isLoading } = useQuery({
 		queryKey: ['contestParticipants', contestId],
 		queryFn: () => fetchParticipants(contestId),
 	});
 
-	// const getParticipantEntries = async (userId: string, displayName: string) => {
-	// 	const entries = await fetchParticipantEntries(contestId, userId);
-	// 	return (
-	// 		<Card className="p-2 mb-2">
-	// 			<div className="font-bold">{`${displayName}'s Entries`}</div>
-	// 			{entries &&
-	// 				entries.map((e) => (
-	// 					<Card key={e.submissionId}>
-	// 						<div>{e.songTitle}</div>
-	// 					</Card>
-	// 				))}
-	// 		</Card>
-	// 	);
-	// };
-
-	// const [entriesDialog, setEntriesDialog] = useState(false);
+	console.log(members);
 
 	return (
 		<>
-			{/* <Dialog open={entriesDialog}>
-				<DialogContent>
-					<DialogHeader>
-						<DialogTitle>Spotify Playlist</DialogTitle>
-						<DialogDescription>{`Enter the link for the playlist below.`}</DialogDescription>
-					</DialogHeader>
-
-					<DialogFooter>
-						<DialogClose asChild onClick={() => setEntriesDialog(false)}>
-							<Button variant="outline">Close</Button>
-						</DialogClose>
-					</DialogFooter>
-				</DialogContent>
-			</Dialog> */}
 			<Card className="py-4 gap-2">
 				<CardHeader>
 					<div className="flex items-center justify-between">
 						<CardTitle>Participants</CardTitle>
-						<Button className="" onClick={() => toast.message(`Coming soon`)}>
+						<Button className="" onClick={() => router.push(`/contest/${contestId}/leaderboard`)}>
 							<ListOrdered />
 							Leaderboard
 						</Button>
@@ -146,19 +119,18 @@ const MembersList: React.FC<MembersListProps> = ({ contestId }) => {
 												<div className="font-bold">{`${m.displayName}'s Entries`}</div>
 											</CardTitle>
 											{m.entries &&
-												m.entries.map((e) => (
-													<SubmissionCard
-														key={e.submissionId}
-														submission={e}
-														isHost={false}
-														isUser={false}
-														contestId={contestId}
-														score={e.score}
-													/>
-													// <Card className="mb-0" key={e.submissionId}>
-													// 	<div>{e.songTitle}</div>
-													// </Card>
-												))}
+												m.entries
+													.sort((a, b) => Date.parse(b.createdAt) - Date.parse(a.createdAt))
+													.map((e) => (
+														<SubmissionCard
+															key={e.submissionId}
+															submission={e}
+															isHost={false}
+															isUser={false}
+															contestId={contestId}
+															score={e.score}
+														/>
+													))}
 										</Card>
 									</CollapsibleContent>
 								</Collapsible>

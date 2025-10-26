@@ -63,7 +63,7 @@ const Header: React.FC = () => {
 					setBackPathname(`/contest/${contestId}`);
 				}
 			} else if (pathname.includes('contest')) {
-				if (pathname.includes('participants')) {
+				if (pathname.includes('participants') || pathname.includes('leaderboard')) {
 					setBackPathname(`/contest/${pathname.split('/')[2]}`);
 				} else {
 					setBackPathname('/');

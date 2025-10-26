@@ -72,7 +72,9 @@ export async function closeSubmissions(editionId: string) {
 			});
 		});
 
-		await Promise.all(promises);
+		const promiseResult = await Promise.all(promises);
+
+		console.log(promiseResult);
 
 		const { errors } = await cookiesClient.models.Edition.update({
 			editionId: editionId,

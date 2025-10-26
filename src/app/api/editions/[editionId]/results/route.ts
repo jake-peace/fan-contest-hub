@@ -5,7 +5,6 @@ import { EditionWithDetails } from '@/types/Edition';
 import { SubmissionWithScore } from '@/components/ResultsComponent';
 
 type Params = Promise<{ editionId: string }>;
-type Submission = Schema['Submission']['type'];
 type Contest = Schema['Contest']['type'];
 type Edition = Schema['Edition']['type'];
 type Ranking = Schema['Ranking']['type'];
@@ -13,7 +12,7 @@ type Televote = Schema['Televote']['type'];
 
 export interface EditionWithResults extends Edition {
 	contestDetails: Contest;
-	submissionList: Submission[];
+	submissionList: SubmissionWithScore[];
 	rankingsList: Ranking[];
 	televoteList: Televote[];
 }
@@ -67,6 +66,27 @@ export async function GET(request: Request, segmentData: { params: Params }) {
 
 			let score = 0;
 			counts.forEach((c, index) => {
+				if (c !== 0) {
+					score = score + c * (rankingPoints.get(index) as number);
+				}
+			});
+
+			// do the same for the televotes
+			const teleCounts = new Array<number>(10).fill(0);
+
+			for (const innerArray of televoteResp?.data.map((r) => r.rankingList as string[]) as string[][]) {
+				// Check the first 10 positions (index 0 to 9) of the current inner array
+				const limit = Math.min(innerArray.length, 10);
+
+				for (let i = 0; i < limit; i++) {
+					if (innerArray[i] === s.submissionId) {
+						// Increment the count for that specific index (i)
+						teleCounts[i]++;
+					}
+				}
+			}
+
+			teleCounts.forEach((c, index) => {
 				if (c !== 0) {
 					score = score + c * (rankingPoints.get(index) as number);
 				}

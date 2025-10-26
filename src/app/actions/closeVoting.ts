@@ -54,6 +54,7 @@ export async function closeVoting(editionId: string) {
 
 		// get all rankings
 		const rankingData = (await edition.rankings()).data;
+		const televoteResp = await edition.televotes();
 
 		// calculate score for all submissions
 		let submissionsWithScores: SubmissionWithScore[] = [];
@@ -81,6 +82,27 @@ export async function closeVoting(editionId: string) {
 				}
 			});
 
+			// do the same for the televotes
+			const teleCounts = new Array<number>(10).fill(0);
+
+			for (const innerArray of televoteResp?.data.map((r) => r.rankingList as string[]) as string[][]) {
+				// Check the first 10 positions (index 0 to 9) of the current inner array
+				const limit = Math.min(innerArray.length, 10);
+
+				for (let i = 0; i < limit; i++) {
+					if (innerArray[i] === s.submissionId) {
+						// Increment the count for that specific index (i)
+						teleCounts[i]++;
+					}
+				}
+			}
+
+			teleCounts.forEach((c, index) => {
+				if (c !== 0) {
+					score = score + c * (rankingPoints.get(index) as number);
+				}
+			});
+
 			submissionsWithScores = [...submissionsWithScores, { ...s, score: score }];
 		});
 
@@ -94,14 +116,18 @@ export async function closeVoting(editionId: string) {
 			submissionsWithRanks = [...submissionsWithRanks, { ...s, rank: index + 1 }];
 		});
 
-		await Promise.all(
-			orderedSubmissions.map(async (s) => {
-				await cookiesClient.models.Submission.update({
-					submissionId: s.submissionId,
-					rank: s.rank,
-				});
-			})
-		);
+		console.log(orderedSubmissions);
+
+		const promises = orderedSubmissions.map(async (s, index) => {
+			await cookiesClient.models.Submission.update({
+				submissionId: s.submissionId,
+				rank: index + 1,
+			});
+		});
+
+		const promiseResult = await Promise.all(promises);
+
+		console.log(promiseResult);
 
 		if (errors) {
 			throw new Error(errors[0].message);

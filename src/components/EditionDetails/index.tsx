@@ -380,10 +380,13 @@ const EditionDetails: React.FC<EditionDetailsProps> = ({ editionId, user }) => {
 									editionId={editionId}
 									submissions={edition.submissionList}
 									televote={edition.televoteId !== null}
+									editionName={edition.name}
+									televoteId={edition.televoteId || undefined}
+									closeVotingType={edition.closeVotingType as 'specificDate' | 'manually'}
 								/>
-								<Button onClick={handleShare} className="my-1 w-full" variant="outline">
+								{/* <Button onClick={handleShare} className="my-1 w-full" variant="outline">
 									Share Televote Link
-								</Button>
+								</Button> */}
 							</>
 						)}
 					</CardContent>

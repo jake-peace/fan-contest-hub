@@ -54,6 +54,7 @@ export async function closeSubmissions(editionId: string) {
 		const { data: submissions } = await cookiesClient.models.Submission.list({
 			filter: {
 				editionId: { eq: editionId },
+				rejected: { ne: true },
 			},
 		});
 
@@ -65,14 +66,18 @@ export async function closeSubmissions(editionId: string) {
 			throw new Error('More submissions than participants. Seek help.');
 		}
 
-		const promises = shuffleArray(submissions).map(async (s, index) => {
-			await cookiesClient.models.Submission.update({
+		const submissionsShuffled = shuffleArray(submissions.filter((s) => !s.rejected));
+
+		const promises = submissionsShuffled.map(async (s, index) => {
+			return cookiesClient.models.Submission.update({
 				submissionId: s.submissionId,
 				runningOrder: index + 1,
 			});
 		});
 
-		await Promise.all(promises);
+		const promiseResult = await Promise.all(promises);
+
+		console.log(JSON.stringify(promiseResult));
 
 		const { errors } = await cookiesClient.models.Edition.update({
 			editionId: editionId,

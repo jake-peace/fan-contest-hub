@@ -290,11 +290,11 @@ const ResultsComponent: React.FC<ResultsComponentProps> = ({ editionId, user }) 
 			const highPointVotes = voterVotes?.rankingList?.slice(0, 3) as string[];
 
 			// --- Step 1: Voter card and 1-7 list appear immediately ---
-			await delay(150);
+			await delay(1500);
 			setLowPointList(lowPointVotes);
 
 			// --- Step 2: Delay for 1 second ---
-			await delay(250);
+			await delay(2500);
 
 			// --- Step 3: Apply 1-7 points to the scoreboard ---
 			const updatedSongs = [...submissions];
@@ -313,7 +313,7 @@ const ResultsComponent: React.FC<ResultsComponentProps> = ({ editionId, user }) 
 			setSubmissions(updatedSongs.sort(tiebreakSorter()));
 
 			// --- Step 4: Add a delay *between* the 1-7 and the high points ---
-			await delay(350);
+			await delay(3500);
 
 			// --- Step 5: Reveal 8, 10, and 12 points with delays in between ---
 			for (let i = 2; i >= 0; i--) {
@@ -322,19 +322,19 @@ const ResultsComponent: React.FC<ResultsComponentProps> = ({ editionId, user }) 
 				const songToUpdate = updatedSongs.find((s) => s.submissionId === highPointVotes[i]);
 				if (songToUpdate) {
 					setHighPointMessage(`${points} points goes to...`);
-					await delay(250);
+					await delay(2500);
 					songToUpdate.score += points;
 					setHighPointMessage(`${songToUpdate?.songTitle} by ${songToUpdate?.artistName}!`);
 					setPointsJustReceived((prev) => ({ ...prev, [highPointVotes[i]]: points }));
-					await delay(150);
+					await delay(1500);
 					// setSubmissions(updatedSongs.sort(tiebreakSorter(edition?.rankingsList?.map((r) => r.rankingList as string[]) as string[][])));
 					setSubmissions(updatedSongs.sort(tiebreakSorter()));
-					await delay(250);
+					await delay(2500);
 				}
 			}
 
 			// --- Step 6: End of round, wait and move to next voter ---
-			await delay(250);
+			await delay(2500);
 			setCurrentVoter(null);
 			setVotingIndex((prev) => prev + 1);
 			setLowPointList([]);

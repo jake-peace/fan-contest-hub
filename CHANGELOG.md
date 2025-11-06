@@ -1,3 +1,10 @@
+## [1.6.3](https://github.com/jake-peace/fan-contest-hub/compare/v1.6.2...v1.6.3) (2025-11-06)
+
+### Bug Fixes
+
+- fixed issue where last juror's votes were not revealed ([f9bedf9](https://github.com/jake-peace/fan-contest-hub/commit/f9bedf9772406791a8e8f1a19d3477143d3cbdf2))
+- fixed submissions not closing due to rejected entries, running order not generating properly ([2433dc4](https://github.com/jake-peace/fan-contest-hub/commit/2433dc44f473ea20879603f41c5f6c5a6814f46c))
+
 ## [1.6.2](https://github.com/jake-peace/fan-contest-hub/compare/v1.6.1...v1.6.2) (2025-10-23)
 
 ### Bug Fixes

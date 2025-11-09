@@ -1,3 +1,9 @@
+## [1.6.4](https://github.com/jake-peace/fan-contest-hub/compare/v1.6.3...v1.6.4) (2025-11-09)
+
+### Bug Fixes
+
+- fixed an issue where not all entries loaded in ([775b57a](https://github.com/jake-peace/fan-contest-hub/commit/775b57a667f516e1a1275f005c86cdab9faa13bb))
+
 ## [1.6.3](https://github.com/jake-peace/fan-contest-hub/compare/v1.6.2...v1.6.3) (2025-11-06)
 
 ### Bug Fixes

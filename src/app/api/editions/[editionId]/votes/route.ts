@@ -9,7 +9,7 @@ export async function GET(request: Request, segmentData: { params: Params }) {
 
 	try {
 		const { data: edition } = await cookiesClient.models.Edition.get({ editionId: editionId });
-		const submissions = await edition?.submissions();
+		const submissions = await edition?.submissions({ limit: 10000 });
 
 		const submissionIds = submissions?.data.map((s) => s.submissionId);
 

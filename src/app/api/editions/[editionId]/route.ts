@@ -111,7 +111,7 @@ export async function GET(request: Request, segmentData: { params: Params }) {
 
 		const submissionsResp = (await data.submissions({ limit: 10000 })).data;
 		const contestResp = await data?.contest();
-		const rankingsResp = await data?.rankings();
+		const rankingsResp = await data?.rankings({ limit: 10000 });
 
 		let submissionsWithScores: SubmissionWithScore[] = [];
 

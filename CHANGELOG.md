@@ -1,3 +1,9 @@
+## [1.6.5](https://github.com/jake-peace/fan-contest-hub/compare/v1.6.4...v1.6.5) (2025-11-13)
+
+### Bug Fixes
+
+- fixed issue where not all songs/votes would load in ([1cf54ea](https://github.com/jake-peace/fan-contest-hub/commit/1cf54eab5acc9db719b82882b664f38c462c6bcb))
+
 ## [1.6.4](https://github.com/jake-peace/fan-contest-hub/compare/v1.6.3...v1.6.4) (2025-11-09)
 
 ### Bug Fixes

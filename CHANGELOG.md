@@ -1,3 +1,9 @@
+## [1.6.6](https://github.com/jake-peace/fan-contest-hub/compare/v1.6.5...v1.6.6) (2025-11-19)
+
+### Bug Fixes
+
+- fixed an issue where not all songs would appear in the televote list ([59cb8e4](https://github.com/jake-peace/fan-contest-hub/commit/59cb8e4f616d954fb5adcdc9f2efe93b787598f5))
+
 ## [1.6.5](https://github.com/jake-peace/fan-contest-hub/compare/v1.6.4...v1.6.5) (2025-11-13)
 
 ### Bug Fixes

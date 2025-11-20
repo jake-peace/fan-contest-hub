@@ -572,7 +572,7 @@ const ResultsComponent: React.FC<ResultsComponentProps> = ({ editionId, user }) 
 	return (
 		<div className="p-1 max-w-6xl mx-auto flex flex-col md:space-x-8 mt-2">
 			<div className="flex">
-				<Button variant="ghost" className="mb-4" onClick={() => router.back()}>
+				<Button variant="ghost" className="mb-4" onClick={() => router.push(`/edition/${editionId}`)}>
 					← Back
 				</Button>
 			</div>

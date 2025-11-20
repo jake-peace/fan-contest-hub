@@ -95,16 +95,17 @@ export const handler: EventBridgeHandler<'Scheduled Event', null, void> = async 
 
 		if (recordsToUpdateSubmissions.length > 0) {
 			recordsToUpdateSubmissions.forEach(async (r) => {
-				const submissions = (await r.submissions()).data;
-				submissions.forEach(async (s) => {
-					const promises = shuffleArray(submissions).map((s, index) => {
-						return client.models.Submission.update({
-							submissionId: s.submissionId,
-							runningOrder: index + 1,
-						});
+				const submissions = (await r.submissions({ limit: 1000 })).data;
+				const submissionsShuffled = shuffleArray(submissions.filter((s) => !s.rejected));
+
+				const promises = submissionsShuffled.map(async (s, index) => {
+					return client.models.Submission.update({
+						submissionId: s.submissionId,
+						runningOrder: index + 1,
 					});
-					await Promise.all(promises);
 				});
+
+				await Promise.all(promises);
 			});
 		}
 

@@ -1,3 +1,9 @@
+## [1.6.7](https://github.com/jake-peace/fan-contest-hub/compare/v1.6.6...v1.6.7) (2025-11-20)
+
+### Bug Fixes
+
+- fix for running order allocation, televoters, etc ([00abe6d](https://github.com/jake-peace/fan-contest-hub/commit/00abe6d9e88553bb7e16e842512b09bbdb336dd1))
+
 ## [1.6.6](https://github.com/jake-peace/fan-contest-hub/compare/v1.6.5...v1.6.6) (2025-11-19)
 
 ### Bug Fixes

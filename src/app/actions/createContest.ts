@@ -35,6 +35,7 @@ export async function createContest(formData: FormData) {
 			filter: {
 				joinCode: { eq: joinCode },
 			},
+			limit: 10000,
 		});
 		unique = existingJoinCode.data.length === 0;
 	} while (!unique);

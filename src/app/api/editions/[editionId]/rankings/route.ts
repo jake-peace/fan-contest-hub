@@ -20,6 +20,7 @@ export async function GET(request: Request, segmentData: { params: Params }) {
 			filter: {
 				editionId: { eq: editionId },
 			},
+			limit: 10000,
 		});
 
 		return NextResponse.json({ rankings: data });

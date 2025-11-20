@@ -56,6 +56,7 @@ export async function closeSubmissions(editionId: string) {
 				editionId: { eq: editionId },
 				rejected: { ne: true },
 			},
+			limit: 10000,
 		});
 
 		if (!submissions || !edition || !contest) {

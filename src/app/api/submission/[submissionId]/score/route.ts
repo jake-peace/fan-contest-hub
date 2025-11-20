@@ -32,6 +32,7 @@ export async function GET(request: Request, segmentData: { params: Params }) {
 			filter: {
 				editionId: { eq: submissionData.editionId as string },
 			},
+			limit: 10000,
 		});
 
 		if (!rankingData) {

@@ -21,6 +21,7 @@ export async function GET(request: Request, segmentData: { params: Params }) {
 			filter: {
 				or: submissionIds.map((id) => ({ submissionId: { eq: id } })),
 			},
+			limit: 10000,
 		});
 
 		return NextResponse.json({ votes: data });

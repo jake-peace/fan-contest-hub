@@ -24,6 +24,7 @@ export async function submitSong(formData: FormData) {
 					rejected: { ne: true },
 				},
 			},
+			limit: 10000,
 		});
 
 		if (prevCheck.length !== 0) {

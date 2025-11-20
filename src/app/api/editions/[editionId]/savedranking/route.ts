@@ -21,6 +21,7 @@ export async function GET(request: Request, segmentData: { params: Params }) {
 				userId: { eq: authUser.userId },
 				editionId: { eq: editionId },
 			},
+			limit: 10000,
 		});
 
 		if (data.length === 0) {

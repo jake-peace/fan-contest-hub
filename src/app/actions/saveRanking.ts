@@ -20,6 +20,7 @@ export async function saveRanking(rankings: string[], editionId: string) {
 					},
 				],
 			},
+			limit: 10000,
 		});
 
 		console.log(`Attempting to save rankings for ${authUser?.userId} in edition ${editionId}: ${JSON.stringify(rankings)}`);

@@ -16,6 +16,7 @@ export async function joinContestWithCode(joinCode: string) {
 			filter: {
 				joinCode: { eq: joinCode },
 			},
+			limit: 10000,
 		});
 
 		if (contest.length !== 1) {

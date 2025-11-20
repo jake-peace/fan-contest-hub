@@ -16,11 +16,12 @@ export async function GET(request: Request, segmentData: { params: Params }) {
 			filter: {
 				contestId: { eq: contestId },
 			},
+			limit: 10000,
 		});
 
 		const promises = data.map(async (e) => {
-			const submissions = (await e.submissions()).data;
-			const rankings = (await e.rankings()).data;
+			const submissions = (await e.submissions({ limit: 10000 })).data;
+			const rankings = (await e.rankings({ limit: 10000 })).data;
 			const newObject = {
 				...e,
 				hasVoted: rankings.some((r) => r.userId === authUser?.userId),

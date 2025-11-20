@@ -17,6 +17,7 @@ export async function GET(request: Request, segmentData: { params: Params }) {
 				televoteId: { eq: params.televoteId },
 			},
 			authMode: 'identityPool',
+			limit: 10000,
 		});
 
 		if (!data) {

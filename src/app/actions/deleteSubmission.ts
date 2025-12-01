@@ -22,7 +22,7 @@ export async function deleteSubmission(submissionId: string) {
 			throw new Error(errors[0].message);
 		}
 
-		return { success: true };
+		return { success: true, message: `Successfully deleted entry for user ${authUser?.userId}` };
 	} catch (error) {
 		console.error('Server Action failed:', error);
 		return { success: false, error: 'Failed to delete submission.' };

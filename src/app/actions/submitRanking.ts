@@ -1,6 +1,5 @@
 'use server';
 
-import { users } from '@/mockData/newMockData';
 import { AuthGetCurrentUserServer, cookiesClient } from '@/utils/amplify-utils';
 import { cookies } from 'next/headers';
 import { v4 } from 'uuid';
@@ -83,7 +82,7 @@ export async function submitRanking(rankings: string[], editionId: string) {
 			}
 		}
 
-		return { success: true };
+		return { success: true, message: `Successfully submitted ranking for user ${authUser?.userId}` };
 	} catch (error) {
 		console.error('Server Action failed:', error);
 		return { success: false, error: 'Failed to submit votes.' };

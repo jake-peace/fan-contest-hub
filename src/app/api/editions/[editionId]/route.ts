@@ -117,7 +117,6 @@ export async function GET(request: Request, segmentData: { params: Params }) {
 		let submissionsWithScores: SubmissionWithScore[] = [];
 
 		if (data?.phase === 'RESULTS') {
-			console.log('phase is results');
 			submissionsResp?.forEach((s) => {
 				const counts = new Array<number>(10).fill(0);
 

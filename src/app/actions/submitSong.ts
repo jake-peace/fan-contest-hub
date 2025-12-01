@@ -62,7 +62,7 @@ export async function submitSong(formData: FormData) {
 			});
 		}
 
-		return { success: true };
+		return { success: true, message: `Successfully submitted entry for user ${authUser?.userId}` };
 	} catch (error) {
 		console.error('Server Action failed:', error);
 		return { success: false, error: 'Failed to submit song.' };

@@ -55,11 +55,13 @@ export async function submitRanking(rankings: string[], editionId: string) {
 			limit: 10000,
 		});
 
+		const guestName = await cookiesClient.models.Profile.get({ userId: authUser?.userId });
+
 		if (userSubmission.length === 0) {
 			// put into televotes instead of rankings
 			const { errors: televoteErrors } = await cookiesClient.models.Televote.create({
 				televoteId: v4(),
-				guestName: authUser?.username,
+				guestName: guestName.data?.displayName,
 				editionId: editionId,
 				rankingList: rankings,
 			});

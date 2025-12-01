@@ -33,9 +33,10 @@ export async function GET(request: Request, segmentData: { params: Params }) {
 			filter: {
 				or: (contestData?.participants as string[]).map((id: string) => ({ userId: { eq: id } })),
 			},
+			limit: 10000,
 		});
 
-		const editionsData = (await contestData.editions()).data;
+		const editionsData = (await contestData.editions({ limit: 10000 })).data;
 
 		if (!editionsData) {
 			throw new Error('Failed to find edition data.');
@@ -49,6 +50,7 @@ export async function GET(request: Request, segmentData: { params: Params }) {
 			filter: {
 				or: (editionList as string[]).map((e: string) => ({ editionId: { eq: e } })),
 			},
+			limit: 10000,
 		});
 
 		const allContestSubmissionsWithScores = await Promise.all(
@@ -63,6 +65,7 @@ export async function GET(request: Request, segmentData: { params: Params }) {
 					filter: {
 						editionId: { eq: submissionData.editionId as string },
 					},
+					limit: 10000,
 				});
 
 				if (!rankingData) {

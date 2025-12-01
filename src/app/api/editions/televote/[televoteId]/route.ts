@@ -17,6 +17,7 @@ export async function GET(request: Request, segmentData: { params: Params }) {
 				televoteId: { eq: params.televoteId },
 			},
 			authMode: 'identityPool',
+			limit: 10000,
 		});
 
 		if (!data) {
@@ -27,7 +28,7 @@ export async function GET(request: Request, segmentData: { params: Params }) {
 			throw new Error('Edition data mishapen.');
 		}
 
-		const submissionsResp = (await data[0].submissions()).data;
+		const submissionsResp = (await data[0].submissions({ limit: 10000 })).data;
 		const contestResp = await data[0]?.contest();
 
 		const editionData: EditionWithDetails = {

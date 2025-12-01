@@ -12,6 +12,7 @@ export async function GET(request: Request, segmentData: { params: Params }) {
 			filter: {
 				joinCode: { eq: joinCode },
 			},
+			limit: 10000,
 		});
 
 		if (data.length !== 1) {

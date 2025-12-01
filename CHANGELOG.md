@@ -1,3 +1,40 @@
+## [1.6.8](https://github.com/jake-peace/fan-contest-hub/compare/v1.6.7...v1.6.8) (2025-12-01)
+
+### Bug Fixes
+
+- user with no submission can now submit their ranking as a televote ([4b2178f](https://github.com/jake-peace/fan-contest-hub/commit/4b2178fae7a5859990fd0e038383c77744966e90))
+
+## [1.6.7](https://github.com/jake-peace/fan-contest-hub/compare/v1.6.6...v1.6.7) (2025-11-20)
+
+### Bug Fixes
+
+- fix for running order allocation, televoters, etc ([00abe6d](https://github.com/jake-peace/fan-contest-hub/commit/00abe6d9e88553bb7e16e842512b09bbdb336dd1))
+
+## [1.6.6](https://github.com/jake-peace/fan-contest-hub/compare/v1.6.5...v1.6.6) (2025-11-19)
+
+### Bug Fixes
+
+- fixed an issue where not all songs would appear in the televote list ([59cb8e4](https://github.com/jake-peace/fan-contest-hub/commit/59cb8e4f616d954fb5adcdc9f2efe93b787598f5))
+
+## [1.6.5](https://github.com/jake-peace/fan-contest-hub/compare/v1.6.4...v1.6.5) (2025-11-13)
+
+### Bug Fixes
+
+- fixed issue where not all songs/votes would load in ([1cf54ea](https://github.com/jake-peace/fan-contest-hub/commit/1cf54eab5acc9db719b82882b664f38c462c6bcb))
+
+## [1.6.4](https://github.com/jake-peace/fan-contest-hub/compare/v1.6.3...v1.6.4) (2025-11-09)
+
+### Bug Fixes
+
+- fixed an issue where not all entries loaded in ([775b57a](https://github.com/jake-peace/fan-contest-hub/commit/775b57a667f516e1a1275f005c86cdab9faa13bb))
+
+## [1.6.3](https://github.com/jake-peace/fan-contest-hub/compare/v1.6.2...v1.6.3) (2025-11-06)
+
+### Bug Fixes
+
+- fixed issue where last juror's votes were not revealed ([f9bedf9](https://github.com/jake-peace/fan-contest-hub/commit/f9bedf9772406791a8e8f1a19d3477143d3cbdf2))
+- fixed submissions not closing due to rejected entries, running order not generating properly ([2433dc4](https://github.com/jake-peace/fan-contest-hub/commit/2433dc44f473ea20879603f41c5f6c5a6814f46c))
+
 ## [1.6.2](https://github.com/jake-peace/fan-contest-hub/compare/v1.6.1...v1.6.2) (2025-10-23)
 
 ### Bug Fixes

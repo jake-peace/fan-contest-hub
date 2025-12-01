@@ -30,6 +30,7 @@ export async function submitVotes(rankings: string[], editionId: string) {
 			filter: {
 				editionId: { eq: editionId },
 			},
+			limit: 10000,
 		});
 
 		submissions.forEach(async (s) => {

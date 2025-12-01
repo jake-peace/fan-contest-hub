@@ -38,7 +38,7 @@ export async function openTelevote(editionId: string) {
 			throw new Error('Server action failed.');
 		}
 
-		return { success: true };
+		return { success: true, message: `Successfully opened televote for edition ${editionId}` };
 	} catch (error) {
 		console.error('Server Action failed:', error);
 		return { success: false, error };

@@ -24,6 +24,7 @@ export async function submitSong(formData: FormData) {
 					rejected: { ne: true },
 				},
 			},
+			limit: 10000,
 		});
 
 		if (prevCheck.length !== 0) {
@@ -61,7 +62,7 @@ export async function submitSong(formData: FormData) {
 			});
 		}
 
-		return { success: true };
+		return { success: true, message: `Successfully submitted entry for user ${authUser?.userId}` };
 	} catch (error) {
 		console.error('Server Action failed:', error);
 		return { success: false, error: 'Failed to submit song.' };

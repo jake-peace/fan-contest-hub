@@ -46,6 +46,7 @@ export async function closeVoting(editionId: string) {
 				editionId: { eq: editionId },
 				rejected: { eq: false },
 			},
+			limit: 10000,
 		});
 
 		if (!submissionData) {
@@ -53,8 +54,36 @@ export async function closeVoting(editionId: string) {
 		}
 
 		// get all rankings
-		const rankingData = (await edition.rankings()).data;
-		const televoteResp = await edition.televotes();
+		const rankingData = (await edition.rankings({ limit: 10000 })).data;
+
+		// get all televotes
+		const televoteData = (await edition.televotes({ limit: 10000 })).data;
+
+		// todo: any rankingData without a submission needs moving to televoteData
+
+		// let rankingsToMove: Ranking[] = [];
+
+		// rankingData.forEach((r) => {
+		//     if (!submissionData.some((s) => s.userId === r.userId)) {
+		//         // has ranking but not present in submission data
+		//         rankingsToMove = [...rankingsToMove, r];
+		//     }
+		// })
+
+		// only bother with operation if there are any to move
+		// if (rankingsToMove.length > 0) {
+		//     await Promise.all(
+		//         rankingsToMove.map(async (r) => {
+		//             await cookiesClient.models.Televote.create({
+		//                 editionId: editionId,
+		//                 rankingList: r.rankingList,
+		//                 guestName: 'Anonymous Televoter',
+		//                 televoteId: r.rankingId,
+		//             });
+
+		//         })
+		//     )
+		// }
 
 		// calculate score for all submissions
 		let submissionsWithScores: SubmissionWithScore[] = [];
@@ -75,29 +104,20 @@ export async function closeVoting(editionId: string) {
 				}
 			}
 
-			let score = 0;
-			counts.forEach((c, index) => {
-				if (c !== 0) {
-					score = score + c * (rankingPoints.get(index) as number);
-				}
-			});
-
-			// do the same for the televotes
-			const teleCounts = new Array<number>(10).fill(0);
-
-			for (const innerArray of televoteResp?.data.map((r) => r.rankingList as string[]) as string[][]) {
+			for (const innerArray of televoteData.map((r) => r.rankingList as string[]) as string[][]) {
 				// Check the first 10 positions (index 0 to 9) of the current inner array
 				const limit = Math.min(innerArray.length, 10);
 
 				for (let i = 0; i < limit; i++) {
 					if (innerArray[i] === s.submissionId) {
 						// Increment the count for that specific index (i)
-						teleCounts[i]++;
+						counts[i]++;
 					}
 				}
 			}
 
-			teleCounts.forEach((c, index) => {
+			let score = 0;
+			counts.forEach((c, index) => {
 				if (c !== 0) {
 					score = score + c * (rankingPoints.get(index) as number);
 				}

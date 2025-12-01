@@ -18,6 +18,7 @@ export async function GET() {
 					contains: authUser?.userId,
 				},
 			},
+			limit: 10000,
 		});
 
 		const promises = data.map(async (c) => {

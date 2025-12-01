@@ -109,10 +109,10 @@ export async function GET(request: Request, segmentData: { params: Params }) {
 			throw new Error('Edition not found');
 		}
 
-		const submissionsResp = (await data.submissions()).data;
+		const submissionsResp = (await data.submissions({ limit: 10000 })).data;
 		const contestResp = await data?.contest();
-		const rankingsResp = await data?.rankings();
-		const televoteResp = await data?.televotes();
+		const rankingsResp = await data?.rankings({ limit: 10000 });
+		const televoteData = await data?.televotes({ limit: 10000 });
 
 		let submissionsWithScores: SubmissionWithScore[] = [];
 
@@ -133,29 +133,20 @@ export async function GET(request: Request, segmentData: { params: Params }) {
 					}
 				}
 
-				let score = 0;
-				counts.forEach((c, index) => {
-					if (c !== 0) {
-						score = score + c * (rankingPoints.get(index) as number);
-					}
-				});
-
-				// do the same for the televotes
-				const teleCounts = new Array<number>(10).fill(0);
-
-				for (const innerArray of televoteResp?.data.map((r) => r.rankingList as string[]) as string[][]) {
+				for (const innerArray of televoteData?.data.map((r) => r.rankingList as string[]) as string[][]) {
 					// Check the first 10 positions (index 0 to 9) of the current inner array
 					const limit = Math.min(innerArray.length, 10);
 
 					for (let i = 0; i < limit; i++) {
 						if (innerArray[i] === s.submissionId) {
 							// Increment the count for that specific index (i)
-							teleCounts[i]++;
+							counts[i]++;
 						}
 					}
 				}
 
-				teleCounts.forEach((c, index) => {
+				let score = 0;
+				counts.forEach((c, index) => {
 					if (c !== 0) {
 						score = score + c * (rankingPoints.get(index) as number);
 					}

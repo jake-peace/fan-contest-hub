@@ -372,7 +372,7 @@ const EditionDetails: React.FC<EditionDetailsProps> = ({ editionId, user }) => {
 							</Button>
 						)}
 
-						{user.userId === edition.contestDetails.hostId && (
+						{(user.userId === edition.contestDetails.hostId || process.env.NODE_ENV === 'development') && (
 							<>
 								<EditionHostOptions
 									phase={edition.phase}
@@ -381,9 +381,11 @@ const EditionDetails: React.FC<EditionDetailsProps> = ({ editionId, user }) => {
 									submissions={edition.submissionList}
 									televote={edition.televoteId !== null}
 								/>
-								<Button onClick={handleShare} className="my-1 w-full" variant="outline">
-									Share Televote Link
-								</Button>
+								{edition.televoteId !== null && (
+									<Button onClick={handleShare} className="my-1 w-full" variant="outline">
+										Share Televote Link
+									</Button>
+								)}
 							</>
 						)}
 					</CardContent>
@@ -509,7 +511,7 @@ const EditionDetails: React.FC<EditionDetailsProps> = ({ editionId, user }) => {
 					</>
 				)}
 
-				{edition.phase === 'SUBMISSION' && edition.contestDetails.hostId === user.userId && (
+				{edition.phase === 'SUBMISSION' && (edition.contestDetails.hostId === user.userId || process.env.NODE_ENV === 'development') && (
 					<Card className="mb-4 py-6 gap-2">
 						<CardHeader>
 							<CardTitle className="flex items-center gap-2">Submissions</CardTitle>
@@ -528,7 +530,7 @@ const EditionDetails: React.FC<EditionDetailsProps> = ({ editionId, user }) => {
 											key={s.submissionId}
 											submission={s}
 											onReject={refetch}
-											isHost={user.userId === edition.contestDetails.hostId}
+											isHost={user.userId === edition.contestDetails.hostId || process.env.NODE_ENV === 'development'}
 											contestId={edition.contestDetails.contestId as string}
 										/>
 									))

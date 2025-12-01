@@ -1,3 +1,9 @@
+## [1.6.9](https://github.com/jake-peace/fan-contest-hub/compare/v1.6.8...v1.6.9) (2025-12-01)
+
+### Bug Fixes
+
+- removed share link when televote was not yet open ([91df234](https://github.com/jake-peace/fan-contest-hub/commit/91df234e89278439f10c833bcd575c08b942dd4d))
+
 ## [1.6.8](https://github.com/jake-peace/fan-contest-hub/compare/v1.6.7...v1.6.8) (2025-12-01)
 
 ### Bug Fixes

@@ -1,6 +1,6 @@
 {
   "name": "fan-contest-hub",
-  "version": "1.6.8",
+  "version": "1.6.9",
   "private": true,
   "type": "module",
   "scripts": {
@@ -130,7 +130,7 @@
     "unist-util-visit-parents": "^6.0.1"
   },
   "overrides": {
-    "graphql": "15.10.1" 
+    "graphql": "15.10.1"
   },
   "release": {
     "branches": [

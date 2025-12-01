@@ -45,6 +45,6 @@ export async function deleteTelevote(televoteId: string) {
 		return { success: true };
 	} catch (error) {
 		console.error('Server Action failed:', error);
-		return { success: false, error: 'Failed to delete televote.' };
+		return { success: false, error };
 	}
 }

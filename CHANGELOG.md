@@ -1,3 +1,9 @@
+## [1.6.8](https://github.com/jake-peace/fan-contest-hub/compare/v1.6.7...v1.6.8) (2025-12-01)
+
+### Bug Fixes
+
+- user with no submission can now submit their ranking as a televote ([4b2178f](https://github.com/jake-peace/fan-contest-hub/commit/4b2178fae7a5859990fd0e038383c77744966e90))
+
 ## [1.6.7](https://github.com/jake-peace/fan-contest-hub/compare/v1.6.6...v1.6.7) (2025-11-20)
 
 ### Bug Fixes

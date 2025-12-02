@@ -3,9 +3,6 @@
 import { SubmissionWithScore } from '@/components/ResultsComponent';
 import { AuthGetCurrentUserServer, cookiesClient } from '@/utils/amplify-utils';
 import { cookies } from 'next/headers';
-import { Schema } from '../../../amplify/data/resource';
-
-type Ranking = Schema['Ranking']['type'];
 
 const rankingPoints = new Map<number, number>([
 	[-1, 0],
@@ -139,14 +136,18 @@ export async function closeVoting(editionId: string) {
 			submissionsWithRanks = [...submissionsWithRanks, { ...s, rank: index + 1 }];
 		});
 
-		await Promise.all(
-			orderedSubmissions.map(async (s) => {
-				await cookiesClient.models.Submission.update({
-					submissionId: s.submissionId,
-					rank: s.rank,
-				});
-			})
-		);
+		console.log(orderedSubmissions);
+
+		const promises = orderedSubmissions.map(async (s, index) => {
+			await cookiesClient.models.Submission.update({
+				submissionId: s.submissionId,
+				rank: index + 1,
+			});
+		});
+
+		const promiseResult = await Promise.all(promises);
+
+		console.log(promiseResult);
 
 		if (errors) {
 			throw new Error(errors[0].message);

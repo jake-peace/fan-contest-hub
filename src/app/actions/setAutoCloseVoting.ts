@@ -3,7 +3,7 @@
 import { AuthGetCurrentUserServer, cookiesClient } from '@/utils/amplify-utils';
 import { cookies } from 'next/headers';
 
-export async function setPlaylistLink(editionId: string, link: string) {
+export async function setAutoCloseVoting(editionId: string, autoClose: boolean) {
 	try {
 		const currentRequestCookies = cookies;
 		const authUser = await AuthGetCurrentUserServer(currentRequestCookies);
@@ -17,21 +17,21 @@ export async function setPlaylistLink(editionId: string, link: string) {
 		const contest = (await edition.contest()).data;
 
 		if (contest?.hostId !== authUser?.userId) {
-			throw new Error('You must be the contest host to set the playlist link.');
+			throw new Error('You must be the contest host to set the auto closing type.');
 		}
 
 		const { errors } = await cookiesClient.models.Edition.update({
 			editionId: editionId,
-			spotifyPlaylistLink: link,
+			closeVotingType: autoClose ? 'specificDate' : 'manually',
 		});
 
 		if (errors) {
 			throw new Error(errors[0].message);
 		}
 
-		return { success: true };
+		return { success: true, date: edition.votingDeadline, message: 'Auto close setting changed for edition' };
 	} catch (error) {
 		console.error('Server Action failed:', error);
-		return { success: false, error: error };
+		return { success: false, error };
 	}
 }

@@ -27,6 +27,22 @@ export async function middleware(request: NextRequest) {
 	}
 	const response = NextResponse.next();
 
+	try {
+		const { tokens } = await runWithAmplifyServerContext({
+			nextServerContext: { request, response },
+			operation: (contextSpec) => fetchAuthSession(contextSpec),
+		});
+		// If tokens exist, user is authenticated
+		if (tokens) {
+			return response;
+		}
+	} catch (error) {
+		console.error('Auth check failed in middleware:', error);
+	}
+
+	// Redirect to login if unauthenticated or on error
+	return NextResponse.redirect(new URL('/signin', request.url));
+
 	const authenticated = await runWithAmplifyServerContext({
 		nextServerContext: { request, response },
 		operation: async (contextSpec) => {

@@ -1,22 +1,21 @@
-import { ProfileWithEntries } from '@/components/MembersList';
 import { cookiesClient } from '@/utils/amplify-utils';
 import { NextResponse } from 'next/server';
 
 type Params = Promise<{ contestId: string }>;
 
-const rankingPoints = new Map<number, number>([
-	[-1, 0],
-	[0, 12],
-	[1, 10],
-	[2, 8],
-	[3, 7],
-	[4, 6],
-	[5, 5],
-	[6, 4],
-	[7, 3],
-	[8, 2],
-	[9, 1],
-]);
+// const rankingPoints = new Map<number, number>([
+// 	[-1, 0],
+// 	[0, 12],
+// 	[1, 10],
+// 	[2, 8],
+// 	[3, 7],
+// 	[4, 6],
+// 	[5, 5],
+// 	[6, 4],
+// 	[7, 3],
+// 	[8, 2],
+// 	[9, 1],
+// ]);
 
 export async function GET(request: Request, segmentData: { params: Params }) {
 	try {
@@ -36,63 +35,59 @@ export async function GET(request: Request, segmentData: { params: Params }) {
 			limit: 10000,
 		});
 
-		const editionsData = (await contestData.editions({ limit: 10000 })).data;
+		// const editionsData = (await contestData.editions({ limit: 10000 })).data;
 
-		if (!editionsData) {
-			throw new Error('Failed to find edition data.');
-		}
+		// if (!editionsData) {
+		// 	throw new Error('Failed to find edition data.');
+		// }
 
-		const editionList = editionsData
-			.filter((e) => e.phase !== 'SUBMISSION' && e.phase !== 'UPCOMING' && e.phase !== 'VOTING')
-			.map((e) => e.editionId);
+		// const editionList = editionsData
+		// 	.filter((e) => e.phase !== 'SUBMISSION' && e.phase !== 'UPCOMING' && e.phase !== 'VOTING')
+		// 	.map((e) => e.editionId);
 
-		const { data: allContestSubmissions } = await cookiesClient.models.Submission.list({
-			filter: {
-				or: (editionList as string[]).map((e: string) => ({ editionId: { eq: e } })),
-			},
-			limit: 10000,
-		});
+		// const { data: allContestSubmissions } = await cookiesClient.models.Submission.list({
+		// 	filter: {
+		// 		or: (editionList as string[]).map((e: string) => ({ editionId: { eq: e } })),
+		// 	},
+		// });
 
-		const allContestSubmissionsWithScores = await Promise.all(
-			allContestSubmissions.map(async (s) => {
-				const { data: submissionData } = await cookiesClient.models.Submission.get({ submissionId: s.submissionId });
+		// const scorePromises = allContestSubmissions.map(async (s) => {
+		// 	const { data: submissionData } = await cookiesClient.models.Submission.get({ submissionId: s.submissionId });
 
-				if (!submissionData) {
-					throw new Error('Cannot find submission');
-				}
+		// 	if (!submissionData) {
+		// 		throw new Error('Cannot find submission');
+		// 	}
 
-				const { data: rankingData } = await cookiesClient.models.Ranking.list({
-					filter: {
-						editionId: { eq: submissionData.editionId as string },
-					},
-					limit: 10000,
-				});
+		// 	const { data: rankingData } = await cookiesClient.models.Ranking.list({
+		// 		filter: {
+		// 			editionId: { eq: submissionData.editionId as string },
+		// 		},
+		// 	});
 
-				if (!rankingData) {
-					throw new Error('Failed to find edition data.');
-				}
+		// 	if (!rankingData) {
+		// 		throw new Error('Failed to find edition data.');
+		// 	}
 
-				let score = 0;
+		// 	let score = 0;
 
-				rankingData.forEach((r) => {
-					const songScore = rankingPoints.get(r.rankingList?.indexOf(s.submissionId) as number) as number;
-					score = score + songScore;
-				});
-				return { ...s, score: score };
-			})
-		);
+		// 	rankingData.forEach((r) => {
+		// 		const songScore = rankingPoints.get(r.rankingList?.indexOf(s.submissionId) as number) as number;
+		// 		score = score + songScore;
+		// 	});
+		// 	return { ...s, score: score };
+		// });
 
-		const participantsWithEntries: ProfileWithEntries[] = data.map((p) => {
-			return { ...p, entries: allContestSubmissionsWithScores.filter((s) => s.userId === p.userId) };
-			// particpantsWithEntries = [...particpantsWithEntries, { ...p, entries: participantEntries }];
-			// console.log(particpantsWithEntries);
-		});
+		// const allContestSubmissionsWithScores = await Promise.all(scorePromises);
 
-		// 2. The client never sees the auth token or the GraphQL endpoint.
-		// The response is a plain JSON object.
-		return NextResponse.json({ participants: participantsWithEntries });
+		// const participantsWithEntries: ProfileWithEntries[] = data.map((p) => {
+		// 	return { ...p, entries: allContestSubmissions.filter((s) => s.userId === p.userId) };
+		// 	// return { ...p, entries: [] };
+		// });
+
+		return NextResponse.json({ participants: data });
 		// eslint-disable-next-line @typescript-eslint/no-explicit-any
 	} catch (error: any) {
+		console.error('Server Action failed:', error);
 		// 3. Handle authentication failures (e.g., redirect or return 401)
 		if (error.name === 'NotAuthorizedError') {
 			return new NextResponse(JSON.stringify({ error: 'Unauthorized' }), {

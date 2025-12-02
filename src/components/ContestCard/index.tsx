@@ -130,7 +130,7 @@ const ContestInfoCard: React.FC<{ contestId: string; user: AuthUser }> = ({ cont
 							</Badge>
 						</div>
 						<p className="text-muted-foreground">{contest.description}</p>
-						{user.userId === contest.hostId && <ContestOptions contestId={contestId} />}
+						{(user.userId === contest.hostId || process.env.NODE_ENV === 'development') && <ContestOptions contestId={contestId} />}
 					</CardHeader>
 				</Card>
 

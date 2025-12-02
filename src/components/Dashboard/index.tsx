@@ -15,7 +15,7 @@ import { toast } from 'sonner';
 import { Schema } from '../../../amplify/data/resource';
 import { Skeleton } from '../ui/skeleton';
 import { joinContestWithCode } from '@/app/actions/joinContestWithCode';
-import { Alert, AlertTitle } from '../ui/alert';
+import { Alert, AlertDescription, AlertTitle } from '../ui/alert';
 
 type Contest = Schema['Contest']['type'];
 type Edition = Schema['Edition']['type'];
@@ -137,6 +137,14 @@ const DashboardPage: React.FC = () => {
 	return (
 		<>
 			<div className="space-y-4 mb-6">
+				<Alert>
+					<Info />
+					<AlertTitle className="flex gap-2 items-center">New Release! Version {appVersion} is now available</AlertTitle>
+					<AlertDescription>
+						This new version may be unstable. Please report any bugs to the developer, noting the time, device used, and what you were doing
+						to cause the bug.
+					</AlertDescription>
+				</Alert>
 				<Alert>
 					<AlertTitle className="flex gap-2 items-center">
 						<Info />

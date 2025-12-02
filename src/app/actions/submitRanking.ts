@@ -85,6 +85,6 @@ export async function submitRanking(rankings: string[], editionId: string) {
 		return { success: true, message: `Successfully submitted ranking for user ${authUser?.userId}` };
 	} catch (error) {
 		console.error('Server Action failed:', error);
-		return { success: false, error: 'Failed to submit votes.' };
+		return { success: false, error: error };
 	}
 }

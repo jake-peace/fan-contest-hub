@@ -1,9 +1,7 @@
 import { cookiesClient } from '@/utils/amplify-utils';
 import { NextResponse } from 'next/server';
-import { Schema } from '../../../../../../../amplify/data/resource';
 
 type Params = Promise<{ contestId: string; userId: string }>;
-type Submission = Schema['Submission']['type'];
 
 export async function GET(request: Request, segmentData: { params: Params }) {
 	try {
@@ -17,18 +15,20 @@ export async function GET(request: Request, segmentData: { params: Params }) {
 			throw new Error('Contest not found.');
 		}
 
-		const editionsData = (await contestData.editions()).data;
+		const editionsData = (await contestData.editions({ limit: 10000 })).data;
+		const editionList = editionsData.filter((e) => e.phase === 'RESULTS').map((e) => e.editionId as string);
 
-		let entries: Submission[] = [];
-
-		editionsData.forEach(async (e) => {
-			const submissionsData = (await e.submissions()).data;
-			entries = [...entries, ...submissionsData.filter((s) => s.userId === userId)];
+		const { data: submissions } = await cookiesClient.models.Submission.list({
+			filter: {
+				or: editionList.map((id: string) => ({ editionId: { eq: id } })),
+				and: { userId: { eq: userId } },
+			},
+			limit: 10000,
 		});
 
 		// 2. The client never sees the auth token or the GraphQL endpoint.
 		// The response is a plain JSON object.
-		return NextResponse.json({ entries: entries });
+		return NextResponse.json({ entries: submissions });
 		// eslint-disable-next-line @typescript-eslint/no-explicit-any
 	} catch (error: any) {
 		// 3. Handle authentication failures (e.g., redirect or return 401)

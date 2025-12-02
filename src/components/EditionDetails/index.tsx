@@ -125,7 +125,7 @@ const EditionDetails: React.FC<EditionDetailsProps> = ({ editionId, user }) => {
 		if (edition) {
 			if (edition.phase === 'SUBMISSION') {
 				return hasUserSubmitted() ? (
-					<Button className="w-full bg-(--success)">
+					<Button className="w-full bg-(--success) text-secondary hover:bg-(--success)">
 						<CheckCircle className="w-4 h-4 mr-2" />
 						Song Submitted
 					</Button>
@@ -183,24 +183,6 @@ const EditionDetails: React.FC<EditionDetailsProps> = ({ editionId, user }) => {
 			}
 
 			return null;
-		}
-	};
-
-	const handleShare = async () => {
-		try {
-			await navigator.share({
-				title: `Vote in ${edition?.name}!`,
-				text: `You've been invited to be part of the televote for ${edition?.name}!`,
-				url: `http://fancontest.org/televote/${edition?.televoteId as string}`,
-			});
-			// eslint-disable-next-line @typescript-eslint/no-explicit-any
-		} catch (error: any) {
-			if (error.name === 'AbortError') {
-				console.log('Aborted share');
-			} else {
-				console.error('Error sharing content:', error);
-				toast.error(`Couldn't get share link`);
-			}
 		}
 	};
 
@@ -380,12 +362,10 @@ const EditionDetails: React.FC<EditionDetailsProps> = ({ editionId, user }) => {
 									editionId={editionId}
 									submissions={edition.submissionList}
 									televote={edition.televoteId !== null}
+									editionName={edition.name}
+									televoteId={edition.televoteId || undefined}
+									closeVotingType={edition.closeVotingType as 'specificDate' | 'manually'}
 								/>
-								{edition.televoteId !== null && (
-									<Button onClick={handleShare} className="my-1 w-full" variant="outline">
-										Share Televote Link
-									</Button>
-								)}
 							</>
 						)}
 					</CardContent>

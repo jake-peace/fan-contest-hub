@@ -55,7 +55,7 @@ const ContestSettings: React.FC<ContestSettingsProps> = ({ contestId, user }) =>
 	});
 
 	useEffect(() => {
-		if (isFetched && contest?.hostId !== user.userId) {
+		if (isFetched && contest?.hostId !== user.userId && process.env.NODE_ENV !== 'development') {
 			router.push(`/contest/${contestId}`);
 			toast.error('You are not authorized to access this page.');
 		}
@@ -172,10 +172,10 @@ const ContestSettings: React.FC<ContestSettingsProps> = ({ contestId, user }) =>
 									</AlertDialog> */}
 								</AccordionContent>
 							</AccordionItem>
-							<AccordionItem value="2">
+							{/* <AccordionItem value="2">
 								<AccordionTrigger>Participants</AccordionTrigger>
 								<AccordionContent>General settings</AccordionContent>
-							</AccordionItem>
+							</AccordionItem> */}
 						</Accordion>
 						<Button className="w-full" type="submit" disabled={isPending}>
 							{isPending ? <Spinner /> : <Save />}

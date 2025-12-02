@@ -1,10 +1,10 @@
 import { Button } from '../ui/button';
 import {
-	CalendarClock,
 	ChartCandlestick,
 	ChevronDownIcon,
 	CircleX,
 	DoorOpen,
+	Eye,
 	HelpCircle,
 	ListChecksIcon,
 	Share,
@@ -24,16 +24,7 @@ import {
 	AlertDialogTitle,
 } from '../ui/alert-dialog';
 import { closeVoting } from '@/app/actions/closeVoting';
-import {
-	Dialog,
-	DialogClose,
-	DialogContent,
-	DialogDescription,
-	DialogFooter,
-	DialogHeader,
-	DialogTitle,
-	DialogTrigger,
-} from '../ui/dialog';
+import { Dialog, DialogClose, DialogContent, DialogDescription, DialogFooter, DialogHeader, DialogTitle } from '../ui/dialog';
 import { Input } from '../ui/input';
 import { Label } from '../ui/label';
 import { useQueryClient } from '@tanstack/react-query';
@@ -155,7 +146,7 @@ const EditionHostOptions: React.FC<EditionHostOptionsProps> = ({
 				toast.success(`Playlist link saved`);
 				setSpotifyDialogOpen(false);
 			} else {
-				toast.error('Something went wrong saving the playlist link');
+				toast.error(`Something went wrong saving the playlist link: ${result.error}`);
 			}
 		});
 	};
@@ -197,10 +188,10 @@ const EditionHostOptions: React.FC<EditionHostOptionsProps> = ({
 			if (result.success) {
 				queryClient.invalidateQueries({ queryKey: ['editionDetails', editionId] });
 				toast.success(
-					`${autoClose ? 'Enabled' : 'Disabled'} auto-close${autoClose == false && `, voting will close on ${formatDate(result.date as string)}. This can be changed in the dropdown menu.`}`
+					`${autoClose ? 'Enabled' : 'Disabled'} auto-close${autoClose ? `, voting will close on ${formatDate(result.date as string)}. This can be changed in the dropdown menu.` : ''}`
 				);
 			} else {
-				toast.error('Something went wrong opening the televote.');
+				toast.error('Something went wrong changing auto-close.');
 			}
 		});
 	};
@@ -271,20 +262,20 @@ const EditionHostOptions: React.FC<EditionHostOptionsProps> = ({
 									</DropdownMenuTrigger>
 									<DropdownMenuContent align="end" className="[--radius:1rem]">
 										<DropdownMenuGroup>
-											<DialogTrigger asChild>
+											{/* <DialogTrigger asChild>
 												<DropdownMenuItem>
 													<CalendarClock />
 													Edit submission deadline
 												</DropdownMenuItem>
-											</DialogTrigger>
+											</DialogTrigger> */}
 											<DropdownMenuItem>
 												<ChartCandlestick />
 												Enable auto-close
 											</DropdownMenuItem>
-											{/* <DropdownMenuItem>
+											<DropdownMenuItem onClick={() => router.push(`/edition/${editionId}/status`)}>
 												<Eye />
-												See who hasn&apos;t submitted
-											</DropdownMenuItem> */}
+												See who has submitted
+											</DropdownMenuItem>
 										</DropdownMenuGroup>
 									</DropdownMenuContent>
 								</DropdownMenu>
@@ -328,15 +319,19 @@ const EditionHostOptions: React.FC<EditionHostOptionsProps> = ({
 									</DropdownMenuTrigger>
 									<DropdownMenuContent align="end" className="[--radius:1rem]">
 										<DropdownMenuGroup>
-											<DialogTrigger asChild>
+											{/* <DialogTrigger asChild>
 												<DropdownMenuItem>
 													<CalendarClock />
 													Edit voting deadline
 												</DropdownMenuItem>
-											</DialogTrigger>
+											</DialogTrigger> */}
 											<DropdownMenuItem onClick={() => handleAutoCloseVoting(closeVotingType === 'manually' ? true : false)}>
 												<ChartCandlestick />
-												Enable auto-close
+												{closeVotingType === 'manually' ? 'Enable' : 'Disable'} auto-close
+											</DropdownMenuItem>
+											<DropdownMenuItem onClick={() => router.push(`/edition/${editionId}/status`)}>
+												<Eye />
+												See who has voted
 											</DropdownMenuItem>
 											<DropdownMenuItem onClick={() => setSpotifyDialogOpen(true)}>
 												<Image src={`/spotifyLogo.svg`} width={17.5} height={17.5} alt={`spotifyLogo`} quality={80} sizes="640px" />

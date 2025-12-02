@@ -17,7 +17,7 @@ export async function setAutoCloseVoting(editionId: string, autoClose: boolean) 
 		const contest = (await edition.contest()).data;
 
 		if (contest?.hostId !== authUser?.userId) {
-			throw new Error('You must be the contest host to set the playlist closing type.');
+			throw new Error('You must be the contest host to set the auto closing type.');
 		}
 
 		const { errors } = await cookiesClient.models.Edition.update({
@@ -29,9 +29,9 @@ export async function setAutoCloseVoting(editionId: string, autoClose: boolean) 
 			throw new Error(errors[0].message);
 		}
 
-		return { success: true, date: edition.votingDeadline };
+		return { success: true, date: edition.votingDeadline, message: 'Auto close setting changed for edition' };
 	} catch (error) {
 		console.error('Server Action failed:', error);
-		return { success: false, error: 'Failed to set playlist link.' };
+		return { success: false, error };
 	}
 }

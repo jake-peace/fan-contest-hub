@@ -32,6 +32,6 @@ export async function setPlaylistLink(editionId: string, link: string) {
 		return { success: true };
 	} catch (error) {
 		console.error('Server Action failed:', error);
-		return { success: false, error: 'Failed to set playlist link.' };
+		return { success: false, error: error };
 	}
 }

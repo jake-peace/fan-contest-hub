@@ -244,7 +244,7 @@ const EditionHostOptions: React.FC<EditionHostOptionsProps> = ({
 	};
 
 	switch (phase) {
-		case 'VOTING':
+		case 'SUBMISSION':
 			return (
 				<>
 					<div className="w-full flex">
@@ -301,7 +301,7 @@ const EditionHostOptions: React.FC<EditionHostOptionsProps> = ({
 					{ConfirmActionDialog('close submissions')}
 				</>
 			);
-		case 'SUBMISSION':
+		case 'VOTING':
 			return (
 				<>
 					<div className="w-full flex">

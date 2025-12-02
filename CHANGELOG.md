@@ -1,3 +1,18 @@
+# [1.7.0](https://github.com/jake-peace/fan-contest-hub/compare/v1.6.9...v1.7.0) (2025-12-02)
+
+### Bug Fixes
+
+- fixed an issue where submissions were not appearing below list of participants ([1e66c9a](https://github.com/jake-peace/fan-contest-hub/commit/1e66c9ab6384515f85c1cb1cf7a206e7a5c230d4))
+- fixed an issue where the page sometimes crashed when creating a new edition ([85b6c19](https://github.com/jake-peace/fan-contest-hub/commit/85b6c190eae0856ef13927036ecf183700d68c6c))
+
+### Features
+
+- added leaderboard, televotes to results, loading state when completing some actions ([95e56b7](https://github.com/jake-peace/fan-contest-hub/commit/95e56b794bc084984a4a57130bbf46bbd643e7e8))
+- contest host actions have been moved to a dropdown menu ([8df1483](https://github.com/jake-peace/fan-contest-hub/commit/8df1483578004e1d44242ca73167392468219aa6))
+- contest host can now edit contest name and description ([b50397f](https://github.com/jake-peace/fan-contest-hub/commit/b50397fd5137ef6e9ecfa9376fbb4b3c333e1218))
+- contest host can now see who has voted or submitted ([af9f754](https://github.com/jake-peace/fan-contest-hub/commit/af9f75437437434fb5b58d0e36239f4b742c60e4))
+- host can now change voting deadline and set vote to auto close ([37e7a20](https://github.com/jake-peace/fan-contest-hub/commit/37e7a2090901db2f41f95d71022ebbe831e7680b))
+
 ## [1.6.9](https://github.com/jake-peace/fan-contest-hub/compare/v1.6.8...v1.6.9) (2025-12-01)
 
 ### Bug Fixes

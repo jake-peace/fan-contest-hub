@@ -56,7 +56,7 @@ const Header: React.FC = () => {
 	useEffect(() => {
 		const getBackPathname = async () => {
 			if (pathname.includes('edition')) {
-				if (pathname.includes('vote') || pathname.includes('submit') || pathname.includes('results')) {
+				if (pathname.includes('vote') || pathname.includes('submit') || pathname.includes('results') || pathname.includes('status')) {
 					setBackPathname(`/edition/${pathname.split('/')[2]}`);
 				} else if (pathname.includes('create')) {
 					setBackPathname(`/contest/${pathname.split('/')[2]}`);

@@ -1,3 +1,9 @@
+# [1.8.0](https://github.com/jake-peace/fan-contest-hub/compare/v1.7.0...v1.8.0) (2025-12-03)
+
+### Features
+
+- users now have profile pictures ([4fd560d](https://github.com/jake-peace/fan-contest-hub/commit/4fd560d67ef2659dfd04ecee30065492d078581a))
+
 # [1.7.0](https://github.com/jake-peace/fan-contest-hub/compare/v1.6.9...v1.7.0) (2025-12-02)
 
 ### Bug Fixes

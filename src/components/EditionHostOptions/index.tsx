@@ -34,7 +34,6 @@ import { openSubmissions } from '@/app/actions/openSubmissions';
 import { Collapsible, CollapsibleContent, CollapsibleTrigger } from '../ui/collapsible';
 import { Alert, AlertTitle } from '../ui/alert';
 import { Card } from '../ui/card';
-import { Schema } from '../../../amplify/data/resource';
 import { openTelevote } from '@/app/actions/openTelevote';
 import { Spinner } from '../ui/spinner';
 import { useRouter } from 'next/navigation';
@@ -44,13 +43,12 @@ import DateTimeHandler from '../DateTimeHandler';
 import { setAutoCloseVoting } from '@/app/actions/setAutoCloseVoting';
 import { formatDate } from '@/utils';
 
-type Submission = Schema['Submission']['type'];
-
 interface EditionHostOptionsProps {
 	editionId: string;
 	phase: string;
 	onRefetch: () => void;
-	submissions?: Submission[];
+	// eslint-disable-next-line @typescript-eslint/no-explicit-any
+	submissions?: any[];
 	televote: boolean;
 	editionName: string;
 	televoteId?: string;
@@ -76,7 +74,7 @@ const EditionHostOptions: React.FC<EditionHostOptionsProps> = ({
 	const [submissionDeadline, setSubmissionDeadline] = useState<Date>(new Date());
 	const [votingDeadline, setVotingDeadline] = useState<Date>(new Date());
 
-	console.log(televote);
+	// TODO: give this page it's own api request
 
 	const handleAction = (description: string) => {
 		switch (description) {

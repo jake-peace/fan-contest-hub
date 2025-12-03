@@ -20,30 +20,46 @@ import { Alert, AlertDescription, AlertTitle } from '../ui/alert';
 import EditionHostOptions from '../EditionHostOptions';
 import { getPhaseColor } from '../EditionList';
 import Image from 'next/image';
-import { EditionWithDetails } from '@/types/Edition';
-import { Collapsible, CollapsibleContent, CollapsibleTrigger } from '../ui/collapsible';
-import { SubmissionWithScore } from '../ResultsComponent';
-import { fetchSavedRanking } from '../VotingComponent';
+import { SelectionSet } from 'aws-amplify/api';
+import ResultsList from '../ResultsList';
+import VotesList from '../VotesList';
 
 interface EditionDetailsProps {
 	editionId: string;
 	user: AuthUser;
 }
 
-const rankingPoints = new Map<number, number>([
-	[1, 12],
-	[2, 10],
-	[3, 8],
-	[4, 7],
-	[5, 6],
-	[6, 5],
-	[7, 4],
-	[8, 3],
-	[9, 2],
-	[10, 1],
-]);
-
+// eslint-disable-next-line @typescript-eslint/no-unused-vars
+const selectionSet = [
+	'closeSubmissionType',
+	'submissionDeadline',
+	'submissionsOpen',
+	'name',
+	'description',
+	'phase',
+	'contest.participants',
+	'contest.hostId',
+	'contest.contestId',
+	'spotifyPlaylistLink',
+	'submissions.songTitle',
+	'submissions.artistName',
+	'submissions.flag',
+	'submissions.countryName',
+	'submissions.spotifyUri',
+	'submissions.runningOrder',
+	'submissions.submissionId',
+	'submissions.rejected',
+	'submissions.userId',
+	'votingDeadline',
+	'closeVotingType',
+	'rankings.userId',
+	'rankings.rankingList',
+	'savedRankings.userId',
+	'televoteId',
+	'resultsRevealed',
+] as const;
 type Submission = Schema['Submission']['type'];
+type Edition = SelectionSet<Schema['Edition']['type'], typeof selectionSet>;
 type Vote = Schema['Vote']['type'];
 
 export const fetchEdition = async (id: string) => {
@@ -54,7 +70,7 @@ export const fetchEdition = async (id: string) => {
 	}
 
 	const result = await response.json();
-	return result.edition as EditionWithDetails;
+	return result.edition as Edition;
 };
 
 const EditionDetails: React.FC<EditionDetailsProps> = ({ editionId, user }) => {
@@ -71,11 +87,6 @@ const EditionDetails: React.FC<EditionDetailsProps> = ({ editionId, user }) => {
 		queryFn: () => fetchEdition(editionId),
 	});
 
-	const { data: savedRanking } = useQuery({
-		queryKey: ['editionDetailsSavedRanking', editionId],
-		queryFn: () => fetchSavedRanking(editionId),
-	});
-
 	useEffect(() => {
 		const song = searchParams.get('song');
 		if (song) {
@@ -85,24 +96,24 @@ const EditionDetails: React.FC<EditionDetailsProps> = ({ editionId, user }) => {
 	}, [searchParams]); // Reruns when query params change
 
 	const hasUserSubmitted = (): boolean => {
-		if (!edition?.submissionList) {
+		if (!edition?.submissions) {
 			return false;
 		}
-		return edition?.submissionList.find((s) => s.userId === user.userId && s.rejected !== true) !== undefined;
+		return edition?.submissions.find((s) => s.userId === user.userId && s.rejected !== true) !== undefined;
 	};
 
 	const userSubmission = (): Submission => {
-		return (edition?.submissionList as Submission[]).find((s) => s.userId === user.userId && s.rejected !== true) as Submission;
+		return (edition?.submissions as Submission[]).find((s) => s.userId === user.userId && s.rejected !== true) as Submission;
 	};
 
 	const hasUserVoted = (): boolean => {
-		return edition?.rankingsList?.find((r) => r.userId === user.userId) !== undefined;
+		return edition?.rankings?.find((r) => r.userId === user.userId) !== undefined;
 	};
 
 	const wasEntryRejected = (): boolean => {
 		return (
-			(edition?.submissionList as Submission[]).find((s) => s.userId === user.userId && s.rejected === true) !== undefined &&
-			(edition?.submissionList as Submission[]).find((s) => s.userId === user.userId && s.rejected !== true) === undefined
+			edition?.submissions?.find((s) => s.userId === user.userId && s.rejected === true) !== undefined &&
+			edition?.submissions.find((s) => s.userId === user.userId && s.rejected !== true) === undefined
 		);
 	};
 
@@ -140,7 +151,7 @@ const EditionDetails: React.FC<EditionDetailsProps> = ({ editionId, user }) => {
 			if (edition.phase === 'VOTING') {
 				return (
 					<>
-						{edition.submissionList?.some((s) => s.userId === user.userId) === undefined && (
+						{edition.submissions?.some((s) => s.userId === user.userId) === undefined && (
 							<Alert>
 								<AlertTitle>
 									<Info />
@@ -159,7 +170,7 @@ const EditionDetails: React.FC<EditionDetailsProps> = ({ editionId, user }) => {
 								Vote Now
 							</Button>
 						)}
-						{savedRanking !== null && !hasUserVoted() && (
+						{edition.savedRankings.some((rank) => rank.userId === user.userId) && !hasUserVoted() && (
 							<Alert className="mt-1">
 								<AlertTitle className="flex items-center gap-2">
 									<Info />
@@ -173,7 +184,7 @@ const EditionDetails: React.FC<EditionDetailsProps> = ({ editionId, user }) => {
 
 			if (edition.phase === 'RESULTS' || edition.phase === 'COMPLETE') {
 				return (
-					edition.rankingsList && (
+					edition.rankings && (
 						<Button className="w-full" onClick={() => router.push(`/edition/${editionId}/results`)}>
 							<Trophy className="w-4 h-4 mr-2" />
 							View Results
@@ -209,22 +220,6 @@ const EditionDetails: React.FC<EditionDetailsProps> = ({ editionId, user }) => {
 			</>
 		);
 	}
-
-	const getBadgeColor = (rank: number) => {
-		if (rank > 10) {
-			return 'bg-(--destructive)';
-		}
-		switch (rank) {
-			case 1:
-				return 'bg-(--gold) text-[black]';
-			case 2:
-				return 'bg-(--silver) text-[black]';
-			case 3:
-				return 'bg-(--bronze) text-[black]';
-			default:
-				return '';
-		}
-	};
 
 	return (
 		edition && (
@@ -271,7 +266,7 @@ const EditionDetails: React.FC<EditionDetailsProps> = ({ editionId, user }) => {
 									<span>{formatDate(edition.submissionsOpen)}</span>
 								</div>
 							)}
-							{edition.submissionDeadline && edition.closeSubmissionType === 'specificDate' && (
+							{edition.submissionDeadline && edition.closeSubmissionType === 'specificDate' && edition.phase === 'SUBMISSION' && (
 								<div className="flex items-center justify-between">
 									<span className="flex items-center gap-2">
 										<Clock className="w-4 h-4" />
@@ -280,7 +275,7 @@ const EditionDetails: React.FC<EditionDetailsProps> = ({ editionId, user }) => {
 									<span>{formatDate(edition.submissionDeadline)}</span>
 								</div>
 							)}
-							{edition.votingDeadline && edition.closeVotingType === 'specificDate' && (
+							{edition.votingDeadline && edition.closeVotingType === 'specificDate' && edition.phase === 'VOTING' && (
 								<div className="flex items-center justify-between">
 									<span className="flex items-center gap-2">
 										<Vote className="w-4 h-4" />
@@ -292,17 +287,17 @@ const EditionDetails: React.FC<EditionDetailsProps> = ({ editionId, user }) => {
 						</div>
 
 						<div className="space-y-2">
-							{edition.contestDetails.participants && (
+							{edition.contest.participants && (
 								<div className="flex items-center justify-between">
 									<span className="flex items-center gap-2">
 										<Users className="w-4 h-4" />
 										Participants
 									</span>
-									<span>{edition.contestDetails.participants.length}</span>
+									<span>{edition.contest.participants.length}</span>
 								</div>
 							)}
 
-							{edition.phase === 'SUBMISSION' && edition.contestDetails.participants && (
+							{edition.phase === 'SUBMISSION' && edition.contest.participants && (
 								<div className="space-y-1">
 									<div className="flex items-center justify-between">
 										<span className="flex items-center gap-2">
@@ -310,29 +305,25 @@ const EditionDetails: React.FC<EditionDetailsProps> = ({ editionId, user }) => {
 											Submissions
 										</span>
 										<span>
-											{edition.submissionList?.filter((s) => s.rejected !== true).length}/{edition.contestDetails.participants.length}
+											{edition.submissions?.filter((s) => s.rejected !== true).length}/{edition.contest.participants.length}
 										</span>
 									</div>
 									<Progress
-										value={
-											((edition.submissionList as Submission[]).filter((s) => s.rejected !== true).length /
-												edition.contestDetails.participants.length) *
-											100
-										}
+										value={(edition.submissions.filter((s) => s.rejected !== true).length / edition.contest.participants.length) * 100}
 										className="h-2"
 									/>
 								</div>
 							)}
 
-							{edition.phase === 'VOTING' && edition.contestDetails.participants && edition.rankingsList && (
+							{edition.phase === 'VOTING' && edition.contest.participants && edition.rankings && (
 								<div className="space-y-1">
 									<div className="flex justify-between">
 										<span>Votes Cast</span>
 										<span>
-											{edition.rankingsList.length}/{edition.contestDetails.participants.length}
+											{edition.rankings.length}/{edition.submissions.length}
 										</span>
 									</div>
-									<Progress value={(edition.rankingsList.length / edition.contestDetails.participants.length) * 100} className="h-2" />
+									<Progress value={(edition.rankings.length / edition.submissions.length) * 100} className="h-2" />
 								</div>
 							)}
 						</div>
@@ -354,13 +345,13 @@ const EditionDetails: React.FC<EditionDetailsProps> = ({ editionId, user }) => {
 							</Button>
 						)}
 
-						{(user.userId === edition.contestDetails.hostId || process.env.NODE_ENV === 'development') && (
+						{(user.userId === edition.contest.hostId || process.env.NODE_ENV === 'development') && (
 							<>
 								<EditionHostOptions
 									phase={edition.phase}
 									onRefetch={refetch}
 									editionId={editionId}
-									submissions={edition.submissionList}
+									submissions={edition.submissions}
 									televote={edition.televoteId !== null}
 									editionName={edition.name}
 									televoteId={edition.televoteId || undefined}
@@ -386,7 +377,7 @@ const EditionDetails: React.FC<EditionDetailsProps> = ({ editionId, user }) => {
 									submission={userSubmission()}
 									isHost={false}
 									onReject={refetch}
-									contestId={edition.contestDetails.contestId as string}
+									contestId={edition.contest.contestId as string}
 									isUser
 								/>
 							)}
@@ -422,7 +413,7 @@ const EditionDetails: React.FC<EditionDetailsProps> = ({ editionId, user }) => {
 										<Card className="p-4 bg-muted" />
 									</Skeleton>
 								) : (
-									(edition.submissionList as Submission[])
+									(edition.submissions as Submission[])
 										.filter((s) => s.rejected !== true)
 										.sort((a, b) => (a.runningOrder as number) - (b.runningOrder as number))
 										.map((s) => (
@@ -430,7 +421,7 @@ const EditionDetails: React.FC<EditionDetailsProps> = ({ editionId, user }) => {
 												key={s.submissionId}
 												submission={s}
 												isHost={false}
-												contestId={edition.contestDetails.contestId as string}
+												contestId={edition.contest.contestId as string}
 												showRunningOrder
 												isUser={false}
 											/>
@@ -439,59 +430,17 @@ const EditionDetails: React.FC<EditionDetailsProps> = ({ editionId, user }) => {
 							</CardContent>
 						</Card>
 						<Card className="mb-4 py-6 gap-2">
-							<Collapsible>
-								<CardHeader>
-									<CollapsibleTrigger>
-										<CardTitle className="flex items-center gap-2">View Your Votes</CardTitle>
-									</CollapsibleTrigger>
-								</CardHeader>
-								<CardContent className="space-y-1">
-									<CollapsibleContent>
-										{edition.rankingsList?.find((x) => x.userId === user.userId) !== undefined ? (
-											edition.rankingsList
-												?.find((r) => r.userId === user.userId)
-												?.rankingList?.map((s, index) => (
-													<div key={s} className={`p-2 border rounded-lg transition-all hover:bg-muted/50 cursor-pointer border-border`}>
-														<div className="flex items-center justify-between gap-3">
-															<div className="min-w-10 max-w-10 h-10 rounded-sm overflow-hidden relative">
-																<Image
-																	src={`https://flagcdn.com/w640/${edition.submissionList?.find((a) => a.submissionId === s)?.flag?.toLowerCase()}.png`}
-																	fill
-																	alt={`${edition.submissionList?.find((a) => a.submissionId === s)?.countryName}'s flag`}
-																	style={{ objectFit: 'cover', objectPosition: 'center' }}
-																	quality={80}
-																	sizes="640px"
-																/>
-															</div>
-															<div className="flex-1 truncate">
-																<h3 className="font-medium truncate">
-																	{edition.submissionList?.find((a) => a.submissionId === s)?.songTitle}
-																</h3>
-																<p className="text-sm text-muted-foreground truncate">
-																	by {edition.submissionList?.find((a) => a.submissionId === s)?.artistName}
-																</p>
-															</div>
-															<div className="flex items-center gap-2">
-																<Badge variant="secondary" className={getBadgeColor(index + 1)}>
-																	{rankingPoints.get(index + 1)}
-																</Badge>
-															</div>
-														</div>
-													</div>
-												))
-										) : (
-											<Alert>
-												<AlertTitle>You haven&apos;t voted yet</AlertTitle>
-											</Alert>
-										)}
-									</CollapsibleContent>
-								</CardContent>
-							</Collapsible>
+							<CardHeader>
+								<CardTitle className="flex items-center gap-2">Your Ranking</CardTitle>
+							</CardHeader>
+							<CardContent className="space-y-1">
+								<VotesList editionId={editionId} user={user} />
+							</CardContent>
 						</Card>
 					</>
 				)}
 
-				{edition.phase === 'SUBMISSION' && (edition.contestDetails.hostId === user.userId || process.env.NODE_ENV === 'development') && (
+				{edition.phase === 'SUBMISSION' && (edition.contest.hostId === user.userId || process.env.NODE_ENV === 'development') && (
 					<Card className="mb-4 py-6 gap-2">
 						<CardHeader>
 							<CardTitle className="flex items-center gap-2">Submissions</CardTitle>
@@ -503,15 +452,15 @@ const EditionDetails: React.FC<EditionDetailsProps> = ({ editionId, user }) => {
 									<Card className="p-4 bg-muted" />
 								</Skeleton>
 							) : (
-								(edition.submissionList as Submission[])
+								(edition.submissions as Submission[])
 									.filter((s) => s.rejected !== true)
 									.map((s) => (
 										<SubmissionCard
 											key={s.submissionId}
 											submission={s}
 											onReject={refetch}
-											isHost={user.userId === edition.contestDetails.hostId || process.env.NODE_ENV === 'development'}
-											contestId={edition.contestDetails.contestId as string}
+											isHost={user.userId === edition.contest.hostId || process.env.NODE_ENV === 'development'}
+											contestId={edition.contest.contestId as string}
 										/>
 									))
 							)}
@@ -527,53 +476,7 @@ const EditionDetails: React.FC<EditionDetailsProps> = ({ editionId, user }) => {
 				)}
 
 				{edition.phase === 'RESULTS' && edition.resultsRevealed && (
-					<Card className="mb-4 py-6 gap-2">
-						<Collapsible>
-							<CardHeader>
-								<CollapsibleTrigger>
-									<CardTitle className="flex items-center gap-2">View Scoreboard</CardTitle>
-								</CollapsibleTrigger>
-							</CardHeader>
-							<CardContent>
-								<CollapsibleContent>
-									{(edition.submissionList as SubmissionWithScore[]).map((song, index) => (
-										<div
-											key={song.submissionId}
-											className={`p-2 border rounded-lg transition-all hover:bg-muted/50 cursor-pointer border-border mb-1`}
-										>
-											<div className="flex items-center justify-between gap-3">
-												<div className="flex items-center gap-2">
-													<Badge variant="secondary" className={getBadgeColor(index + 1)}>
-														{index + 1}
-													</Badge>
-												</div>
-												<div className="min-w-10 max-w-10 h-10 rounded-sm overflow-hidden relative">
-													<Image
-														src={`https://flagcdn.com/w640/${song.flag?.toLowerCase()}.png`}
-														fill
-														alt={`${song.countryName}'s flag`}
-														style={{ objectFit: 'cover', objectPosition: 'center' }}
-														quality={80}
-														sizes="640px"
-													/>
-												</div>
-												<div className="flex-1 truncate">
-													<h3 className="font-medium truncate">{song?.songTitle}</h3>
-													<p className="text-sm text-muted-foreground truncate">by {song?.artistName}</p>
-												</div>
-												<div
-													className={`text-lg text-white p-2 rounded-md min-w text-center flex items-center justify-center bg-[#2196f3]`}
-													style={{ width: 40, height: 30, fontWeight: 'bold' }}
-												>
-													{song.score}
-												</div>
-											</div>
-										</div>
-									))}
-								</CollapsibleContent>
-							</CardContent>
-						</Collapsible>
-					</Card>
+					<ResultsList editionId={editionId} resultsRevealed={edition.resultsRevealed} />
 				)}
 			</>
 		)

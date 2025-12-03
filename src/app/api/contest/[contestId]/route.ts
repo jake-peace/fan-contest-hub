@@ -8,7 +8,10 @@ export async function GET(request: Request, segmentData: { params: Params }) {
 	const contestId = params.contestId;
 
 	try {
-		const { data } = await cookiesClient.models.Contest.get({ contestId: contestId });
+		const { data } = await cookiesClient.models.Contest.get(
+			{ contestId: contestId },
+			{ selectionSet: ['name', 'description', 'participants', 'joinCode', 'hostId'] }
+		);
 
 		return NextResponse.json({ contest: data });
 		// eslint-disable-next-line @typescript-eslint/no-explicit-any

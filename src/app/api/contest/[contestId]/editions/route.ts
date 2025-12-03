@@ -1,5 +1,4 @@
-import { AuthGetCurrentUserServer, cookiesClient } from '@/utils/amplify-utils';
-import { cookies } from 'next/headers';
+import { cookiesClient } from '@/utils/amplify-utils';
 import { NextResponse } from 'next/server';
 
 type Params = Promise<{ contestId: string }>;
@@ -9,30 +8,32 @@ export async function GET(request: Request, segmentData: { params: Params }) {
 	const contestId = params.contestId;
 
 	try {
-		const currentRequestCookies = cookies;
-		const authUser = await AuthGetCurrentUserServer(currentRequestCookies);
-
-		const { data } = await cookiesClient.models.Edition.list({
-			filter: {
-				contestId: { eq: contestId },
+		const { data } = await cookiesClient.models.Contest.get(
+			{
+				contestId: contestId,
 			},
-			limit: 10000,
-		});
+			{
+				selectionSet: [
+					'name',
+					'description',
+					'participants',
+					'joinCode',
+					'hostId',
+					'editions.editionId',
+					'editions.phase',
+					'editions.submissionsOpen',
+					'editions.closeSubmissionType',
+					'editions.submissionDeadline',
+					'editions.closeVotingType',
+					'editions.votingDeadline',
+					'editions.name',
+					'editions.rankings.userId',
+					'editions.submissions.userId',
+				],
+			}
+		);
 
-		const promises = data.map(async (e) => {
-			const submissions = (await e.submissions({ limit: 10000 })).data;
-			const rankings = (await e.rankings({ limit: 10000 })).data;
-			const newObject = {
-				...e,
-				hasVoted: rankings.some((r) => r.userId === authUser?.userId),
-				hasSubmitted: submissions.some((s) => s.userId === authUser?.userId && !s.rejected),
-			};
-			return newObject;
-		});
-
-		const returnData = await Promise.all(promises);
-
-		return NextResponse.json({ editions: returnData });
+		return NextResponse.json({ contest: data });
 		// eslint-disable-next-line @typescript-eslint/no-explicit-any
 	} catch (error: any) {
 		if (error.name === 'NotAuthorizedError') {

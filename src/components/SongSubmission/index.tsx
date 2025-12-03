@@ -56,7 +56,7 @@ const SongSubmission: React.FC<SongSubmissionProps> = ({ editionId, user }) => {
 
 	useEffect(() => {
 		if (!isLoading) {
-			if (edition?.submissionList?.find((s) => s.userId === user.userId && s.rejected !== true) !== undefined) {
+			if (edition?.submissions?.find((s) => s.userId === user.userId && s.rejected !== true) !== undefined) {
 				router.push(`/edition/${editionId}`);
 				toast.error('You have already submitted a song for this edition.');
 			}

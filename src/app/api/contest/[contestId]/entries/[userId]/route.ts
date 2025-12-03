@@ -21,7 +21,7 @@ export async function GET(request: Request, segmentData: { params: Params }) {
 		const { data: submissions } = await cookiesClient.models.Submission.list({
 			filter: {
 				or: editionList.map((id: string) => ({ editionId: { eq: id } })),
-				and: { userId: { eq: userId } },
+				and: { userId: { eq: userId }, rejected: { ne: true } },
 			},
 			limit: 10000,
 		});

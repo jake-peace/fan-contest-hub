@@ -12,6 +12,7 @@ import { AlertCircleIcon, Check, CircleEllipsis, TriangleAlert } from 'lucide-re
 import { Alert, AlertDescription } from '../ui/alert';
 import { SelectionSet } from 'aws-amplify/api';
 import { Schema } from '../../../amplify/data/resource';
+import Avatar from 'boring-avatars';
 
 interface EditionStatusParams {
 	editionId: string;
@@ -84,7 +85,10 @@ const EditionStatus: React.FC<EditionStatusParams> = ({ editionId, user }) => {
 				profiles.map((profile) => (
 					<Card className="p-2" key={profile.userId}>
 						<div className="flex items-center justify-between gap-3">
-							<div>{profile.displayName}</div>
+							<div className="flex gap-2 items-center">
+								<Avatar name={profile.userId as string} variant="beam" size={20} />
+								{profile.displayName}
+							</div>
 							{edition?.phase === 'SUBMISSION' ? (
 								edition.submissions.some((sub) => sub.userId === profile.userId) && (
 									<div className="flex items-center gap-1 text-(--success)">
@@ -110,12 +114,6 @@ const EditionStatus: React.FC<EditionStatusParams> = ({ editionId, user }) => {
 									</div>
 								)
 							)}
-							{/* {actioned?.actionedParticipants?.includes(profile.userId as string) && (
-								<div className="flex items-center gap-1 text-(--success)">
-									{actioned.phase === 'SUBMISSION' ? 'Submitted' : 'Voted'}
-									<Check />
-								</div>
-							)} */}
 						</div>
 					</Card>
 				))}

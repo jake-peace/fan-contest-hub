@@ -5,11 +5,11 @@ import { Schema } from '../../../amplify/data/resource';
 import { ListOrdered } from 'lucide-react';
 import { Button } from '../ui/button';
 import { useQuery } from '@tanstack/react-query';
-import { Avatar, AvatarImage } from '../ui/avatar';
 import { Skeleton } from '../ui/skeleton';
 import { useRouter } from 'next/navigation';
 import { Accordion, AccordionContent, AccordionItem, AccordionTrigger } from '../ui/accordion';
 import { EntryList } from '../EntryList';
+import Avatar from 'boring-avatars';
 // import { Dialog, DialogClose, DialogContent, DialogDescription, DialogFooter, DialogHeader, DialogTitle } from '../ui/dialog';
 // import { useState } from 'react';
 
@@ -69,14 +69,10 @@ const MembersList: React.FC<MembersListProps> = ({ contestId }) => {
 								members.map((m) => (
 									<AccordionItem key={m.userId} value={m.userId as string}>
 										<AccordionTrigger className="justify-center">
-											<Avatar>
-												<AvatarImage
-													src={
-														'https://upload.wikimedia.org/wikipedia/commons/thumb/8/8d/President_Barack_Obama.jpg/961px-President_Barack_Obama.jpg'
-													}
-												/>
-											</Avatar>
-											<h3 className="text-lg truncate min-w-0 flex-grow">{m.displayName}</h3>
+											<div className="flex items-center gap-2 mr-auto justify-between">
+												<Avatar name={m.userId as string} variant="beam" size={35} />
+												<h3 className="text-lg truncate min-w-0 flex-grow">{m.displayName}</h3>
+											</div>
 										</AccordionTrigger>
 										<AccordionContent className="flex flex-col gap-1 text-balance">
 											<div className="font-bold">{`${m.displayName}'s Entries`}</div>

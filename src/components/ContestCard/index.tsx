@@ -14,8 +14,11 @@ import { toast } from 'sonner';
 import { Skeleton } from '../ui/skeleton';
 import { AuthUser } from 'aws-amplify/auth';
 import { Collapsible, CollapsibleContent } from '../ui/collapsible';
+import { SelectionSet } from 'aws-amplify/api';
 
-type Contest = Schema['Contest']['type'];
+// eslint-disable-next-line @typescript-eslint/no-unused-vars
+const selectionSet = ['name', 'description', 'participants', 'joinCode', 'hostId'] as const;
+type Contest = SelectionSet<Schema['Contest']['type'], typeof selectionSet>;
 
 export const fetchContest = async (id: string) => {
 	const response = await fetch(`/api/contest/${id}`);
@@ -169,7 +172,7 @@ const ContestInfoCard: React.FC<{ contestId: string; user: AuthUser }> = ({ cont
 					</CollapsibleContent>
 				</Collapsible>
 
-				<EditionList contest={contest} />
+				<EditionList contestId={contestId} user={user.userId} />
 			</>
 		)
 	);

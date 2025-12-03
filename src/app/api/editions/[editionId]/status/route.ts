@@ -18,42 +18,42 @@ export async function GET(request: Request, segmentData: { params: Params }) {
 
 		const { data } = await cookiesClient.models.Edition.get(
 			{ editionId: editionId },
-			{ selectionSet: ['contest.participants', 'phase', 'contest.hostId'] }
+			{ selectionSet: ['contest.participants', 'phase', 'contest.hostId', 'rankings.userId', 'submissions.userId', 'savedRankings.userId'] }
 		);
 
 		if (!data) {
 			throw new Error('No data found.');
 		}
 
-		let actionedParticipants: string[] = [];
+		// let actionedParticipants: string[] = [];
 
-		if (data.phase === 'SUBMISSION') {
-			const { data: participants } = await cookiesClient.models.Submission.list({
-				filter: {
-					or: (data.contest.participants as string[]).map((id: string) => ({ userId: { eq: id } })),
-					and: { editionId: { eq: editionId } },
-				},
-				limit: 10000,
-				selectionSet: ['userId'],
-			});
-			actionedParticipants = [...participants.map((p) => p.userId as string)];
-		} else {
-			const { data: participants } = await cookiesClient.models.Ranking.list({
-				filter: {
-					or: (data.contest.participants as string[]).map((id: string) => ({ userId: { eq: id } })),
-					and: { editionId: { eq: editionId } },
-				},
-				limit: 10000,
-				selectionSet: ['userId'],
-			});
-			actionedParticipants = [...participants.map((p) => p.userId as string)];
-		}
+		// if (data.phase === 'SUBMISSION') {
+		// 	const { data: participants } = await cookiesClient.models.Submission.list({
+		// 		filter: {
+		// 			or: (data.contest.participants as string[]).map((id: string) => ({ userId: { eq: id } })),
+		// 			and: { editionId: { eq: editionId } },
+		// 		},
+		// 		limit: 10000,
+		// 		selectionSet: ['userId'],
+		// 	});
+		// 	actionedParticipants = [...participants.map((p) => p.userId as string)];
+		// } else {
+		// 	const { data: participants } = await cookiesClient.models.Ranking.list({
+		// 		filter: {
+		// 			or: (data.contest.participants as string[]).map((id: string) => ({ userId: { eq: id } })),
+		// 			and: { editionId: { eq: editionId } },
+		// 		},
+		// 		limit: 10000,
+		// 		selectionSet: ['userId'],
+		// 	});
+		// 	actionedParticipants = [...participants.map((p) => p.userId as string)];
+		// }
 
-		console.log(actionedParticipants);
+		// console.log(actionedParticipants);
 
-		const participantsWithPhase = { actionedParticipants: actionedParticipants, phase: data.phase, contestHost: data.contest.hostId };
+		// const participantsWithPhase = { actionedParticipants: actionedParticipants, phase: data.phase, contestHost: data.contest.hostId };
 
-		return NextResponse.json({ data: participantsWithPhase });
+		return NextResponse.json({ edition: data });
 		// eslint-disable-next-line @typescript-eslint/no-explicit-any
 	} catch (error: any) {
 		// 3. Handle authentication failures (e.g., redirect or return 401)

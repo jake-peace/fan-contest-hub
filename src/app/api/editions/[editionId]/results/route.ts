@@ -83,27 +83,6 @@ export async function GET(request: Request, segmentData: { params: Params }) {
 				}
 			});
 
-			// do the same for the televotes
-			const teleCounts = new Array<number>(10).fill(0);
-
-			for (const innerArray of televoteResp?.data.map((r) => r.rankingList as string[]) as string[][]) {
-				// Check the first 10 positions (index 0 to 9) of the current inner array
-				const limit = Math.min(innerArray.length, 10);
-
-				for (let i = 0; i < limit; i++) {
-					if (innerArray[i] === s.submissionId) {
-						// Increment the count for that specific index (i)
-						teleCounts[i]++;
-					}
-				}
-			}
-
-			teleCounts.forEach((c, index) => {
-				if (c !== 0) {
-					score = score + c * (rankingPoints.get(index) as number);
-				}
-			});
-
 			submissionsWithScores = [...submissionsWithScores, { ...s, score: score }];
 		});
 

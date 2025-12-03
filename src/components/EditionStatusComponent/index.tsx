@@ -8,19 +8,26 @@ import { useEffect } from 'react';
 import { Card, CardTitle } from '../ui/card';
 import { fetchProfiles } from '../ResultsComponent';
 import { Spinner } from '../ui/spinner';
-import { AlertCircleIcon, Check } from 'lucide-react';
+import { AlertCircleIcon, Check, CircleEllipsis, TriangleAlert } from 'lucide-react';
 import { Alert, AlertDescription } from '../ui/alert';
+import { SelectionSet } from 'aws-amplify/api';
+import { Schema } from '../../../amplify/data/resource';
 
 interface EditionStatusParams {
 	editionId: string;
 	user: AuthUser;
 }
 
-interface ParticipantsWithPhase {
-	actionedParticipants: string[];
-	phase: 'SUBMISSION' | 'VOTING' | 'RESULTS';
-	contestHost: string;
-}
+// eslint-disable-next-line @typescript-eslint/no-unused-vars
+const editionSelectionSet = [
+	'contest.participants',
+	'phase',
+	'contest.hostId',
+	'rankings.userId',
+	'submissions.userId',
+	'savedRankings.userId',
+] as const;
+type Edition = SelectionSet<Schema['Edition']['type'], typeof editionSelectionSet>;
 
 const fetchEditionStatus = async (id: string) => {
 	const response = await fetch(`/api/editions/${id}/status`);
@@ -30,12 +37,12 @@ const fetchEditionStatus = async (id: string) => {
 	}
 
 	const result = await response.json();
-	return result.data as ParticipantsWithPhase;
+	return result.edition as Edition;
 };
 
 const EditionStatus: React.FC<EditionStatusParams> = ({ editionId, user }) => {
 	const {
-		data: actioned,
+		data: edition,
 		isLoading,
 		isFetched,
 	} = useQuery({
@@ -52,7 +59,7 @@ const EditionStatus: React.FC<EditionStatusParams> = ({ editionId, user }) => {
 
 	useEffect(() => {
 		if (isFetched) {
-			if (actioned?.contestHost !== user.userId) {
+			if (edition?.contest.hostId !== user.userId && process.env.NODE_ENV !== 'development') {
 				toast.error('You must be the contest host to see this page');
 				router.back();
 			}
@@ -78,12 +85,37 @@ const EditionStatus: React.FC<EditionStatusParams> = ({ editionId, user }) => {
 					<Card className="p-2" key={profile.userId}>
 						<div className="flex items-center justify-between gap-3">
 							<div>{profile.displayName}</div>
-							{actioned?.actionedParticipants?.includes(profile.userId as string) && (
+							{edition?.phase === 'SUBMISSION' ? (
+								edition.submissions.some((sub) => sub.userId === profile.userId) && (
+									<div className="flex items-center gap-1 text-(--success)">
+										Submitted
+										<Check />
+									</div>
+								)
+							) : !edition?.submissions.some((sub) => sub.userId === profile.userId) ? (
+								<div className="flex items-center gap-1 text-(--destructive)">
+									Did not submit a song
+									<TriangleAlert />
+								</div>
+							) : edition?.rankings.some((sub) => sub.userId === profile.userId) ? (
+								<div className="flex items-center gap-1 text-(--success)">
+									Voted
+									<Check />
+								</div>
+							) : (
+								edition?.savedRankings.some((sub) => sub.userId === profile.userId) && (
+									<div className="flex items-center gap-1">
+										Has started voting
+										<CircleEllipsis />
+									</div>
+								)
+							)}
+							{/* {actioned?.actionedParticipants?.includes(profile.userId as string) && (
 								<div className="flex items-center gap-1 text-(--success)">
 									{actioned.phase === 'SUBMISSION' ? 'Submitted' : 'Voted'}
 									<Check />
 								</div>
-							)}
+							)} */}
 						</div>
 					</Card>
 				))}

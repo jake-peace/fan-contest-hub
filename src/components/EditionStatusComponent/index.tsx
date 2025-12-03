@@ -10,6 +10,7 @@ import { fetchProfiles } from '../ResultsComponent';
 import { Spinner } from '../ui/spinner';
 import { AlertCircleIcon, Check } from 'lucide-react';
 import { Alert, AlertDescription } from '../ui/alert';
+import Avatar from 'boring-avatars';
 
 interface EditionStatusParams {
 	editionId: string;
@@ -52,7 +53,7 @@ const EditionStatus: React.FC<EditionStatusParams> = ({ editionId, user }) => {
 
 	useEffect(() => {
 		if (isFetched) {
-			if (actioned?.contestHost !== user.userId) {
+			if (actioned?.contestHost !== user.userId && process.env.NODE_ENV !== 'development') {
 				toast.error('You must be the contest host to see this page');
 				router.back();
 			}
@@ -77,7 +78,10 @@ const EditionStatus: React.FC<EditionStatusParams> = ({ editionId, user }) => {
 				profiles.map((profile) => (
 					<Card className="p-2" key={profile.userId}>
 						<div className="flex items-center justify-between gap-3">
-							<div>{profile.displayName}</div>
+							<div className="flex gap-2 items-center">
+								<Avatar name={profile.userId as string} variant="beam" size={20} />
+								{profile.displayName}
+							</div>
 							{actioned?.actionedParticipants?.includes(profile.userId as string) && (
 								<div className="flex items-center gap-1 text-(--success)">
 									{actioned.phase === 'SUBMISSION' ? 'Submitted' : 'Voted'}

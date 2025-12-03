@@ -21,6 +21,7 @@ import {
 	AlertDialogTitle,
 } from '../ui/alert-dialog';
 import { useEffect, useState } from 'react';
+import Avatar from 'boring-avatars';
 
 const fetchContestId = async (id: string) => {
 	const response = await fetch(`/api/editions/${id}/contestId`);
@@ -114,7 +115,7 @@ const Header: React.FC = () => {
 						</Skeleton>
 					) : (
 						<Button variant="outline" onClick={() => setSignOutDialog(true)}>
-							<User />
+							<Avatar name={profile.userId as string} variant="beam" />
 							{profile.displayName}
 						</Button>
 					)}

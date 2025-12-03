@@ -1,3 +1,9 @@
+# [1.9.0](https://github.com/jake-peace/fan-contest-hub/compare/v1.8.0...v1.9.0) (2025-12-03)
+
+### Features
+
+- api routes refactored to make loading data in faster ([6eafabd](https://github.com/jake-peace/fan-contest-hub/commit/6eafabdea79d5238de31f12b2f26b2f3b7f61c90))
+
 # [1.8.0](https://github.com/jake-peace/fan-contest-hub/compare/v1.7.0...v1.8.0) (2025-12-03)
 
 ### Features

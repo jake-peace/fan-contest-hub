@@ -63,7 +63,7 @@ export async function GET(request: Request, segmentData: { params: Params }) {
 				const counts = new Array<number>(10).fill(0);
 
 				// Iterate over every inner array in the external data
-				for (const innerArray of data?.rankings.map((r) => r.rankingList as string[]) as string[][]) {
+				for (const innerArray of data.rankings.map((r) => r.rankingList as string[]) as string[][]) {
 					// Check the first 10 positions (index 0 to 9) of the current inner array
 					const limit = Math.min(innerArray.length, 10);
 

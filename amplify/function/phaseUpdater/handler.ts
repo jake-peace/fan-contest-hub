@@ -89,6 +89,8 @@ export const handler: EventBridgeHandler<'Scheduled Event', null, void> = async 
 			submissionsOpen: { gt: parsedNow.toString() },
 		});
 
+		console.log(upcomingEditions);
+
 		const { data: recordsToUpdateSubmissions } = await client.models.Edition.list({
 			filter: {
 				// find editions where submission deadline is before the current time

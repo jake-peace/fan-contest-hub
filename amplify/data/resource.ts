@@ -91,7 +91,12 @@ const schema = a
 				edition: a.belongsTo('Edition', 'editionId'),
 			})
 			.identifier(['rankingId'])
-			.authorization((allow) => allow.authenticated()),
+			.authorization((allow) => allow.authenticated())
+			.secondaryIndexes((index) => [
+				index('editionId') // Partition Key of the GSI
+					.sortKeys(['userId']) // Sort Key of the GSI (optional, but recommended for two fields)
+					.queryField('listByEditionAndUser'), // Customize the query name
+			]),
 		SavedRanking: a
 			.model({
 				rankingId: a.id().required(),

@@ -131,8 +131,6 @@ export async function GET(request: Request, segmentData: { params: Params }) {
 			}
 		);
 
-		console.log(data);
-
 		if (!data) {
 			throw new Error('Edition not found');
 		}

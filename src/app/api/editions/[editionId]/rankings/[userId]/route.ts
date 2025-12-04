@@ -17,20 +17,26 @@ export async function GET(request: Request, segmentData: { params: Params }) {
 			throw new Error('Not authenticated.');
 		}
 
-		const { data } = await cookiesClient.models.Ranking.list({
-			filter: {
-				editionId: { eq: editionId },
+		console.log(`edition: ${editionId}, user: ${userId}`);
+
+		const { data } = await cookiesClient.models.Ranking.listByEditionAndUser(
+			{
+				editionId: editionId,
 				userId: { eq: userId },
 			},
-			selectionSet: [
-				'rankingList',
-				'edition.submissions.songTitle',
-				'edition.submissions.artistName',
-				'edition.submissions.submissionId',
-				'edition.submissions.countryName',
-				'edition.submissions.flag',
-			],
-		});
+			{
+				selectionSet: [
+					'rankingList',
+					'edition.submissions.songTitle',
+					'edition.submissions.artistName',
+					'edition.submissions.submissionId',
+					'edition.submissions.countryName',
+					'edition.submissions.flag',
+				],
+			}
+		);
+
+		console.log(data);
 
 		return NextResponse.json({ ranking: data });
 		// eslint-disable-next-line @typescript-eslint/no-explicit-any

@@ -1,3 +1,9 @@
+## [1.9.1](https://github.com/jake-peace/fan-contest-hub/compare/v1.9.0...v1.9.1) (2025-12-04)
+
+### Bug Fixes
+
+- fixed issue where votes were not appearing ([c310203](https://github.com/jake-peace/fan-contest-hub/commit/c310203003822638399700827bcc77d8cf654ae5))
+
 # [1.9.0](https://github.com/jake-peace/fan-contest-hub/compare/v1.8.0...v1.9.0) (2025-12-03)
 
 ### Features

@@ -81,6 +81,12 @@ export const handler: EventBridgeHandler<'Scheduled Event', null, void> = async 
 					},
 				],
 			},
+			limit: 10000,
+		});
+
+		const { data: upcomingEditions } = await client.models.Edition.listByPhaseAndDate({
+			phase: 'UPCOMING',
+			submissionsOpen: { gt: parsedNow.toString() },
 		});
 
 		const { data: recordsToUpdateSubmissions } = await client.models.Edition.list({

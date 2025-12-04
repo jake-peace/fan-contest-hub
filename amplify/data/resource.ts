@@ -63,7 +63,8 @@ const schema = a
 				televotes: a.hasMany('Televote', 'editionId'),
 			})
 			.identifier(['editionId'])
-			.authorization((allow) => [allow.authenticated(), allow.guest().to(['list'])]),
+			.authorization((allow) => [allow.authenticated(), allow.guest().to(['list'])])
+			.secondaryIndexes((index) => [index('phase').sortKeys(['submissionsOpen']).queryField('listByPhaseAndDate')]),
 		Submission: a
 			.model({
 				userId: a.id(),

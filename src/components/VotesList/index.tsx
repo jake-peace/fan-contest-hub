@@ -75,7 +75,7 @@ const VotesList: React.FC<VotesListParams> = ({ editionId, user }) => {
 		return <Spinner />;
 	}
 
-	return ranking?.rankingList ? (
+	return ranking ? (
 		ranking.rankingList?.map((s, index) => (
 			<div key={s} className={`p-2 border rounded-lg transition-all hover:bg-muted/50 cursor-pointer border-border`}>
 				<div className="flex items-center justify-between gap-3">

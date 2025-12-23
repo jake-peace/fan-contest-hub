@@ -1,3 +1,9 @@
+## [1.9.3](https://github.com/jake-peace/fan-contest-hub/compare/v1.9.2...v1.9.3) (2025-12-23)
+
+### Bug Fixes
+
+- fixed issue where calendar wouldn't go past 2025 ([465fbf5](https://github.com/jake-peace/fan-contest-hub/commit/465fbf530280611cb0baf8fa41fcbc62301bcf59))
+
 ## [1.9.2](https://github.com/jake-peace/fan-contest-hub/compare/v1.9.1...v1.9.2) (2025-12-04)
 
 ### Bug Fixes

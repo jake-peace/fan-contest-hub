@@ -81,6 +81,8 @@ const DateTimeHandler: React.FC<DateTimeHandlerProps> = ({ value, onChange, disa
 							captionLayout="dropdown"
 							disabled={{ before: new Date() }}
 							onSelect={handleDateChange}
+							startMonth={new Date()}
+							endMonth={new Date(2028, 11)}
 						/>
 					</PopoverContent>
 				</Popover>
